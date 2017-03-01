@@ -1,0 +1,509 @@
+% Template for PLoS
+% Version 3.4 January 2017
+%
+% % % % % % % % % % % % % % % % % % % % % %
+%
+% -- IMPORTANT NOTE
+%
+% This template contains comments intended 
+% to minimize problems and delays during our production 
+% process. Please follow the template instructions
+% whenever possible.
+%
+% % % % % % % % % % % % % % % % % % % % % % % 
+%
+% Once your paper is accepted for publication, 
+% PLEASE REMOVE ALL TRACKED CHANGES in this file 
+% and leave only the final text of your manuscript. 
+% PLOS recommends the use of latexdiff to track changes during review, as this will help to maintain a clean tex file.
+% Visit https://www.ctan.org/pkg/latexdiff?lang=en for info or contact us at latex@plos.org.
+%
+%
+% There are no restrictions on package use within the LaTeX files except that 
+% no packages listed in the template may be deleted.
+%
+% Please do not include colors or graphics in the text.
+%
+% The manuscript LaTeX source should be contained within a single file (do not use \input, \externaldocument, or similar commands).
+%
+% % % % % % % % % % % % % % % % % % % % % % %
+%
+% -- FIGURES AND TABLES
+%
+% Please include tables/figure captions directly after the paragraph where they are first cited in the text.
+%
+% DO NOT INCLUDE GRAPHICS IN YOUR MANUSCRIPT
+% - Figures should be uploaded separately from your manuscript file. 
+% - Figures generated using LaTeX should be extracted and removed from the PDF before submission. 
+% - Figures containing multiple panels/subfigures must be combined into one image file before submission.
+% For figure citations, please use "Fig" instead of "Figure".
+% See http://journals.plos.org/plosone/s/figures for PLOS figure guidelines.
+%
+% Tables should be cell-based and may not contain:
+% - spacing/line breaks within cells to alter layout or alignment
+% - do not nest tabular environments (no tabular environments within tabular environments)
+% - no graphics or colored text (cell background color/shading OK)
+% See http://journals.plos.org/plosone/s/tables for table guidelines.
+%
+% For tables that exceed the width of the text column, use the adjustwidth environment as illustrated in the example table in text below.
+%
+% % % % % % % % % % % % % % % % % % % % % % % %
+%
+% -- EQUATIONS, MATH SYMBOLS, SUBSCRIPTS, AND SUPERSCRIPTS
+%
+% IMPORTANT
+% Below are a few tips to help format your equations and other special characters according to our specifications. For more tips to help reduce the possibility of formatting errors during conversion, please see our LaTeX guidelines at http://journals.plos.org/plosone/s/latex
+%
+% For inline equations, please be sure to include all portions of an equation in the math environment.  For example, x$^2$ is incorrect; this should be formatted as $x^2$ (or $\mathrm{x}^2$ if the romanized font is desired).
+%
+% Do not include text that is not math in the math environment. For example, CO2 should be written as CO\textsubscript{2} instead of CO$_2$.
+%
+% Please add line breaks to long display equations when possible in order to fit size of the column. 
+%
+% For inline equations, please do not include punctuation (commas, etc) within the math environment unless this is part of the equation.
+%
+% When adding superscript or subscripts outside of brackets/braces, please group using {}.  For example, change "[U(D,E,\gamma)]^2" to "{[U(D,E,\gamma)]}^2". 
+%
+% Do not use \cal for caligraphic font.  Instead, use \mathcal{}
+%
+% % % % % % % % % % % % % % % % % % % % % % % % 
+%
+% Please contact latex@plos.org with any questions.
+%
+% % % % % % % % % % % % % % % % % % % % % % % %
+
+\documentclass[10pt,letterpaper]{article}
+\usepackage[top=0.85in,left=2.75in,footskip=0.75in]{geometry}
+
+% amsmath and amssymb packages, useful for mathematical formulas and symbols
+\usepackage{amsmath,amssymb}
+
+% Use adjustwidth environment to exceed column width (see example table in text)
+\usepackage{changepage}
+
+% Use Unicode characters when possible
+\usepackage[utf8x]{inputenc}
+
+% textcomp package and marvosym package for additional characters
+\usepackage{textcomp,marvosym}
+
+% cite package, to clean up citations in the main text. Do not remove.
+\usepackage{cite}
+
+% Use nameref to cite supporting information files (see Supporting Information section for more info)
+\usepackage{nameref,hyperref}
+
+% line numbers
+\usepackage[right]{lineno}
+
+% ligatures disabled
+\usepackage{microtype}
+\DisableLigatures[f]{encoding = *, family = * }
+
+% color can be used to apply background shading to table cells only
+\usepackage[table]{xcolor}
+
+% array package and thick rules for tables
+\usepackage{array}
+
+% create "+" rule type for thick vertical lines
+\newcolumntype{+}{!{\vrule width 2pt}}
+
+% create \thickcline for thick horizontal lines of variable length
+\newlength\savedwidth
+\newcommand\thickcline[1]{%
+  \noalign{\global\savedwidth\arrayrulewidth\global\arrayrulewidth 2pt}%
+  \cline{#1}%
+  \noalign{\vskip\arrayrulewidth}%
+  \noalign{\global\arrayrulewidth\savedwidth}%
+}
+
+% \thickhline command for thick horizontal lines that span the table
+\newcommand\thickhline{\noalign{\global\savedwidth\arrayrulewidth\global\arrayrulewidth 2pt}%
+\hline
+\noalign{\global\arrayrulewidth\savedwidth}}
+
+
+% Remove comment for double spacing
+%\usepackage{setspace} 
+%\doublespacing
+
+% Text layout
+\raggedright
+\setlength{\parindent}{0.5cm}
+\textwidth 5.25in 
+\textheight 8.75in
+
+% Bold the 'Figure #' in the caption and separate it from the title/caption with a period
+% Captions will be left justified
+\usepackage[aboveskip=1pt,labelfont=bf,labelsep=period,justification=raggedright,singlelinecheck=off]{caption}
+\renewcommand{\figurename}{Fig}
+
+% Use the PLoS provided BiBTeX style
+\bibliographystyle{plos2015}
+
+% Remove brackets from numbering in List of References
+\makeatletter
+\renewcommand{\@biblabel}[1]{\quad#1.}
+\makeatother
+
+% Leave date blank
+\date{}
+
+% Header and Footer with logo
+\usepackage{lastpage,fancyhdr,graphicx}
+\usepackage{epstopdf}
+\pagestyle{myheadings}
+\pagestyle{fancy}
+\fancyhf{}
+\setlength{\headheight}{27.023pt}
+\lhead{\includegraphics[width=2.0in]{PLOS-submission.eps}}
+\rfoot{\thepage/\pageref{LastPage}}
+\renewcommand{\footrule}{\hrule height 2pt \vspace{2mm}}
+\fancyheadoffset[L]{2.25in}
+\fancyfootoffset[L]{2.25in}
+\lfoot{\sf PLOS}
+
+%% Include all macros below
+
+\newcommand{\lorem}{{\bf LOREM}}
+\newcommand{\ipsum}{{\bf IPSUM}}
+
+%% END MACROS SECTION
+
+
+\begin{document}
+\vspace*{0.2in}
+
+% Title must be 250 characters or less.
+\begin{flushleft}
+{\Large
+\textbf\newline{Linking mosquito surveillance to dengue risk through Bayesian mechanistic modeling}
+}
+\newline
+% Insert author names, affiliations and corresponding author email (do not include titles, positions, or degrees).
+\\
+Clinton Leach\textsuperscript{1*},
+Colleen Webb\textsuperscript{1},
+Kim Pepin\textsuperscript{2},
+Alvaro Eiras\textsuperscript{3},
+Mevin Hooten\textsuperscript{4},
+Jennifer Hoeting\textsuperscript{4}
+
+\bigskip
+\textbf{1} Affiliation Dept/Program/Center, Institution Name, City, State, Country
+\\
+\textbf{2} Affiliation Dept/Program/Center, Institution Name, City, State, Country
+\\
+\textbf{3} Affiliation Dept/Program/Center, Institution Name, City, State, Country
+\\
+\bigskip
+
+% Insert additional author notes using the symbols described below. Insert symbol callouts after author names as necessary.
+% 
+% Remove or comment out the author notes below if they aren't used.
+
+
+% Use the asterisk to denote corresponding authorship and provide email address in note below.
+* clint.leach@colostate.edu
+
+\end{flushleft}
+% Please keep the abstract below 300 words
+\section*{Abstract}
+
+We know mosquitoes spread dengue, but mosquito abundance, as estimated from trap-based surveillance data, is not causally linked to human disease risk.
+
+% Please keep the Author Summary between 150 and 200 words
+% Use first person. PLOS ONE authors please skip this step. 
+% Author Summary not valid for PLOS ONE submissions.   
+\section*{Author summary}
+
+We know mosquitoes spread dengue, but mosquito abundance, as estimated from trap-based surveillance data, is not causally linked to human disease risk.
+
+
+\linenumbers
+
+% Use "Eq" instead of "Equation" for equation citations.
+\section*{Introduction}
+
+
+\subsection*{Dengue background}
+\begin{itemize}
+  \item large public health burden, with millions cases/year in Brazil
+  \item Complex dynamics -- vector-borne (with resulting seasonal forcing), multi-serotype (cross-immunity, ADE)
+\end{itemize}
+
+\subsection*{Dengue prevention}
+\begin{itemize}
+  \item Mosquito surveillance and control -- even once a vaccine is developed dengue management plans will likely still include vector control (\cite{Achee2015})
+  \item General efforts -- education, source reduction, etc; National Dengue Control system
+  \item Targeted efforts -- ecovec and "MI-Dengue" system -- trap monitoring and spatial prioritization of source reduction and larvicide application (\cite{Eiras2009}).
+  \begin{itemize}
+  \item Based on connection between mosquito abundance and disease risk
+  \item \href{http://www.vitoria.es.gov.br/prefeitura/mosquito-controle-ajuda-a-reduzir-incidencia-de-viroses}{general mosquito control} (City of Vitoria)
+  \item \href{http://www.vitoria.es.gov.br/prefeitura/combateadengue}{fight against dengue} (City of Vitoria)
+  \end{itemize}
+\end{itemize}
+
+\subsection*{Causal inference and mechanistic models}
+
+Previous efforts to use MosquiTRAP surveillance to predict human dengue cases in Vitoria relied on linear statistical models and asked whether models that included surveillance data performed better than models with lagged case data alone \cite{Pepin2015}.
+This procedure essentially tests for Granger causality \cite{Granger1969}, which states that some variable $X$ \emph{causes} $Y$ if $X$ contains unique information about $Y$ (i.e. if a model with $X$ and $Y$ provides better predictions of $Y$ than a model with $Y$ alone).
+However, as noted by Sugihara \emph{et al.} \cite{Sugihara2012a}, Granger causality assumes that $X$ and $Y$ are separable, which is not the case if $X$ and $Y$ are linked in a non-linear dynamical system.
+In this case, a model with $X$ and $Y$ is unlikely to outperform the model with only $Y$, since $Y$ already contains the information from $X$, a consequence of Taken's theorem (CITATION). 
+Instead, Sugihara \emph{et al.} argue that if $X$ drives $Y$, then you should be able to reconstruct $X$ from $Y$.
+
+Applying this reasoning to the problem of establishing the relationship between mosquito abundance and human dengue risk, it is not surprising that including information from mosquito surveillance does not improve our ability to predict human dengue cases, as information about epidemiologically relevant mosquito abundance is already embedded in the time series of human case reports.
+Following from \cite{Sugihara2012a} then, we ask whether we can reconstruct the mosquito surveillance time series from the time series of human case reports. 
+We do this through the use of a mechanistic differential equation model embedded in a Bayesian statistical framework.
+This differs from the equation-free approach of \cite{Sugihara2012a}, but the explicit use of a mechanistic model will better inform our understanding of the processes linking mosquito abundance and human disease risk and the embedding in a Bayesian statistical model will better account for uncertainty and the measurement processes in these data.
+
+\section*{Methods}
+
+General questions:
+\begin{itemize}
+\item Do we need to write out the explicit factorization of the posterior?
+\end{itemize}
+\subsection*{Study system and data}
+
+Vitoria is a coastal city and the capital of the state of Espirito Santo, Brazil, with a population of 304,331 (check) in the city proper, and an additional 1.5 million people in the greater metropolitan area.  
+The city has an area of approximately 93 sq. km., with most of that area taken up by a large island surrounded by the river Rio Santa Maria and bay Baia de Vitoria.  
+There is also a large, mountainous natural area that occupies a large portion of the interior of the island.
+
+Since 2008, the city has monitored mosquito abundance using 1327 sticky traps (MosquiTRAP, \cite{Eiras2009}) arranged in a grid across the city.
+Each trap is checked weekly, providing us with 243 weeks (2008 through week 34 of 2012) of counts of gravid female \emph{Aedes aegypti}.
+Dengue is a mandatory notifiable disease, and thus the city's Ministry of Health Secretary maintains a database of weekly notified probable dengue cases (i.e. medical care sought for dengue-like symptoms).
+
+Governador Valladares is also a city for which we have data.
+
+Sete Lagoas is also a city for which we have data.
+
+
+\subsection*{Process Model}
+
+Dengue epidemiology is complicated considerably by the presence of four simultaneously circulating serotypes (referred to as DENV-1, DENV-2, DENV-3, DENV-4).
+Infection with one serotype confers life-long immunity to that serotype, along with temporary immunity to other serotypes.  
+As this cross-immunity wanes, antibodies from the previous infection can actually result in antibody-dependent enhancement (ADE), wherein hosts are more susceptible to infection with the other serotypes and more likely to develop severe symptoms (i.e. dengue haemorrhagic fever or dengue shock syndrome).
+The strength and duration of these different inter-serotype interactions are not well understood, though different models suggest that temporary cross-immunity alone (without ADE) is sufficient to reproduce observed multi-annual dynamics in Thailand \cite{Wearing2006,Reich2013}.
+Similarly, \cite{Aguiar2013} find that capturing both primary and secondary infections and the period of cross-immunity is crticial, but that explicitly including all four serotypes (at great cost to model complexity) does not perform much better than a two serotype model, and indeed that the number of hospital admissions caused by a third or fourth infection is very low \cite{Aguiar2011a}.
+
+Explicitly accounting for interactions between serotypes, even only two of the four, leads to a large and complex mechanistic model.
+Moreover, since dengue case reports do not include information on serotype, we do not have enough information to inform the dynamics of individual serotypes.
+As such, we simplify the model of \cite{Wearing2006} to an SEIRS framework, which drops serotype-specific dynamics but preserves the period of cross-immunity and the possibility of reinfection.
+In this framework, susceptible individuals ($S$) become exposed ($E$) through contact with infectious mosquitoes ($V_I$).
+Following a latent period ($\frac{1}{\rho}$), exposed individuals become infectious ($I$) at which point they can infect susceptible mosquitoes ($V_S$).
+Infectious individuals recover at rate $\gamma$ and remain cross-immune for a period ($\frac{1}{\delta}$) after which they re-enter the susceptible class.
+
+Similarly, susceptible mosquitoes become exposed by biting infectious humans and pass through a temperature-dependent latent period ($\frac{1}{\rho_{v}}$) before becoming infectious.
+Total mosquito abundance, and thus the size of the mosquito susceptible pool, is forced by a latent process model informed by the mosquito surveillance data (see below).
+
+The complete differential equation model is then given as:
+\begin{align} 
+\frac{dS}{dt} &= bN - bS - \alpha \frac{V_{I}}{N} S + \delta R\\
+\frac{dE}{dt} &= \alpha \frac{V_{I}}{N} S - (\rho + b)E\\
+\frac{dI}{dt} &= \rho E - (\gamma + b)I\\
+\frac{dR}{dt} &= \gamma I - (\delta + b)R\\
+V_{St} & = V_{Nt} - V_E(t) - V_I(t)\\
+\frac{V_E}{dt} &= \alpha \frac{I}{N} V_S - (\rho_{vt} + d_v)V_E\\
+\frac{V_I}{dt} &= \rho_{vt} V_E - d_v V_I
+\end{align}
+
+
+\subsection*{Data model}
+
+This mechanistic differential equation model is then embedded in a Bayesian statistical model in order to estimate the latent mosquito abundance time series and generate sample mosquito trap counts to compare with our observations.
+To connect the differential equation model the the observed case reports, we add an extra state, $X$, that collects the cumulative number of transitions from the exposed to infectious class (assuming that case reporting coincides with the onset of symptoms).
+We then model the number of new cases reported in week $t$ ($y_t$) as:
+\begin{equation}
+y_t  \sim \text{NegBin}(\phi_y (X_t - X_{t-1}), \eta_y),
+\end{equation}
+where $\phi_y$ is the reporting probability, and $\eta_y$ controls the overdispersion relative to the Poisson.
+
+The unobserved total mosquito abundance is modeled as a random walk on the log-scale:
+\begin{equation}
+\log(V_{Nt}) \sim \text{Normal}(\log(V_{Nt-1}), \sigma)
+\end{equation}
+This is then connected to the number of mosquitoes trapped in week $t$ ($q_t$) with a negative binomial measurement model:
+\begin{equation}
+q_t \sim \text{NegBin}(\phi_q \tau_t V_{Nt}, \eta_q),
+\end{equation}
+where $\phi_q$ is the per-trap capture probability, $\tau_t$ is the number of traps inspected in week $t$, and $\eta_q$ controls overdispersion relative to the Poisson.
+
+The flexibility of the mosquito process model means that we should be able to essentially fit the case data arbitrarily well.
+The question is then whether or not the mosquito abundance time series estimated from the case data reproduces the observed mosquito surveillance time series.
+Since the initial conditions and epidemiological parameters potentially affect the mapping of the case data to mosquito abundance, we estimate these as well.
+The intention here is that the mosquito process will allow us to fit to the case data (i.e. there's essentially a best-fit trajectory that we'll always be able to find), while the epidemiological parameters will facilitate better fits to the mosquito data (while maintaining the same quality of fit at the case level).
+
+\subsection*{Parameterization and priors}
+
+Temperature is thought to play an important role in the seasonality of dengue, in particular through its influence on the extrinsic incubation period of the virus in the mosquito (i.e., the amount of time until a mosquito becomes infectious after taking an infectious blood meal).
+To account for this, we make $\rho_v$ a function of temperature, and force it with weekly mean temperature records for Vitoria downloaded from Weather Underground (URL/citation).
+We use the temperature relationship from the recent meta-analysis of \cite{Chan2012}, which incorporates a large number of records and accounts for the interval-censored nature of the data usually available from mosquito transmission studies.
+We use a slightly more conservative fitted relationship from a log-normal model excludes right-censored data and produces a less extreme temperature dependence:
+\begin{align}
+\frac{1}{\rho_v} &= \exp \left(\mu + \frac{1}{14}\right)\\
+\mu & = \exp(1.9 - 0.04 T)\\
+\end{align}
+
+This relationship is similar to those reported in \cite{Focks1995} and \cite{Tjaden2013}, though there is substantial uncertainty about the exact shape of this relationship.
+
+\begin{table}[h]
+\begin{center}
+\caption{Fixed parameter values, taken from the literature.}
+\begin{tabular}{llll}
+Parameter & Description & Value & Citation\\
+\hline
+$1/d = 1/b$ & Human life-span & 76 years & City of Vitoria\\
+$1/d_V = 1/b_V$ & Vector life-span & 5 days & \cite{Brady2013} \\
+$1/\rho$ & Latent period in host & 6.1 days & \cite{Chan2012}\\
+$1/\gamma$ & Infectious period in host & 3 days & \cite{Nguyet2013}\\
+$1/\delta$ & Period of cross-immunity & 686 days &  \cite{Reich2013}\\
+\end{tabular}
+\end{center}
+\label{fixedparms}
+\end{table}
+
+\subsection*{Implementation}
+ 
+The posterior distribution can be written as:
+\begin{equation}
+aaaaaaah
+\end{equation}
+Samples from this distribution were generated using Hamiltonian Monte Carlo (CITATIONS) implemented in the rstan package for R. 
+Within stan, the solution to the differential equation model was approximated with an Euler scheme with a time step of 1 day.  
+
+\subsection*{Posterior predictive checks}
+
+
+
+
+
+
+\section*{Results}
+
+
+\section*{Discussion}
+
+\subsection*{Additional analyses}
+
+\begin{itemize}
+  \item Dig into seasonal trends in fit
+  \item Look at how mosquito predictions change as data are added
+\end{itemize}
+
+\subsection*{Unmodeled processes}
+
+Human movement \cite{Adams2009, Cosner2009a, Stoddard2009, Dalziel2013}
+\begin{itemize}
+  \item Local mosquito abundance does not necessarily predict local disease risk
+  \begin{itemize}
+    \item human movement creates complex host-vector mixing structure (depends on vector ecology and activity periods)
+    \item mosquitoes may vary in their contribution to human disease burden (this effect size is likely fairly small and the model doesn't (currently) provide a way to pull this out)
+  \end{itemize}
+  \item Need to account for human movement in order to prioritize spatial application of control
+\end{itemize}
+\section*{Conclusions}
+
+\section*{Supporting information}
+
+\subsection*{Full model}
+
+\begin{align}
+y_t & \sim \text{NegBin}(\phi_y (X_t - X_{t-1}), \eta_y)\\
+q_t & \sim \text{NegBin}(\phi_q \tau_t V_{Nt}, \eta_q)\\
+\\ 
+\frac{dX}{dt} &= \rho E \\
+\frac{dS}{dt} &= bN - bS - \alpha \frac{V_{I}}{N} S + \delta R\\
+\frac{dE}{dt} &= \alpha \frac{V_{I}}{N} S - (\rho + b)E\\
+\frac{dI}{dt} &= \rho E - (\gamma + b)I\\
+\frac{dR}{dt} &= \gamma I - (\delta + b)R\\
+\\
+V_{St} & = V_{Nt} - V_E(t) - V_I(t)\\
+\frac{dV_E}{dt} &= \alpha \frac{I}{N} V_S - (\rho_{vt} + d_v)V_E\\
+\frac{dV_I}{dt} &= \rho_{vt} V_E - d_v V_I\\
+\\
+\log(V_{N0}) & \sim \text{Normal}(13, 2)\\
+\log(V_{Nt}) & \sim \text{Normal}(\log(V_{Nt-1}), \sigma^2)\\
+\sigma & \sim \text{Half-normal}(0, 1)\\
+\phi_q & \sim \text{Half-normal}(-16, 2.5)\\
+\eta_y &\sim \text{Half-normal}(0, 5)\\
+\eta_q & \sim \text{Half-cauchy}(0, 5)\\
+\alpha_{rel} & \sim \text{Half-normal}(1, 0.3)\\
+\rho_{rel} & \sim \text{Half-normal}(1, 0.3)\\
+\gamma_{rel} & \sim \text{Half-normal}(1, 0.3)\\
+\delta_{rel} & \sim \text{Half-normal}(1, 0.3)\\
+d_{v,rel} & \sim \text{Half-normal}(1, 0.3)\\
+\mathbf{\pi_{0}} & \sim \text{Normal}(\mathbf{\mu}, 0.09\mathbf{I})\\
+\mathbf{p_0} & = \frac{\exp(\mathbf{\pi_0})}{\sum \exp(\mathbf{\pi_0})} \\
+\end{align}
+
+\subsection*{Details of prior specification}
+
+\begin{itemize}
+\item \textbf{Period of cross-immunity} ($T_{\delta}$): Reich \emph{et al.} \cite{Reich2013} estimate a mean of 1.88 years (97 weeks) with a 95\% confidence interval of (0.88, 4.31).
+We specify a gamma prior on the multiplicative scale to have a mean of one and 0.01 and 0.99 quantiles at roughly $0.88/1.88 = 0.47$ and $4.31/1.88 = 2.3$,, respectively:
+\begin{equation}
+T_{\delta} \sim \text{Gamma}(10, 10)
+\end{equation}
+where $\delta = (97 T_\delta)^{-1}$.
+Note that we use a slightly more conservative interval than Reich \emph{et al.} to avoid numerical instability at extreme values.
+\\
+\item \textbf{Decay rate of infectiousness} ($\gamma$): Nguyet \emph{et al.} \cite{Nguyet2013} find that there is very little transmission of dengue from humans to mosquitoes after 5-6 days since the onset of fever (with roughly an extra of infectiousness prior to onset of fever).
+In reality, an individual's infectiousness decays with time, but the ODE model assumes infectiousness is constant for the (exponentially distributed) duration of the infection period.    
+To parameterize the model then, we assume a rough equivalence between the probability of infection from a single individual at a given time and the proportion of individuals still infectious at a given time.
+Thus we choose our prior for $\gamma$ to keep the time at which only 5\% of individuals are still infectious between 5 and 7 days, with a mean 5\% threshold of 6 days.
+Again we specify the prior on the multiplicative scale to have a mean of one and 0.05 and 0.95 quantiles at $2.99/3.5 = 0.85$ and $4.19 / 3.5 = 1.2$, respectively:
+\begin{equation}
+\gamma' \sim \text{Gamma}(100, 100)
+\end{equation}
+where $\gamma = 3.5\gamma'$.
+\\
+\item \textbf{Intrinsic incubation period} ($T_{\rho}$): Chan and Johansson \cite{Chan2012} estimate a mean of 6.1 days with a 95\% credible interval of (3, 10).
+Thus, we specify a gamma prior on the multiplicative scale to have a mean of one, and 0.05 and 0.95 quantiles of $3 / 6.1 = 0.49$ and $10 / 6.1 = 1.6$, respectively:
+\begin{equation}
+T_{\rho} \sim \text{Gamma}(8.3, 8.3)
+\end{equation}
+where $\rho = (0.87 T_{\rho})^{-1}$.
+\\
+\item \textbf{Mosquito mortality rate} ($d_v$): Brady \textit{et al.} \cite{Brady2013} estimated \textit{Aedes aegypti} temperature-dependent field survivorship curves from over 190 laboratory and field experiments.
+They found that increased mortality in the field generally washes out the effect of temperature, so we use their estimates for 25 degrees C to construct our prior for $d_v$.  
+We use nonlinear least squares to fit the exponential cdf with rate $d_v$ to the estimated mortality curve provided by Brady \textit{et al.}, which gives $d_v = 1.47$.
+We use the same procedure to estimate $d_v$ for the 0.25 and 0.75 quantiles of the estimated mortality curves (assuming symmetry around the mean), which gives 1.6 and 1.37.
+To specify the prior, we again scale $d_v'$ to have a mean of one, and 0.25 and 0.75 quantiles of $1.37 / 1.47 = 0.93$ and $1.6 / 1.47 = 1.08$, respectively:
+\begin{equation}
+d_v' \sim \text{Gamma}(100, 100)
+\end{equation}
+where $d_v = 1.47d_v'$.
+\end{itemize}
+
+% Include only the SI item label in the paragraph heading. Use the \nameref{label} command to cite SI items in the text.
+\paragraph*{S1 HMC Diagnostics.}
+\label{S1_Diag}
+{\bf Trace plots and convergence tests.}  .
+
+\section*{Acknowledgments}
+
+Thanks!
+
+\nolinenumbers
+
+% Either type in your references using
+% \begin{thebibliography}{}
+% \bibitem{}
+% Text
+% \end{thebibliography}
+%
+% or
+%
+% Compile your BiBTeX database using our plos2015.bst
+% style file and paste the contents of your .bbl file
+% here. See http://journals.plos.org/plosone/s/latex for 
+% step-by-step instructions.
+% 
+
+\bibliographystyle{plos2015}
+\bibliography{dengue}
+
+
+\end{document}
+
