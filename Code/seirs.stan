@@ -1,0 +1,205 @@
+functions {
+  vector derivs(int t,
+               vector y,
+               real Nv,
+               real rov,
+               real alpha,
+               real ro,
+               real gamma,
+               real dv,
+               real delta,
+               int pop) {
+    
+    /**
+    * documentation block
+    */
+    
+    vector[6] dydt;
+    
+    real b;
+    real Sv;
+    real R;
+    
+    real foi_vh;
+    real foi_hv;
+    real infectious;
+    real infect_mosq;
+    
+    // Assigning data
+    b = 7.0 / (76 * 365);
+
+    // Computing mosquito population size
+    Sv = Nv - y[4] - y[5];
+    R = 1 - y[1] - y[2] - y[3];
+
+    // Compute transition rates
+    // Mosquito to human foi
+    foi_vh = alpha * y[5] * y[1];
+
+    // Human to mosquito foi
+    foi_hv = alpha * y[3] * Sv;
+
+    // Infectious humans
+    infectious = ro * y[2];
+    
+    // Infectious mosq
+    infect_mosq = rov * y[4];
+    
+    // Compute derivatives
+    /*S*/  dydt[1] = b - b * y[1] - foi_vh + delta * R;
+    
+    /*E*/ dydt[2] = foi_vh - infectious - b * y[2];
+    /*I*/ dydt[3] = infectious - (gamma + b) * y[3];
+
+    /*VE*/ dydt[4] = foi_hv - infect_mosq - dv * y[4];
+    /*VI*/ dydt[5] = infect_mosq - dv * y[5];
+    
+    /*cases*/ dydt[6] = infectious;
+    
+    return dydt;
+  }
+  // Softmax function
+  vector softmax_id(vector alpha) {
+    vector[num_elements(alpha) + 1] alphac;
+      for (k in 1:num_elements(alpha))
+        alphac[k] = alpha[k];
+    alphac[num_elements(alphac)] = 0;
+    return softmax(alphac);
+  }
+}
+data {
+  int<lower=1> T;
+  int y[T];
+  int q[T];
+  vector[T] tau;
+  real rov[T];
+  int pop;
+}
+transformed data {
+  real sigma = 0.2;
+  real alpha = 4.87;
+  real phi_y = 1.0 / 12.0;
+  vector[T] log_tau = log(tau);
+}
+parameters {
+  vector[3] p0_raw;                    // untransformed initial conditions
+  real<upper=0> log_phi_q;             // log per-trap capture probability
+  real<lower=0> eta_inv_y;             // overdispersion of case reports
+  real<lower=0> eta_inv_q;             // overdispersion of mosquito capture
+  real<lower=0> ro_c;                  // human latenet period
+  real<lower=0> gamma_c;               // human infectious period
+  real<lower=0> dv_c;                  // mosquito lifespan
+  real<lower=0> delta_c;               // cross-immune period
+  real logNv0;
+  real beta;
+  vector[T-1] epsilon;                 // mosquito process noise
+}
+transformed parameters {
+  vector[4] p0;
+  vector[6] y0;
+  vector[T] logNv;
+  real<lower=0> ro;
+  real<lower=0> gamma;
+  real<lower=0> dv;
+  real<lower=0> delta;
+  real<lower=0> eta_y;
+  real<lower=0> eta_q;
+
+  // initial conditions
+  
+  p0 = softmax_id(p0_raw);
+
+  for(i in 1:3){
+    y0[i] = p0[i];
+  }
+  y0[4] = 0.0;
+  y0[5] = 0.0;
+  y0[6] = 0.0;
+  
+  // measurement parameters
+  eta_y = 1 / eta_inv_y;
+  eta_q = 1 / eta_inv_q;
+  
+  // rate parameters
+  ro = 1 / (0.87 * ro_c);
+  gamma = 3.5 * gamma_c;
+  dv = (1.47 * dv_c);
+  delta = 1 / (97 * delta_c);
+  
+  // mosquito process
+  logNv[1] = logNv0;
+  for(t in 2:T){
+    logNv[t] = beta * logNv[t-1] + epsilon[t-1];
+  }
+}
+model {
+  vector[T] y_hat;
+  vector[T] Nv;
+  vector[6] state[T * 7 + 1];
+  int idx = 1;
+  
+  // Priors
+  
+  // Initial conditions
+  p0_raw[1] ~ normal(-0.4, 0.2);
+  p0_raw[2] ~ normal(-9, 0.6);
+  p0_raw[3] ~ normal(-9, 0.6);
+
+  // Measurement models
+  log_phi_q ~ normal(-13, 0.5);
+  eta_inv_y ~ normal(0, 5);
+  eta_inv_q ~ normal(0, 5);
+  
+  // Epidemiological parameters
+  ro_c ~ gamma(8.3, 8.3); 
+  gamma_c ~ gamma(100, 100);
+  dv_c ~ gamma(100, 100); 
+  delta_c ~ gamma(10, 10);
+  
+  // Mosquito process
+  logNv0 ~ normal(0.7, 0.5);
+  beta ~ normal(0, 0.4);
+  epsilon ~ normal(0, sigma);
+  Nv = exp(logNv);
+  
+  // Process model
+  
+  state[1] = y0;
+
+  for (t in 1:T){
+    for(j in 1:7){
+      
+      state[idx + 1] = state[idx] + 
+                       1.0 / 7.0 * derivs(t, state[idx], Nv[t], rov[t], alpha, ro, gamma, dv, delta, pop);
+      idx = idx + 1;
+    }
+    
+    y_hat[t] = state[idx, 6] - state[idx - 7, 6];
+  }
+  
+  // Measurement models
+  y ~ neg_binomial_2(phi_y * y_hat * pop, eta_y);
+  q ~ neg_binomial_2_log(log_phi_q + log_tau + logNv + log(pop), eta_q);
+}
+generated quantities {
+
+  vector[T] y_hat;
+  vector[T] q_hat;
+  vector[6] state;
+  
+  state = y0;
+
+  // Estimated trajectories
+  for (t in 1:T){
+    for(j in 1:7){
+      
+      state = state + 1.0 / 7.0 * derivs(t, state, exp(logNv[t]), rov[t], alpha, ro, gamma, dv, delta, pop);
+    }
+
+    y_hat[t] = neg_binomial_2_rng(phi_y * pop * state[6], eta_y);
+    q_hat[t] = neg_binomial_2_log_rng(log_phi_q + log_tau[t] + logNv[t] + log(pop), eta_q);
+
+    state[6] = 0;
+    
+  }
+}
