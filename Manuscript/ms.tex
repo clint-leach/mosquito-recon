@@ -227,36 +227,37 @@ We know mosquitoes spread dengue, but mosquito abundance, as estimated from trap
 \section*{Introduction}
 
 
-\subsection*{Dengue background}
+\subsection*{Dengue background and prevention}
 \begin{itemize}
   \item large public health burden, with millions cases/year in Brazil
-  \item Complex dynamics -- vector-borne (with resulting seasonal forcing), multi-serotype (cross-immunity, ADE)
-\end{itemize}
-
-\subsection*{Dengue prevention}
-\begin{itemize}
-  \item Mosquito surveillance and control -- even once a vaccine is developed dengue management plans will likely still include vector control (\cite{Achee2015})
-  \item General efforts -- education, source reduction, etc; National Dengue Control system
-  \item Targeted efforts -- ecovec and "MI-Dengue" system -- trap monitoring and spatial prioritization of source reduction and larvicide application (\cite{Eiras2009}).
+  \item spread is prevented primarily through mosquito control -- even once a vaccine is developed dengue management plans will likely still include vector control \cite{Achee2015}
+  \item Targeted efforts do reduce disease burden 
   \begin{itemize}
-  \item Based on connection between mosquito abundance and disease risk
-  \item \href{http://www.vitoria.es.gov.br/prefeitura/mosquito-controle-ajuda-a-reduzir-incidencia-de-viroses}{general mosquito control} (City of Vitoria)
-  \item \href{http://www.vitoria.es.gov.br/prefeitura/combateadengue}{fight against dengue} (City of Vitoria)
+    \item contact tracing and residential spraying \cite{Vazquez-Prokopec2017}
+  	\item ecovec and "MI-Dengue" system -- trap monitoring and spatial prioritization of source reduction and larvicide application \cite{Eiras2009, Pepin2013}
   \end{itemize}
+  \item Using mosquito surveillance to efficiently target control efforts requires understanding the relationship between mosquito abundance and disease risk
 \end{itemize}
 
 \subsection*{Causal inference and mechanistic models}
 
-Previous efforts to use MosquiTRAP surveillance to predict human dengue cases in Vitoria relied on linear statistical models and asked whether models that included surveillance data performed better than models with lagged case data alone \cite{Pepin2015}.
-This procedure essentially tests for Granger causality \cite{Granger1969}, which states that some variable $X$ \emph{causes} $Y$ if $X$ contains unique information about $Y$ (i.e. if a model with $X$ and $Y$ provides better predictions of $Y$ than a model with $Y$ alone).
-However, as noted by Sugihara \emph{et al.} \cite{Sugihara2012a}, Granger causality assumes that $X$ and $Y$ are separable, which is not the case if $X$ and $Y$ are linked in a non-linear dynamical system.
-In this case, a model with $X$ and $Y$ is unlikely to outperform the model with only $Y$, since $Y$ already contains the information from $X$, a consequence of Taken's theorem (CITATION). 
-Instead, Sugihara \emph{et al.} argue that if $X$ drives $Y$, then you should be able to reconstruct $X$ from $Y$.
+Even though mosquitoes are necessary for dengue transmission, establishing a clear link between mosquito abundance (as measured through various surveillance-based indices) and disease risk has proven difficult thus far (CITATIONS).
+Many of the attempts to establish this link have relied on tests of the ability of mosquito abundance measures to predict human disease risk in regression models.
+For example, \cite{Pepin2015} found that models that included MosquiTRAP surveillance data failed to predict weekly dengue cases any better than autoregressive models that include lagged case data alone.
+Evaluating the influence of mosquito abundance in this way is analogous to a test of Granger causality \cite{Granger1969}, which states that some variable $X$ (e.g. mosquito abundance) \emph{causes} $Y$ (e.g. human dengue cases) if $X$ contains unique information about $Y$ (i.e. if a model with $X$ and $Y$ provides better predictions of $Y$ than a model with $Y$ alone).
+By this definition, the results of \cite{Pepin2015} suggest that mosquito abundance does not cause dengue cases (in the Granger sense).
 
-Applying this reasoning to the problem of establishing the relationship between mosquito abundance and human dengue risk, it is not surprising that including information from mosquito surveillance does not improve our ability to predict human dengue cases, as information about epidemiologically relevant mosquito abundance is already embedded in the time series of human case reports.
-Following from \cite{Sugihara2012a} then, we ask whether we can reconstruct the mosquito surveillance time series from the time series of human case reports. 
-We do this through the use of a mechanistic differential equation model embedded in a Bayesian statistical framework.
-This differs from the equation-free approach of \cite{Sugihara2012a}, but the explicit use of a mechanistic model will better inform our understanding of the processes linking mosquito abundance and human disease risk and the embedding in a Bayesian statistical model will better account for uncertainty and the measurement processes in these data.
+However, as noted by Sugihara \emph{et al.} \cite{Sugihara2012a}, Granger causality assumes that $X$ and $Y$ are separable, which is not the case if $X$ and $Y$ are linked in a non-linear dynamical system.
+In this case, a model with $X$ and $Y$ will not outperform the model with only $Y$, as the information contained in $X$ is already embedded in $Y$, a consequence of Taken's theorem (CITATION). 
+Since dengue transmission is governed by such a non-linear dynamical system, information about the driving component of mosquito abundance should be already embedded in the time series of human case reports.
+As a result, predictive utility is not an appropriate way to test the causal influence of mosquito abundance on dengue risk.
+Instead, Sugihara \emph{et al.} argue that if $X$ is a driver $Y$, then you should be able to reconstruct $X$ from $Y$.
+
+In this paper, we apply this perspective to the problem of linking mosquito abundance to disease risk.
+To test whether or not mosquito abundance, as measured through surveillance efforts, drives dengue dynamics, we ask whether we can reconstruct a time series of mosquito surveillance data from a time series of case reports.
+We approach this as an inverse problem: we first posit a mechanistic model of dengue transmission and then develop a Bayesian statistical framework to estimate the mosquito abundance time series that is consistent with that model and the time series of case reports.
+We then evaluate the causal link between mosquito abundance and case reports by using posterior predictive checks to compare the estimated and observed mosquito time series.  
+
 
 \section*{Methods}
 
@@ -307,10 +308,6 @@ The unobserved total mosquito abundance $V_N$, and thus the size of the availabl
 \log(V_{Nt}) \sim \text{Normal}(\beta \log(V_{Nt-1}), \sigma).
 \end{equation}
 
-The flexibility of the mosquito process model means that we should be able to essentially fit the case data arbitrarily well.
-The question is then whether or not the mosquito abundance time series estimated from the case data reproduces the observed mosquito surveillance time series.
-Since the initial conditions and epidemiological parameters potentially affect the mapping of the case data to mosquito abundance, we estimate these as well.
-The intention here is that the mosquito process will allow us to fit to the case data (i.e. there's essentially a best-fit trajectory that we'll always be able to find), while the epidemiological parameters will facilitate better fits to the mosquito data (while maintaining the same quality of fit at the case level).
 \subsection*{Data model}
 
 To connect the differential equation model the the observed case reports, we add an extra state, $X$, that collects the cumulative number of transitions from the exposed to infectious class (assuming that case reporting coincides with the onset of symptoms).
@@ -330,7 +327,6 @@ where $\phi_q$ is the per-trap capture probability, $\tau_t$ is the number of tr
 
 
 \subsection*{Parameterization and priors}
-
 
 \begin{table}[!ht]
 \begin{adjustwidth}{-2.25in}{0in} 
@@ -369,7 +365,12 @@ Within stan, the solution to the differential equation model was approximated wi
 
 \section*{Results}
 
-
+\begin{figure}[!h]
+\caption{{\bf Vitoria data and model fits.}
+Weekly observations from 2008 to week 34 of 2012 (points), with corresponding median posterior prediction (line) and 90\% credible inverval (gray band). A: reported dengue cases. B: total number of trapped mosquiotes.
+}
+\label{timeseries}
+\end{figure}
 \section*{Discussion}
 
 \begin{itemize}
