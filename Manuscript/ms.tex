@@ -323,7 +323,6 @@ q_t \sim \text{NegBin}(\phi_q \tau_t V_{Nt}, \eta_q),
 \end{equation}
 where $\phi_q$ is the per-trap capture probability, $\tau_t$ is the number of traps inspected in week $t$, and $\eta_q$ controls overdispersion relative to the Poisson.
 
-\subsection*{Posterior predictive checks}
 
 
 \subsection*{Parameterization and priors}
@@ -353,15 +352,34 @@ $\phi_q$ & Per-trap mosquito capture probability & $2 \times 10^{-6}$ &
 \end{adjustwidth}
 \end{table}
 
+
 \subsection*{Implementation}
  
-The posterior distribution can be written as:
-\begin{equation}
-aaaaaaah
-\end{equation}
-Samples from this distribution were generated using Hamiltonian Monte Carlo (CITATIONS) implemented in the rstan package for R. 
+Samples from the posterior distribution were generated using Hamiltonian Monte Carlo (CITATIONS) implemented in the rstan package for R. 
+We ran 3 chains with different starting values for 10,000 iterations each, discarding the first 5,000 as burn-in.
 Within stan, the solution to the differential equation model was approximated with an Euler scheme with a time step of 1 day.  
 
+\subsection*{Posterior predictive checks}
+
+We evaluate the goodness-of-fit of the estimated mosquito abundance time series through the use of posterior predictive checks \cite{Gelman1996,Gelman2003}.
+Specifically, for each iteration, $i$, of MCMC, we sample
+\begin{equation}
+q^{rep(i)}_t \sim \text{NegBin}(\phi^{(i)}_q \tau_t V^{(i)}_{Nt}, \eta^{(i)}_q)
+\end{equation}
+and compute
+\begin{equation}
+p_t = P(q^{rep}_t > q_t) = \frac{1}{M}\sum I(q^{rep(i)}_t > q_t).
+\end{equation}
+If the reconstructed mosquito trajectories are a good fit for the observed mosquito trap counts, then we would expect the time series $p_t$ to be random in time (CITATION?).
+Any systematic trends in $p_t$ indicate lack-of-fit.
+
+In addition to looking at weekly comparisons, we also develop posterior checks to compare the temporal variability and correlation structures of the observed and expected time series.
+To test whether the estimated time series capture the seasonal features of the observed mosquito data, we compute the posterior auto-correlation function of the replicate data:
+\begin{equation}
+R^{rep(i)}(l) = \text{corr}(q^{rep(i)}_t, q^{rep(i)}_{t-l}),
+\end{equation}
+for lags ranging from 1 to 55 weeks.
+We also compute posterior distributions of $\min(q^{rep}_t)$ , $\max(q^{rep}_t)$, and $\sigma(q^{rep}_t - q^{rep}_{t-1})$ as measures of the smoothness of the modeled process.
 
 \section*{Results}
 
