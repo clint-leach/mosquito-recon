@@ -323,14 +323,23 @@ q_t \sim \text{NegBin}(\phi_q \tau_t V_{Nt}, \eta_q),
 \end{equation}
 where $\phi_q$ is the per-trap capture probability, $\tau_t$ is the number of traps inspected in week $t$, and $\eta_q$ controls overdispersion relative to the Poisson.
 
-
-
 \subsection*{Parameterization and priors}
+
+Several of the parameters in this model are assumed to fixed and known. 
+The population size and average life span (which we use to parameterize the birth/death rate) for Vitoria are taken from the 2010 census.
+To maintain identifiability, the transmission rate and case reporting probability are also fixed at literature values, while the standard deviation of the mosquito process is fixed at a level that allows reasonably flexible behavior.
+Lastly, the extrinsic incubation period in mosquitoes is modeled as a function of weekly mean temperature and forced with data pulled from WeatherUnderground.
+
+The remaining parameters include the epidemiological parameters that control the flows between the compartments of the differential equation model ($d_v$, $\rho$, $\gamma$, $\delta$), the initial conditions of the model ($S_0$, $E_0$, $I_0$, $R_0$, $V_{N0}$), the autoregressive parameter in the mosquito process model ($\beta$), and the remaining measurement parameters ($\phi_q$, $\eta_y$, $\eta_q$).  
+Where possible, we place informative priors on these parameters based on existing laboratory and field studies (see Table \ref{fixedparms} for means and Supplemental Material for detailed explanations).
+
+For any given values of these parameters, the mosquito process model should be flexible enough to produce a good fit to the case reports data.
+As a result, we expect that these parameters will be informed primarily by the mosquito surveillance data (i.e. these parameters add degrees of freedom that let the mosquito process model fit the surveillance data better while maintaining a good fit to the case data).
 
 \begin{table}[!ht]
 \begin{adjustwidth}{-2.25in}{0in} 
 \begin{center}
-\caption{Parameters.}
+\caption{Model parameters and their values.  Parameters above the rule are fixed, while parameters below the rule are random, with the value giving the prior mean.}
 \begin{tabular}{llll}
 Parameter & Description & Value & Citation\\
 \hline
@@ -340,11 +349,16 @@ $\alpha$ & Transmission rate & 4.87 week$^{-1}$ & \cite{Scott2000}\\
 $\phi_y$ & Reporting probability & 0.083 & \cite{Silva2016}\\
 $1/\rho_{vt}$ & Extrinsic incubation period & $\exp \left(\exp(1.9 - 0.04 T_t) + \frac{1}{14}\right)$ & \cite{Chan2012}\\
 $\sigma$  & Standard dev. of AR(1) process & 0.2 & \\
+$V_{E0}$ & Initial exposed mosquitoes &  0 & \\
+$V_{I0}$ & Initial infectious mosquitoes & 0 & \\
 \hline
 $d_v$ & Vector death rate & 1.47 week$^{-1}$ & \cite{Brady2013} \\
 $1/\rho$ & Latent period in host & 0.87 weeks  & \cite{Chan2012}\\
 $\gamma$ & Rate of loss of infectiousness & 3.5 week$^{-1}$ & \cite{Nguyet2013}\\
 $1/\delta$ & Period of cross-immunity & 97 weeks &  \cite{Reich2013}\\
+$S_0$ & Proportion initially susceptible & 0.4 & \cite{Cardoso2011a} \\
+$E_0$ & Proportion initially exposed & $8\times 10 ^ {-5}$ & \\
+$I_0$ & Proportion initially infectious & $8\times 10 ^ {-5}$ & \\
 $\phi_q$ & Per-trap mosquito capture probability & $2 \times 10^{-6}$ & 
 \end{tabular}
 \end{center}
