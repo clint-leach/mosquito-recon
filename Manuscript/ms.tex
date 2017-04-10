@@ -337,6 +337,7 @@ For any given values of these parameters, the mosquito process model should be f
 As a result, we expect that these parameters will be informed primarily by the mosquito surveillance data (i.e. these parameters add degrees of freedom that let the mosquito process model fit the surveillance data better while maintaining a good fit to the case data).
 
 \begin{table}[!ht]
+\label{fixedparms}
 \begin{adjustwidth}{-2.25in}{0in} 
 \begin{center}
 \caption{Model parameters and their values.  Parameters above the rule are fixed, while parameters below the rule are random, with the value giving the prior mean.}
@@ -362,7 +363,6 @@ $I_0$ & Proportion initially infectious & $8\times 10 ^ {-5}$ & \\
 $\phi_q$ & Per-trap mosquito capture probability & $2 \times 10^{-6}$ & 
 \end{tabular}
 \end{center}
-\label{fixedparms}
 \end{adjustwidth}
 \end{table}
 
@@ -376,7 +376,7 @@ Within stan, the solution to the differential equation model was approximated wi
 \subsection*{Posterior predictive checks}
 
 We evaluate the goodness-of-fit of the estimated mosquito abundance time series through the use of posterior predictive checks \cite{Gelman1996,Gelman2003}.
-Specifically, for each iteration, $i$, of MCMC, we sample
+Specifically, for each iteration, $i$, of MCMC, we sample replicate mosquito surveillance data:
 \begin{equation}
 q^{rep(i)}_t \sim \text{NegBin}(\phi^{(i)}_q \tau_t V^{(i)}_{Nt}, \eta^{(i)}_q)
 \end{equation}
@@ -387,8 +387,8 @@ p_t = P(q^{rep}_t > q_t) = \frac{1}{M}\sum I(q^{rep(i)}_t > q_t).
 If the reconstructed mosquito trajectories are a good fit for the observed mosquito trap counts, then we would expect the time series $p_t$ to be random in time (CITATION?).
 Any systematic trends in $p_t$ indicate lack-of-fit.
 
-In addition to looking at weekly comparisons, we also develop posterior checks to compare the temporal variability and correlation structures of the observed and expected time series.
-To test whether the estimated time series capture the seasonal features of the observed mosquito data, we compute the posterior auto-correlation function of the replicate data:
+In addition to looking at weekly comparisons, we also develop posterior checks to compare the temporal variability and correlation structures of the observed and estimated time series.
+To test whether the modeled mosquito time series capture the seasonal features of the observed mosquito data, we compute the posterior auto-correlation function of the replicate data:
 \begin{equation}
 R^{rep(i)}(l) = \text{corr}(q^{rep(i)}_t, q^{rep(i)}_{t-l}),
 \end{equation}
@@ -398,11 +398,27 @@ We also compute posterior distributions of $\min(q^{rep}_t)$ , $\max(q^{rep}_t)$
 \section*{Results}
 
 \begin{figure}[!h]
+\includegraphics[angle = 270, scale = 1]{figures/fig1.eps}
 \caption{{\bf Vitoria data and model fits.}
 Weekly observations from 2008 to week 34 of 2012 (points), with corresponding median posterior prediction (line) and 90\% credible inverval (gray band). A: reported dengue cases. B: total number of trapped mosquiotes.
 }
 \label{timeseries}
 \end{figure}
+
+\begin{figure}[!h]
+\caption{{\bf Weekly posterior predictive p-values.}
+$P(q^{rep}_t > q_t)$ for each week $t$ based on 15000 replicate mosquito surveillance data sets estimated from case reports.
+}
+\label{pseries}
+\end{figure}
+
+\begin{figure}[!h]
+\caption{{\bf Posterior autocorrelation function.}
+Autocorrelation of observed mosquito trap counts (points) and replicate time series estimated from case reports (vertical lines, indicating 90\% posterior credible interval). 
+}
+\label{autocorr}
+\end{figure}
+
 \section*{Discussion}
 
 \begin{itemize}
