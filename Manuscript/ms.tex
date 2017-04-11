@@ -226,22 +226,20 @@ We know mosquitoes spread dengue, but mosquito abundance, as estimated from trap
 % Use "Eq" instead of "Equation" for equation citations.
 \section*{Introduction}
 
+Dengue fever is a massive global public health burden, with millions of cases per year in Brazil alone (CITATION).  
+Since the dengue virus (DENV) is vectored by the mosquito \textit{Aedes aegypti}, dengue fever is prevented primarily through mosquito control programs \cite{Achee2015}.
+Even if a vaccine is developed, mosquito control is likely to remain an important component of dengue management \cite{Achee2015}.
+Studies have shown that targeted mosquito control efforts can be effective in reducing disease burden.
+For example contact tracing and residential spraying reduced disease risk in Cairns, Australia \cite{Vazquez-Prokopec2017}.
+Though this approach was successful, it requires detailed data following individual cases, potentially limiting its utility for large-scale deployment.
 
-\subsection*{Dengue background and prevention}
-\begin{itemize}
-  \item large public health burden, with millions cases/year in Brazil
-  \item spread is prevented primarily through mosquito control -- even once a vaccine is developed dengue management plans will likely still include vector control \cite{Achee2015}
-  \item Targeted efforts do reduce disease burden 
-  \begin{itemize}
-    \item contact tracing and residential spraying \cite{Vazquez-Prokopec2017}
-  	\item ecovec and "MI-Dengue" system -- trap monitoring and spatial prioritization of source reduction and larvicide application \cite{Eiras2009, Pepin2013}
-  \end{itemize}
-  \item Using mosquito surveillance to efficiently target control efforts requires understanding the relationship between mosquito abundance and disease risk
-\end{itemize}
+Other efforts have sought to guide the deployment of control efforts through the use of fine-scale mosquito surveillance.
+For instance, the "MI-Dengue" system deployed throughout several cities in Brazil uses a grid of mosquito sticky-traps (MosquiTRAPs) for spatial prioritization of source reduction and larvicide application \cite{Eiras2009}.
+Comparing cities with and without this system, \cite{Pepin2013} estimated that it prevented X cases and saved X dollars in economic losses from 20XX - 20XX.
+Though this system has been effective, the mosquito indices and thresholds used to prioritize control efforts remain somewhat ad-hoc.
+Using such surveillance data to efficiently target limited control resources requires a detailed understanding of the relationship between the components of mosquito abundances measured by the trap and disease risk.
 
-\subsection*{Causal inference and mechanistic models}
-
-Even though mosquitoes are necessary for dengue transmission, establishing a clear link between mosquito abundance (as measured through various surveillance-based indices) and disease risk has proven difficult thus far (CITATIONS).
+However, even though mosquitoes are necessary for dengue transmission, establishing a clear link between surveillance-based indices of mosquito abundance and disease risk has proven difficult thus far (CITATIONS).
 Many of the attempts to establish this link have relied on tests of the ability of mosquito abundance measures to predict human disease risk in regression models.
 For example, \cite{Pepin2015} found that models that included MosquiTRAP surveillance data failed to predict weekly dengue cases any better than autoregressive models that include lagged case data alone.
 Evaluating the influence of mosquito abundance in this way is analogous to a test of Granger causality \cite{Granger1969}, which states that some variable $X$ (e.g. mosquito abundance) \emph{causes} $Y$ (e.g. human dengue cases) if $X$ contains unique information about $Y$ (i.e. if a model with $X$ and $Y$ provides better predictions of $Y$ than a model with $Y$ alone).
@@ -431,9 +429,11 @@ Autocorrelation of observed mosquito trap counts (points) and replicate time ser
 
 \section*{Conclusions}
 
+
 \section*{Supporting information}
 
 \subsection*{Full model}
+
 
 \begin{align}
 y_t & \sim \text{NegBin}(\phi_y  (X_t - X_{t-1})N, \eta_y)\\
