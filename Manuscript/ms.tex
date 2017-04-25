@@ -395,18 +395,49 @@ We also compute posterior distributions of $\min(q^{rep}_t)$ , $\max(q^{rep}_t)$
 
 \section*{Results}
 
+Questions:
+\begin{itemize}
+	\item To what extent do the case reports inform our estimates of mosquito abundance? How do we separate the information coming from the case reports from the information coming from the mosquito data itself?
+	\item Do our estimates of epidemiological parameters differ from their prior (literature) values?
+	\item Do the case reports reproduce the observed mosquito surveillance time series?
+	\item If no, how does it fail?
+\end{itemize}
+
+The model is able to effectively capture the observed weekly case reports for Vitoria (Fig. \ref{timeseries}A), as expected given the degrees of freedom in the mosquito process model.
+In addition, most of the observed mosquito trap counts fall within the 80\% posterior credible interval (Fig. \ref{timeseries}B).
+We expect the posterior distribution of mosquito abundance time series to be informed primarily by the observed case data.
+However, the mapping from the case reports to mosquito abundance is influenced by the parameters of the mechanistic model and deviations of the posterior distribution of these parameters from their prior reflect the influence of the mosquito trap count data.
+Of these parameters, the posterior estimate of mosquito mortality rate (blah) was lower than its prior mean (1.47 week$^{-1}$), while the posterior estimate of the intrinsic incubation period (blah) was larger than its prior mean (0.87 weeks).
+That these two parameters differ from their literature values reflects the fact that they are critical in controlling the interaction between mosquito abundance and human disease risk, as the intrinsic incubation period controls how quickly humans are able to begin transmitting to mosquitoes, and the mortality rate controls for how long mosquitoes are able to remain infectious and transmit to humans.
+
+However, there is a seasonal trend in the weekly posterior p-values for the replicate mosquito surveillance series (Fig. \ref{pseries}), indicating a tendency to overestimate the number of mosquitoes trapped during the downswing of the annual epidemic and underestimate the number of mosquitoes trapped during the upswing. 
+This seasonal trend indicates a systematic lack-of-fit.
+
+This lack-of-fit is due in large part to the failure of the estimated mosquito trajectories to capture the periodic seasonal structure in the observed mosquito surveillance data (Fig. \ref{autocorr}).
+In particular, the autocorrelation in the posterior replicate mosquito surveillance series decays much faster than in the observed data and remains near zero for lags near a year, whereas the observed data have positive autocorrelation at yearly lags (\ref{autocorr}).
+Moreover, the posterior standard deviations of 1 week differences are substantially larger than the observed (Supplemental?), indicating that the observed time series is much smoother than the posterior replicates.
+These posterior checks indicate that the case data and mechanistic model are not able to reproduce the observed time series of mosquito trap counts.
+
 \begin{figure}[!h]
 \includegraphics[angle = 270, scale = 1]{figures/fig1.eps}
 \caption{{\bf Vitoria data and model fits.}
-Weekly observations from 2008 to week 34 of 2012 (points), with corresponding median posterior prediction (line) and 90\% credible inverval (gray band). A: reported dengue cases. B: total number of trapped mosquiotes.
+Weekly observations from 2008 to week 34 of 2012 (points), with corresponding median posterior prediction (line) and 80\% credible inverval (gray band). A: reported dengue cases. B: total number of trapped mosquiotes.
 }
 \label{timeseries}
 \end{figure}
 
 \begin{figure}[!h]
+%\includegraphics[angle = 270, scale=1]{figures/fig2.eps}
+\caption{{\bf Posterior densities of epidemiological parameters.}
+A: Intrinsic incubation period. B: Period of cross-immunity. C: Decay rate of infectiousness. D: Mosquito mortality rate.
+}
+\label{pseries}
+\end{figure}
+
+\begin{figure}[!h]
 \includegraphics[angle = 270, scale=1]{figures/fig2.eps}
 \caption{{\bf Weekly posterior predictive p-values.}
-$P(q^{rep}_t > q_t)$ for each week $t$ based on 15000 replicate mosquito surveillance data sets estimated from case reports.
+$P(q^{rep}_t > q_t)$ for each week of the year for 2008 through week 34 of 2012. Gray lines show loess-smoothed curves of the p-values for each year. Based on 15000 replicate mosquito surveillance data sets estimated from case reports.
 }
 \label{pseries}
 \end{figure}
@@ -428,7 +459,6 @@ Autocorrelation of observed mosquito trap counts (points) and replicate time ser
 \end{itemize}
 
 \section*{Conclusions}
-
 
 \section*{Supporting information}
 
