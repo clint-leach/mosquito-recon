@@ -1,7 +1,7 @@
 functions {
   vector derivs(int t,
                vector y,
-               real Nv,
+               real rv,
                real rov,
                real alpha,
                real ro,
@@ -14,7 +14,7 @@ functions {
     * documentation block
     */
     
-    vector[6] dydt;
+    vector[7] dydt;
     
     real b;
     real Sv;
@@ -29,7 +29,7 @@ functions {
     b = 7.0 / (76 * 365);
 
     // Computing mosquito population size
-    Sv = Nv - y[4] - y[5];
+    Sv = y[6] - y[4] - y[5];
     R = 1 - y[1] - y[2] - y[3];
 
     // Compute transition rates
@@ -53,8 +53,9 @@ functions {
 
     /*VE*/ dydt[4] = foi_hv - infect_mosq - dv * y[4];
     /*VI*/ dydt[5] = infect_mosq - dv * y[5];
+    /*VN*/ dydt[6] = rv * y[6];
     
-    /*cases*/ dydt[6] = infectious;
+    /*cases*/ dydt[7] = infectious;
     
     return dydt;
   }
@@ -76,7 +77,6 @@ data {
   int pop;
 }
 transformed data {
-  real sigma = 0.2;
   real alpha = 4.87;
   real phi_y = 1.0 / 12.0;
   vector[T] log_tau = log(tau);
@@ -88,19 +88,21 @@ parameters {
   real<lower=0> eta_inv_q;             // overdispersion of mosquito capture
   real<lower=0> ro_c;                  // human latenet period
   real<lower=0> gamma_c;               // human infectious period
-  real<lower=0> dv_c;                  // mosquito lifespan
   real<lower=0> delta_c;               // cross-immune period
   real logNv0;
-  real beta;
-  vector[T-1] epsilon;                 // mosquito process noise
+  real betar;
+  real betad;
+  real sigmar;
+  real sigmad;
+  vector[T] rv;                        // mosquito birth rate
+  vector[T] logdv;
 }
 transformed parameters {
   vector[4] p0;
-  vector[6] y0;
-  vector[T] logNv;
+  vector[7] y0;
+  vector[T] dv;
   real<lower=0> ro;
   real<lower=0> gamma;
-  real<lower=0> dv;
   real<lower=0> delta;
   real<lower=0> eta_y;
   real<lower=0> eta_q;
@@ -114,7 +116,8 @@ transformed parameters {
   }
   y0[4] = 0.0;
   y0[5] = 0.0;
-  y0[6] = 0.0;
+  y0[6] = exp(logNv0);
+  y0[7] = 0.0;
   
   // measurement parameters
   eta_y = 1 / eta_inv_y;
@@ -123,19 +126,15 @@ transformed parameters {
   // rate parameters
   ro = 1 / (0.87 * ro_c);
   gamma = 3.5 * gamma_c;
-  dv = (1.47 * dv_c);
   delta = 1 / (97 * delta_c);
   
-  // mosquito process
-  logNv[1] = logNv0;
-  for(t in 2:T){
-    logNv[t] = beta * logNv[t-1] + epsilon[t-1];
-  }
+  // mosquito parameters
+  dv = exp(logdv);
 }
 model {
   vector[T] y_hat;
-  vector[T] Nv;
-  vector[6] state[T * 7 + 1];
+  vector[T] q_hat;
+  vector[7] state[T * 7 + 1];
   int idx = 1;
   
   // Priors
@@ -153,14 +152,20 @@ model {
   // Epidemiological parameters
   ro_c ~ gamma(8.3, 8.3); 
   gamma_c ~ gamma(100, 100);
-  dv_c ~ gamma(100, 100); 
   delta_c ~ gamma(10, 10);
   
   // Mosquito process
   logNv0 ~ normal(0.7, 0.5);
-  beta ~ normal(0, 0.4);
-  epsilon ~ normal(0, sigma);
-  Nv = exp(logNv);
+  betar ~ normal(0, 0.4);
+  betad ~ normal(0, 0.4);
+  sigmar ~ normal(0, 0.1);
+  sigmad ~ normal(0, 0.01);
+  
+  rv[1] ~ normal(0, 0.1);
+  tail(rv, T - 1) ~ normal(betar * head(rv, T - 1), sigmar);
+  
+  logdv[1] ~ normal(0.39, 0.1);
+  tail(logdv, T - 1) ~ normal(betad * head(logdv, T - 1), sigmad);
   
   // Process model
   
@@ -170,22 +175,23 @@ model {
     for(j in 1:7){
       
       state[idx + 1] = state[idx] + 
-                       1.0 / 7.0 * derivs(t, state[idx], Nv[t], rov[t], alpha, ro, gamma, dv, delta, pop);
+                       1.0 / 7.0 * derivs(t, state[idx], rv[t], rov[t], alpha, ro, gamma, dv[t], delta, pop);
       idx = idx + 1;
     }
     
-    y_hat[t] = state[idx, 6] - state[idx - 7, 6];
+    y_hat[t] = state[idx, 7] - state[idx - 7, 7];
+    q_hat[t] = state[idx, 6];
   }
   
   // Measurement models
   y ~ neg_binomial_2(phi_y * y_hat * pop, eta_y);
-  q ~ neg_binomial_2_log(log_phi_q + log_tau + logNv + log(pop), eta_q);
+  q ~ neg_binomial_2_log(log_phi_q + log_tau + log(q_hat) + log(pop), eta_q);
 }
 generated quantities {
 
   vector[T] y_hat;
   vector[T] q_hat;
-  vector[6] state;
+  vector[7] state;
   
   state = y0;
 
@@ -193,13 +199,13 @@ generated quantities {
   for (t in 1:T){
     for(j in 1:7){
       
-      state = state + 1.0 / 7.0 * derivs(t, state, exp(logNv[t]), rov[t], alpha, ro, gamma, dv, delta, pop);
+      state = state + 1.0 / 7.0 * derivs(t, state, rv[t], rov[t], alpha, ro, gamma, dv[t], delta, pop);
     }
 
-    y_hat[t] = neg_binomial_2_rng(phi_y * pop * state[6], eta_y);
-    q_hat[t] = neg_binomial_2_log_rng(log_phi_q + log_tau[t] + logNv[t] + log(pop), eta_q);
+    y_hat[t] = neg_binomial_2_rng(phi_y * pop * state[7], eta_y);
+    q_hat[t] = neg_binomial_2_log_rng(log_phi_q + log_tau[t] + log(state[6]) + log(pop), eta_q);
 
-    state[6] = 0;
+    state[7] = 0;
     
   }
 }
