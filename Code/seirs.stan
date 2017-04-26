@@ -8,13 +8,14 @@ functions {
                real gamma,
                real dv,
                real delta,
+               real lambda,
                int pop) {
     
     /**
     * documentation block
     */
     
-    vector[7] dydt;
+    vector[8] dydt;
     
     real b;
     real Sv;
@@ -53,9 +54,10 @@ functions {
 
     /*VE*/ dydt[4] = foi_hv - infect_mosq - dv * y[4];
     /*VI*/ dydt[5] = infect_mosq - dv * y[5];
-    /*VN*/ dydt[6] = rv * y[6];
+    /*VN*/ dydt[6] = rv * y[6] - lambda * y[6];
     
-    /*cases*/ dydt[7] = infectious;
+    /*VC*/ dydt[7] = lambda * y[6];
+    /*cases*/ dydt[8] = infectious;
     
     return dydt;
   }
@@ -83,7 +85,7 @@ transformed data {
 }
 parameters {
   vector[3] p0_raw;                    // untransformed initial conditions
-  real<upper=0> log_phi_q;             // log per-trap capture probability
+  real<upper=0> log_phi_q;             // log per-trap capture rate
   real<lower=0> eta_inv_y;             // overdispersion of case reports
   real<lower=0> eta_inv_q;             // overdispersion of mosquito capture
   real<lower=0> ro_c;                  // human latenet period
@@ -99,8 +101,9 @@ parameters {
 }
 transformed parameters {
   vector[4] p0;
-  vector[7] y0;
+  vector[8] y0;
   vector[T] dv;
+  vector[T] lambda;
   real<lower=0> ro;
   real<lower=0> gamma;
   real<lower=0> delta;
@@ -118,6 +121,7 @@ transformed parameters {
   y0[5] = 0.0;
   y0[6] = exp(logNv0);
   y0[7] = 0.0;
+  y0[8]= 0.0;
   
   // measurement parameters
   eta_y = 1 / eta_inv_y;
@@ -130,11 +134,12 @@ transformed parameters {
   
   // mosquito parameters
   dv = exp(logdv);
+  lambda = exp(log_phi_q) * tau;
 }
 model {
   vector[T] y_hat;
   vector[T] q_hat;
-  vector[7] state[T * 7 + 1];
+  vector[8] state[T * 7 + 1];
   int idx = 1;
   
   // Priors
@@ -174,24 +179,25 @@ model {
   for (t in 1:T){
     for(j in 1:7){
       
-      state[idx + 1] = state[idx] + 
-                       1.0 / 7.0 * derivs(t, state[idx], rv[t], rov[t], alpha, ro, gamma, dv[t], delta, pop);
+      state[idx + 1] = state[idx] + 1.0 / 7.0 *
+        derivs(t, state[idx], rv[t], rov[t], alpha, ro, gamma, dv[t], delta, lambda[t], pop);
+        
       idx = idx + 1;
     }
     
-    y_hat[t] = state[idx, 7] - state[idx - 7, 7];
-    q_hat[t] = state[idx, 6];
+    q_hat[t] = state[idx, 7] - state[idx - 7, 7];
+    y_hat[t] = state[idx, 8] - state[idx - 7, 8];
   }
   
   // Measurement models
   y ~ neg_binomial_2(phi_y * y_hat * pop, eta_y);
-  q ~ neg_binomial_2_log(log_phi_q + log_tau + log(q_hat) + log(pop), eta_q);
+  q ~ neg_binomial_2(q_hat * pop, eta_q);
 }
 generated quantities {
 
   vector[T] y_hat;
   vector[T] q_hat;
-  vector[7] state;
+  vector[8] state;
   
   state = y0;
 
@@ -199,13 +205,15 @@ generated quantities {
   for (t in 1:T){
     for(j in 1:7){
       
-      state = state + 1.0 / 7.0 * derivs(t, state, rv[t], rov[t], alpha, ro, gamma, dv[t], delta, pop);
+      state = state + 1.0 / 7.0 * 
+        derivs(t, state, rv[t], rov[t], alpha, ro, gamma, dv[t], delta, lambda[t], pop);
     }
 
-    y_hat[t] = neg_binomial_2_rng(phi_y * pop * state[7], eta_y);
-    q_hat[t] = neg_binomial_2_log_rng(log_phi_q + log_tau[t] + log(state[6]) + log(pop), eta_q);
+    q_hat[t] = neg_binomial_2_rng(state[7] * pop, eta_q);
+    y_hat[t] = neg_binomial_2_rng(phi_y * pop * state[8], eta_y);
 
     state[7] = 0;
+    state[8] = 0;
     
   }
 }
