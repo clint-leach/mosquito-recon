@@ -76,12 +76,12 @@ data {
   int q[T];
   vector[T] tau;
   real rov[T];
+  matrix[T - 1, 2] sincos;
   int pop;
 }
 transformed data {
   real alpha = 4.87;
   real phi_y = 1.0 / 12.0;
-  vector[T] log_tau = log(tau);
 }
 parameters {
   vector[3] p0_raw;                    // untransformed initial conditions
@@ -92,8 +92,10 @@ parameters {
   real<lower=0> gamma_c;               // human infectious period
   real<lower=0> delta_c;               // cross-immune period
   real logNv0;
-  real betar;
-  real betad;
+  real beta0_r;
+  real beta0_d;
+  vector[2] beta_r;
+  vector[2] beta_d;
   real sigmar;
   real sigmad;
   vector[T] rv;                        // mosquito birth rate
@@ -121,7 +123,7 @@ transformed parameters {
   y0[5] = 0.0;
   y0[6] = exp(logNv0);
   y0[7] = 0.0;
-  y0[8]= 0.0;
+  y0[8] = 0.0;
   
   // measurement parameters
   eta_y = 1 / eta_inv_y;
@@ -161,16 +163,18 @@ model {
   
   // Mosquito process
   logNv0 ~ normal(0.7, 0.5);
-  betar ~ normal(0, 0.4);
-  betad ~ normal(0, 0.4);
-  sigmar ~ normal(0, 0.1);
-  sigmad ~ normal(0, 0.01);
+  beta0_r ~ normal(0, 0.4);
+  beta0_d ~ normal(0, 0.4);
+  beta_r ~ normal(0, 0.4);
+  beta_d ~ normal(0, 0.4);
+  sigmar ~ normal(0, 0.3);
+  sigmad ~ normal(0, 0.3);
   
   rv[1] ~ normal(0, 0.1);
-  tail(rv, T - 1) ~ normal(betar * head(rv, T - 1), sigmar);
+  tail(rv, T - 1) ~ normal(beta0_r * head(rv, T - 1) + sincos * beta_r, sigmar);
   
-  logdv[1] ~ normal(0.39, 0.1);
-  tail(logdv, T - 1) ~ normal(betad * head(logdv, T - 1), sigmad);
+  logdv[1] ~ normal(0.39, 0.12);
+  tail(logdv, T - 1) ~ normal(beta0_d * head(logdv, T - 1) + sincos * beta_d, sigmad);
   
   // Process model
   
