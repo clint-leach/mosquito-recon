@@ -76,10 +76,11 @@ data {
   int q[T];
   vector[T] tau;
   real rov[T];
-  matrix[T - 1, 2] sincos;
+  matrix[T, T] sinmat;
   int pop;
 }
 transformed data {
+  vector[T] mu = rep_vector(0.0, T);
   real alpha = 4.87;
   real phi_y = 1.0 / 12.0;
 }
@@ -92,20 +93,23 @@ parameters {
   real<lower=0> gamma_c;               // human infectious period
   real<lower=0> delta_c;               // cross-immune period
   real logNv0;
-  real beta0_r;
-  real beta0_d;
-  vector[2] beta_r;
-  vector[2] beta_d;
-  real sigmar;
-  real sigmad;
-  vector[T] rv;                        // mosquito birth rate
-  vector[T] logdv;
+  real<lower=0> hsq_r;
+  real<lower=0> omegasq_r;
+  real<lower=0> hsq_d;
+  real<lower=0> omegasq_d;
+  vector[T] z_r;
+  vector[T] z_d;
 }
 transformed parameters {
   vector[4] p0;
   vector[8] y0;
   vector[T] dv;
+  vector[T] rv;
   vector[T] lambda;
+  matrix[T, T] Sigma_r;
+  matrix[T, T] L_r;
+  matrix[T, T] Sigma_d;
+  matrix[T, T] L_d;
   real<lower=0> ro;
   real<lower=0> gamma;
   real<lower=0> delta;
@@ -134,9 +138,30 @@ transformed parameters {
   gamma = 3.5 * gamma_c;
   delta = 1 / (97 * delta_c);
   
-  // mosquito parameters
-  dv = exp(logdv);
+  // mosquito capture rate
   lambda = exp(log_phi_q) * tau;
+  
+  // GP covariance matrix
+  for (i in 1:(T - 1)){
+    for (j in (i + 1):T){
+      Sigma_r[i, j] = hsq_r * exp(-1 / (2 * omegasq_r) * sinmat[i, j]);
+      Sigma_r[j, i] = Sigma_r[i, j];
+      
+      Sigma_d[i, j] = hsq_d * exp(-1 / (2 * omegasq_d) * sinmat[i, j]);
+      Sigma_d[j, i] = Sigma_d[i, j];
+    }
+  }
+  
+  for (i in 1:T){
+      Sigma_r[i, i] = hsq_r + 0.001;
+      Sigma_d[i, i] = hsq_d + 0.001;
+  }
+  
+  L_r = cholesky_decompose(Sigma_r);
+  L_d = cholesky_decompose(Sigma_d);
+
+  rv = mu + L_r * z_r;
+  dv = 1.47 * exp(L_d * z_d);
 }
 model {
   vector[T] y_hat;
@@ -161,21 +186,18 @@ model {
   gamma_c ~ gamma(100, 100);
   delta_c ~ gamma(10, 10);
   
-  // Mosquito process
+  // Initial mosquito pop size
   logNv0 ~ normal(0.7, 0.5);
-  beta0_r ~ normal(0, 0.4);
-  beta0_d ~ normal(0, 0.4);
-  beta_r ~ normal(0, 0.4);
-  beta_d ~ normal(0, 0.4);
-  sigmar ~ normal(0, 0.3);
-  sigmad ~ normal(0, 0.3);
   
-  rv[1] ~ normal(0, 0.1);
-  tail(rv, T - 1) ~ normal(beta0_r * head(rv, T - 1) + sincos * beta_r, sigmar);
-  
-  logdv[1] ~ normal(0.39, 0.12);
-  tail(logdv, T - 1) ~ normal(beta0_d * head(logdv, T - 1) + sincos * beta_d, sigmad);
-  
+  // GP stuff
+  hsq_r ~ normal(0, 5);
+  omegasq_r ~ normal(0, 5);
+  hsq_d ~ normal(0, 5);
+  omegasq_d ~ normal(0, 5);
+
+  z_r ~ normal(0, 1);
+  z_d ~ normal(0, 1);
+
   // Process model
   
   state[1] = y0;
