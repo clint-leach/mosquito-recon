@@ -227,35 +227,26 @@ We know mosquitoes spread dengue, but mosquito abundance, as estimated from trap
 \section*{Introduction}
 
 Dengue fever is a massive global public health burden, with millions of cases per year in Brazil alone (CITATION).  
-Since the dengue virus (DENV) is vectored by the mosquito \textit{Aedes aegypti}, dengue fever is prevented primarily through mosquito control programs \cite{Achee2015}.
-Even if a vaccine is developed, mosquito control is likely to remain an important component of dengue management \cite{Achee2015}.
-Studies have shown that targeted mosquito control efforts can be effective in reducing disease burden.
+Since the dengue virus (DENV) is vectored by the mosquito \textit{Aedes aegypti}, dengue fever is prevented primarily through mosquito surveillance and control programs \cite{Achee2015}.
+Deploying these mosquito control measures effectively and efficiently requires a detailed understanding of how mosquito surveillance indices map to human disease risk.
 For example contact tracing and residential spraying reduced disease risk in Cairns, Australia \cite{Vazquez-Prokopec2017}.
-Though this approach was successful, it requires detailed data following individual cases, potentially limiting its utility for large-scale deployment.
+This approach ensures that the mosquitoes targeted by control are epidemiologically relevant, but the detailed data it requires potentially limits its utility for large-scale deployment.
 
-Other efforts have sought to guide the deployment of control efforts through the use of fine-scale mosquito surveillance.
+More commonly, cities deploy mosquito control based on trap-based mosquito surveillance data.
 For instance, the "MI-Dengue" system deployed throughout several cities in Brazil uses a grid of mosquito sticky-traps (MosquiTRAPs) for spatial prioritization of source reduction and larvicide application \cite{Eiras2009}.
 Comparing cities with and without this system, \cite{Pepin2013} estimated that it prevented X cases and saved X dollars in economic losses from 20XX - 20XX.
 Though this system has been effective, the mosquito indices and thresholds used to prioritize control efforts remain somewhat ad-hoc.
-Using such surveillance data to efficiently target limited control resources requires a detailed understanding of the relationship between the components of mosquito abundances measured by the trap and disease risk.
+Using such surveillance data to efficiently target limited control resources requires a more detailed understanding of the relationship between the components of mosquito abundance measured by traps and disease risk.
 
-However, even though mosquitoes are necessary for dengue transmission, establishing a clear link between surveillance-based indices of mosquito abundance and disease risk has proven difficult thus far (CITATIONS).
-Many of the attempts to establish this link have relied on tests of the ability of mosquito abundance measures to predict human disease risk in regression models.
-For example, \cite{Pepin2015} found that models that included MosquiTRAP surveillance data failed to predict weekly dengue cases any better than autoregressive models that include lagged case data alone.
-Evaluating the influence of mosquito abundance in this way is analogous to a test of Granger causality \cite{Granger1969}, which states that some variable $X$ (e.g. mosquito abundance) \emph{causes} $Y$ (e.g. human dengue cases) if $X$ contains unique information about $Y$ (i.e. if a model with $X$ and $Y$ provides better predictions of $Y$ than a model with $Y$ alone).
-By this definition, the results of \cite{Pepin2015} suggest that mosquito abundance does not cause dengue cases (in the Granger sense).
+Many of the attempts to establish this relationship statistically have relied on tests of the ability of mosquito abundance measures to predict human disease risk in regression models.
+For example, \cite{Pepin2015} found that models that included MosquiTRAP surveillance data failed to predict weekly dengue cases any better than models that include lagged case data alone.
+However, these models fail to account for the mechanistic, non-linear relationship between mosquito population dynamics and dengue epidemiology.
+In particular, the cycle of transmission between humans and dengue is controlled not just by mosquito population size, but also by the emergence of new susceptible adults and the mortality rate.
 
-However, as noted by Sugihara \emph{et al.} \cite{Sugihara2012a}, Granger causality assumes that $X$ and $Y$ are separable, which is not the case if $X$ and $Y$ are linked in a non-linear dynamical system.
-In this case, a model with $X$ and $Y$ will not outperform the model with only $Y$, as the information contained in $X$ is already embedded in $Y$, a consequence of Taken's theorem (CITATION). 
-Since dengue transmission is governed by such a non-linear dynamical system, information about the driving component of mosquito abundance should be already embedded in the time series of human case reports.
-As a result, predictive utility is not an appropriate way to test the causal influence of mosquito abundance on dengue risk.
-Instead, Sugihara \emph{et al.} argue that if $X$ is a driver $Y$, then you should be able to reconstruct $X$ from $Y$.
-
-In this paper, we apply this perspective to the problem of linking mosquito abundance to disease risk.
-To test whether or not mosquito abundance, as measured through surveillance efforts, drives dengue dynamics, we ask whether we can reconstruct a time series of mosquito surveillance data from a time series of case reports.
-We approach this as an inverse problem: we first posit a mechanistic model of dengue transmission and then develop a Bayesian statistical framework to estimate the mosquito abundance time series that is consistent with that model and the time series of case reports.
-We then evaluate the causal link between mosquito abundance and case reports by using posterior predictive checks to compare the estimated and observed mosquito time series.  
-
+In this paper, we seek to connect mosquito surveillance data with human case reports through the use of a Bayesian, mechanistic model.
+We first propose a differential equation model for dengue epidemiology.
+We then embed this model into a Bayesian statistical framework that allows us to estimate latent time series of mosquito demographic parameters from time series of mosquito trap counts and reported cases of dengue fever.
+Lastly, we explore the ability of this fitted model to predict annual dengue outbreaks and its utility for targeting control efforts.
 
 \section*{Methods}
 
