@@ -1,7 +1,7 @@
 functions {
   vector derivs(int t,
                vector y,
-               real rv,
+               real bv,
                real rov,
                real lambda,
                real ro,
@@ -52,9 +52,9 @@ functions {
     /*E*/ dydt[2] = foi_vh - infectious - b * y[2];
     /*I*/ dydt[3] = infectious - (gamma + b) * y[3];
 
-    /*VE*/ dydt[4] = foi_hv - infect_mosq - dv * y[4];
-    /*VI*/ dydt[5] = infect_mosq - dv * y[5];
-    /*VN*/ dydt[6] = rv * y[6] - cap * y[6];
+    /*VE*/ dydt[4] = foi_hv - infect_mosq - dv * y[4] - cap * y[4];
+    /*VI*/ dydt[5] = infect_mosq - dv * y[5] - cap * y[5];
+    /*VN*/ dydt[6] = bv - dv * y[6] - cap * y[6];
     
     /*VC*/ dydt[7] = cap * y[6];
     /*cases*/ dydt[8] = infectious;
@@ -76,7 +76,7 @@ data {
   int q[T];
   vector[T] tau;
   real rov[T];
-  matrix[T, 3] sincos;
+  matrix[T, 2] sincos;
   int pop;
 }
 transformed data {
@@ -92,18 +92,20 @@ parameters {
   real<lower=0> gamma_c;               // human infectious period
   real<lower=0> delta_c;               // cross-immune period
   real logNv0;                         // initial mosquito population size
-  vector[3] alpha;
-  vector[3] beta;
-  real<lower=0> sigmar;
+  real alpha0;
+  vector[2] alpha;
+  real beta0;
+  vector[2] beta;
+  real<lower=0> sigmab;
   real<lower=0> sigmad;
-  vector[T] z_r;                       // mosquito growth rate series
+  vector[T] z_b;                       // mosquito growth rate series
   vector[T] z_d;                       // mosquito death rate series
 }
 transformed parameters {
   vector[4] p0;
   vector[8] y0;
   vector[T] dv;
-  vector[T] rv;
+  vector[T] bv;
   real<lower=0> ro;
   real<lower=0> gamma;
   real<lower=0> delta;
@@ -135,8 +137,18 @@ transformed parameters {
   delta = 1 / (97 * delta_c);
   
   // mosquito demographic parameters
-  rv = sincos * alpha + sigmar * z_r;
-  dv = exp(sincos * beta + sigmad * z_d);
+  bv = exp(sincos * alpha + alpha0 + sigmab * z_b);
+  dv = exp(sincos * beta + beta0 + sigmad * z_d);
+  // {
+  //   vector[T] logdv;
+  //   
+  //   logdv[1] = logdv0;
+  //   for(i in 2:T){
+  //     logdv[i] = beta * logdv[i-1] + sigmad * z_d[i-1];
+  //   }
+  //   
+  //   dv = exp(logdv);
+  // }
 }
 model {
   vector[T] y_hat;
@@ -165,15 +177,17 @@ model {
   logNv0 ~ normal(0.7, 0.5);
   
   // Mosquito demographic series
-  sigmar ~ normal(0, 1);
+  sigmab ~ normal(0, 1);
   sigmad ~ normal(0, 1);
   
-  alpha ~ normal(0, 0.1);
-  beta[1] ~ normal(0.39, 0.12);
-  beta[2] ~ normal(0, 0.1);
-  beta[3] ~ normal(0, 0.1);
+  alpha0 ~ normal(-0.5, 0.5);
+  alpha ~ normal(0, 5);
   
-  z_r ~ normal(0, 1);
+  // logdv0 ~ normal(0.39, 0.12);
+  beta0 ~ normal(0.39, 0.12);
+  beta ~ normal(0, 5);
+
+  z_b ~ normal(0, 1);
   z_d ~ normal(0, 1);
   
   // Process model
@@ -184,7 +198,7 @@ model {
     for(j in 1:7){
       
       state[idx + 1] = state[idx] + 1.0 / 7.0 *
-        derivs(t, state[idx], rv[t], rov[t], lambda, ro, gamma, dv[t], delta, phi_q * tau[t], pop);
+        derivs(t, state[idx], bv[t], rov[t], lambda, ro, gamma, dv[t], delta, phi_q * tau[t], pop);
         
       idx = idx + 1;
     }
@@ -210,7 +224,7 @@ generated quantities {
     for(j in 1:7){
       
       state = state + 1.0 / 7.0 * 
-        derivs(t, state, rv[t], rov[t], lambda, ro, gamma, dv[t], delta, phi_q * tau[t], pop);
+        derivs(t, state, bv[t], rov[t], lambda, ro, gamma, dv[t], delta, phi_q * tau[t], pop);
     }
 
     q_hat[t] = neg_binomial_2_rng(state[7] * pop, eta_q);
