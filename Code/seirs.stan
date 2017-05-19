@@ -96,9 +96,7 @@ parameters {
   vector[2] alpha;
   real beta0;
   vector[2] beta;
-  real<lower=0> sigmab;
   real<lower=0> sigmad;
-  vector[T] z_b;                       // mosquito growth rate series
   vector[T] z_d;                       // mosquito death rate series
 }
 transformed parameters {
@@ -137,18 +135,8 @@ transformed parameters {
   delta = 1 / (97 * delta_c);
   
   // mosquito demographic parameters
-  bv = exp(sincos * alpha + alpha0 + sigmab * z_b);
+  bv = exp(sincos * alpha + alpha0);
   dv = exp(sincos * beta + beta0 + sigmad * z_d);
-  // {
-  //   vector[T] logdv;
-  //   
-  //   logdv[1] = logdv0;
-  //   for(i in 2:T){
-  //     logdv[i] = beta * logdv[i-1] + sigmad * z_d[i-1];
-  //   }
-  //   
-  //   dv = exp(logdv);
-  // }
 }
 model {
   vector[T] y_hat;
@@ -177,17 +165,14 @@ model {
   logNv0 ~ normal(0.7, 0.5);
   
   // Mosquito demographic series
-  sigmab ~ normal(0, 1);
   sigmad ~ normal(0, 1);
   
   alpha0 ~ normal(-0.5, 0.5);
   alpha ~ normal(0, 5);
   
-  // logdv0 ~ normal(0.39, 0.12);
   beta0 ~ normal(0.39, 0.12);
   beta ~ normal(0, 5);
 
-  z_b ~ normal(0, 1);
   z_d ~ normal(0, 1);
   
   // Process model
