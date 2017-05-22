@@ -79,7 +79,6 @@ data {
   real rov[T];
   matrix[T, 2] sincos;
   matrix[T, D] covars;
-  matrix[T]
   int pop;
 }
 transformed data {
