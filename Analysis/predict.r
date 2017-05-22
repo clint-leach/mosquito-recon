@@ -9,6 +9,7 @@ options(mc.cores = parallel::detectCores())
 # Loading data and setting up model
 
 tseries <- read.csv("Data/Vitoria.data.csv")
+
 obs <- tapply(tseries$Cases, list(tseries$tot.week), sum, na.rm=TRUE)
 
 # Population size
@@ -18,23 +19,38 @@ pop <- 327801
 q <- tapply(tseries$Mosquitoes, list(tseries$tot.week), sum, na.rm = TRUE)
 tau <- tapply(tseries$Trap, list(tseries$tot.week), sum, na.rm = TRUE)
 
-# Computing eip forcing
-weather <- read.csv("Data/Vitoria.weather.csv")
-temp <- weather$Mean.TemperatureC
+# Wrangling weather data and computing EIP
+weather <- read.csv("Data/Vitoria.weather.csv") %>% 
+  mutate(date = ymd(BRST), year = year(date), week = week(date))
 
-week <- rep(c(1:243), each = 7)
-meantemp <- tapply(temp[1:1701], week, mean, na.rm = T)
+start <- weather$date[1]
+T_pred <- 34
+T_fit <- 243 - T_pred
 
-rov <- 7 / exp(exp(1.9 - 0.04 * meantemp) + 1 / (2 * 7))
+weather <- subset(weather, date < date[1] + weeks(T_fit))
+weather$tot.week <- rep(c(1:T_fit), each = 7)
+
+covars <- ddply(weather, .(tot.week), summarise,
+                temp = mean(Mean.TemperatureC, na.rm = T), 
+                humidity = mean(Mean.Humidity, na.rm = T)
+                )
+
+annual <- ddply(weather, .(week), summarise,
+                temp = mean(Mean.TemperatureC, na.rm = T),
+                humidity = mean(Mean.Humidity, na.rm = T)
+                )
+
+predvars <- rbind(covars[, -1],
+                  annual[week(start + weeks((T_fit + 1):243)), -1])
+
+rov <- 7 / exp(exp(1.9 - 0.04 * predvars$temp) + 1 / (2 * 7))
 
 #===============================================================================
 # Running stan
 
-T_pred <- 52
-T_fit <- 243 - T_pred
-
 dat.stan <- list(T = T_fit,
                  T_pred = T_pred,
+                 D = 2,
                  y = head(obs, T_fit),
                  q = head(q, T_fit),
                  tau = head(tau, T_fit),
@@ -42,6 +58,7 @@ dat.stan <- list(T = T_fit,
                  sincos = matrix(c(sin(2 * pi * c(1:243) / 52),
                                    cos(2 * pi * c(1:243) / 52)),
                                  ncol = 2),
+                 covars = scale(predvars),
                  pop = pop)
 
 inits = list(list(p0_raw = c(-0.4, -9, -9),

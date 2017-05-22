@@ -72,11 +72,14 @@ functions {
 }
 data {
   int<lower=1> T;
+  int<lower=1> D;
   int y[T];
   int q[T];
   vector[T] tau;
   real rov[T];
   matrix[T, 2] sincos;
+  matrix[T, D] covars;
+  matrix[T]
   int pop;
 }
 transformed data {
@@ -136,7 +139,7 @@ transformed parameters {
   
   // mosquito demographic parameters
   bv = exp(sincos * alpha + alpha0);
-  dv = exp(sincos * beta + beta0 + sigmad * z_d);
+  dv = exp(covars * beta + beta0 + sigmad * z_d);
 }
 model {
   vector[T] y_hat;

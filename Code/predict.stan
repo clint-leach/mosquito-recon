@@ -73,11 +73,13 @@ functions {
 data {
   int<lower=1> T;
   int<lower=0> T_pred;
+  int<lower=0> D;
   int y[T];
   int q[T];
   vector[T] tau;
   real rov[T + T_pred];
   matrix[T + T_pred, 2] sincos;
+  matrix[T + T_pred, D] covars;
   int pop;
 }
 transformed data {
@@ -96,7 +98,7 @@ parameters {
   real alpha0;
   vector[2] alpha;
   real beta0;
-  vector[2] beta;
+  vector[D] beta;
   real<lower=0> sigmad;
   vector[T] z_d;                       // mosquito death rate series
 }
@@ -138,7 +140,7 @@ transformed parameters {
   
   // mosquito demographic parameters
   bv = exp(sincos * alpha + alpha0);
-  mu_log_dv = sincos * beta + beta0;
+  mu_log_dv = covars * beta + beta0;
   dv = exp(head(mu_log_dv, T) + sigmad * z_d);
 }
 model {

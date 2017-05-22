@@ -19,25 +19,32 @@ q <- tapply(tseries$Mosquitoes, list(tseries$tot.week), sum, na.rm = TRUE)
 tau <- tapply(tseries$Trap, list(tseries$tot.week), sum, na.rm = TRUE)
 
 # Computing eip forcing
-weather <- read.csv("Data/Vitoria.weather.csv")
-temp <- weather$Mean.TemperatureC
+weather <- read.csv("Data/Vitoria.weather.csv") %>% 
+  mutate(date = ymd(BRST), year = year(date), week = week(date))
 
-week <- rep(c(1:243), each = 7)
-meantemp <- tapply(temp[1:1701], week, mean, na.rm = T)
+weather <- subset(weather, date < date[1] + weeks(243))
+weather$tot.week <- rep(c(1:243), each = 7)
 
-rov <- 7 / exp(exp(1.9 - 0.04 * meantemp) + 1 / (2 * 7))
+covars <- ddply(weather, .(tot.week), summarise,
+                temp = mean(Mean.TemperatureC, na.rm = T),
+                humidity = mean(Mean.Humidity, na.rm = T)
+                )
+
+rov <- 7 / exp(exp(1.9 - 0.04 * covars$temp) + 1 / (2 * 7))
 
 #===============================================================================
 # Running stan
 
 dat.stan <- list(T = 243,
+                 D = 2,
                  y = obs,
                  q = q,
                  tau = tau,
                  rov = rov,
-                 sincos = matrix(c(sin(2 * pi * c(1:243) / 52),
-                                   cos(2 * pi * c(1:243) / 52)),
+                 sincos = matrix(c(sin(2 * pi * c(1:243) / 52), 
+                                   cos(2 * pi * c(1:243) / 52)), 
                                  ncol = 2),
+                 covars = scale(covars[, -1]),
                  pop = pop)
 
 inits = list(list(p0_raw = c(-0.4, -9, -9),
@@ -62,7 +69,7 @@ inits = list(list(p0_raw = c(-0.4, -9, -9),
                   gamma_c = 1,
                   delta_c = 1,
                   logNv0 = 0.7,
-                  alpha0 = -1,
+                  alpha0 = 0,
                   alpha = c(4, 3),
                   beta0 = 0.1,
                   beta = c(0.2, 0.1),
@@ -76,7 +83,7 @@ inits = list(list(p0_raw = c(-0.4, -9, -9),
                   gamma_c = 1,
                   delta_c = 1,
                   logNv0 = 0.7,
-                  alpha0 = 0,
+                  alpha0 = 1,
                   alpha = c(1, 1),
                   beta0 = 0.1,
                   beta = c(0, 0),
@@ -86,6 +93,6 @@ inits = list(list(p0_raw = c(-0.4, -9, -9),
 fit <- stan(file = "Code/seirs.stan", 
             data = dat.stan, 
             init = inits, 
-            iter = 5000, 
+            iter = 500, 
             chains = 3,
             control = list(adapt_delta = 0.9))
