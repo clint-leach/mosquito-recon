@@ -6,7 +6,7 @@ library(magrittr)
 library(ggplot2)
 library(gridExtra)
 
-# Loading and processing data
+# Loading and processing mosquito and case data
 tseries <- read.csv("Data/Vitoria.data.csv")
 
 post <- ddply(tseries, .(tot.week), summarise,
@@ -16,8 +16,19 @@ post <- ddply(tseries, .(tot.week), summarise,
               week = unique(Week),
               year = unique(Year))
 
+# Loading and processing the weather data
+weather <- read.csv("Data/Vitoria.weather.csv") %>% 
+  mutate(date = ymd(BRST), year = year(date), week = week(date))
+
+weather <- subset(weather, date < date[1] + weeks(243))
+weather$tot.week <- rep(c(1:243), each = 7)
+
+covars <- ddply(weather, .(tot.week), summarise,
+                temp = mean(Mean.TemperatureC, na.rm = T),
+                humidity = mean(Mean.Humidity, na.rm = T))
+
 # Loading MCMC results
-sim <- readRDS("Results/mcmc.rds")
+sim <- readRDS("Results/seasonal.rds")
 
 #===============================================================================
 # Figure 1: Observed and estimated time series
@@ -82,7 +93,7 @@ ggplot(post, aes(tot.week, b)) +
   scale_x_continuous(expand = c(0, 1)) +
   ylab("mosquito net emergence rate") +
   xlab("week") +
-  ggtitle("A")
+  ggtitle("A") -> fig2.a
 
 ggplot(post, aes(tot.week, d)) + 
   geom_ribbon(aes(ymin = dmin, ymax = dmax), fill = "grey70") +
@@ -92,36 +103,63 @@ ggplot(post, aes(tot.week, d)) +
   scale_x_continuous(expand = c(0, 1)) +
   ylab("mosquito per-capita death rate") +
   xlab("week") +
-  ggtitle("B")
+  ggtitle("B") -> fig2.b
 
-#===============================================================================
-# Figure 2: weekly posterior predictive p-value for replicate mosquito
-# surveillance data
-
-# Extracting full MCMC chain of replicate data
-mcmc <- rstan::extract(sim, "q_hat", permute = T)[[1]]
-nmcmc <- dim(mcmc)[1]
-
-# Computing P(q^{rep}_t > q_t)
-for(i in 1:243){
-  post$p[i] <- sum(mcmc[, i] > post$qobs[i]) / nmcmc
-}
-
-# Plot
 postscript("Manuscript/figures/fig2.eps",
-           width = 4, height = 3,
+           width = 5.2, height = 3,
            family = "ArialMT")
 
-ggplot(post, aes(week, p, group = factor(year))) + 
-  geom_point() + 
-  geom_smooth(se = F, color = "gray40") +
-  theme_classic() + 
-  scale_y_continuous(expand = c(0, 0.01)) + 
-  scale_x_continuous(expand = c(0, 1)) +
-  xlab("week") + 
-  ylab("p")
+grid.arrange(fig2.a, fig2.b, ncol = 2)
 
 dev.off()
+
+betas <- rstan::extract(sim, c("beta0", "beta"), permute = T)
+betas <- cbind(betas[[1]], betas[[2]])
+
+X <- cbind(1, scale(covars[, -1]))
+mud <- exp(X %*% t(betas)) %>% rowMeans()
+res <- mud - d[2, ]
+
+#===============================================================================
+# Figure 3: Predicting 2012 outbreak
+
+predsim <- readRDS("Results/covar_predict.rds")
+post$fit <- c(rep(1, 243 - 34), rep(0, 34))
+
+# Plotting the estimated and predicted cases
+ypred <- rstan::extract(predsim, c("y_hat"), permute = F) %>% apply(3, quantile, c(0.1, 0.5, 0.9))
+
+post[, c("predmin", "pred", "predmax")] <- t(ypred)
+
+ggplot(post, aes(tot.week, yobs)) + 
+  geom_ribbon(aes(ymin = predmin, ymax = predmax, fill = as.factor(fit))) +
+  scale_fill_manual(values = c("0" = "grey90", "1" = "grey70"), guide = F) + 
+  geom_point(size = 0.5) + 
+  geom_line(aes(tot.week, pred)) + 
+  theme_classic() +
+  scale_y_continuous(expand = c(0, 0)) + 
+  scale_x_continuous(expand = c(0, 1)) +
+  ylab("case reports") + 
+  xlab("week") +
+  ggtitle("A")
+
+# Plotting the estimated and predicted death rates
+dpred <- rstan::extract(predsim, "d_pred", permute = F) %>% adply(3, quantile, .id = NULL, c(0.1, 0.5, 0.9))
+names(dpred) <- c("predmin", "pred", "predmax")
+
+dpred$week <- c((T_fit + 1):243)
+dpred[, c("fitmin", "fit", "fitmax")] <- t(d[, (T_fit + 1):243])
+
+ggplot(dpred, aes(week, pred)) + 
+  geom_line(linetype = 2) + 
+  geom_line(aes(week, fit)) + 
+  theme_classic() +
+  scale_y_continuous(expand = c(0, 0)) + 
+  scale_x_continuous(expand = c(0, 1)) +
+  ylab("mosquito per capita death rate") + 
+  xlab("week") +
+  ggtitle("B")
+
 #===============================================================================
 # Figure 3: observed and posterior autocorrelation functions
 
