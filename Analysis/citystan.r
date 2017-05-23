@@ -1,6 +1,7 @@
 library(rstan)
 library(plyr)
 library(magrittr)
+library(lubridate)
 
 rstan_options(auto_write = TRUE)
 options(mc.cores = parallel::detectCores())
