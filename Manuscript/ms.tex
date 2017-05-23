@@ -278,30 +278,29 @@ Following a latent period ($\frac{1}{\rho}$), exposed individuals become infecti
 Infectious individuals recover at rate $\gamma$ and remain immune for a period ($\frac{1}{\delta}$) after which they re-enter the susceptible class.
 
 Similarly, susceptible mosquitoes ($V_S$) become exposed by biting infectious humans and pass through a temperature-dependent latent period ($\frac{1}{\rho_{vt}}$) before becoming infectious ($V_I$).
-Total mosquito population size ($V_N$) is controlled by a time-varying growth rate, $r_t$, and captured mosquitoes ($V_C$) accumulate at rate $\phi_q \tau_t$, where $\phi_q$ is the per-trap capture rate, and $\tau_t$ is the number of traps deployed in week $t$.
+Total mosquito population size ($V_N$) is controlled by a time-varying net emergence rate, $b_t$, and captured mosquitoes ($V_C$) accumulate at rate $\phi_q \tau_t$, where $\phi_q$ is the per-trap capture rate, and $\tau_t$ is the number of traps deployed in week $t$.
 
 The complete differential equation model is then given as:
 \begin{align} 
-\frac{dS}{dt} &= bN - bS - \alpha \frac{V_{I}}{N} S + \delta R\\
-\frac{dE}{dt} &= \alpha \frac{V_{I}}{N} S - (\rho + b)E\\
+\frac{dS}{dt} &= bN - bS - \lambda \frac{V_{I}}{N} S + \delta R\\
+\frac{dE}{dt} &= \lambda \frac{V_{I}}{N} S - (\rho + b)E\\
 \frac{dI}{dt} &= \rho E - (\gamma + b)I\\
 \frac{dR}{dt} &= \gamma I - (\delta + b)R\\
-\frac{dV_N}{dt} & = r_t V_N - \phi_q V_N\\
-\frac{dV_E}{dt} &= \alpha \frac{I}{N} V_S - (\rho_{vt} + d)V_E\\
-\frac{dV_I}{dt} &= \rho_{vt} V_E - d V_I\\
-\frac{dV_C}{dt} & = \phi_q V_N\\
-V_S &= V_N - V_E - V_I
+\frac{dV_S}{dt} & = b_t - \lambda \frac{I}{N} V_S - (d_t + \phi_q \tau_t) V_S \\
+\frac{dV_E}{dt} &= \lambda \frac{I}{N} V_S - (\rho_{vt} + d_t + \phi_q \tau_t)V_E\\
+\frac{dV_I}{dt} &= \rho_{vt} V_E - (d_t + \phi_q \tau_t) V_I\\
+\frac{dV_C}{dt} & = \phi_q \tau_t V_N\\
+V_N &= V_S + V_E + V_I
 \end{align}
 
-The mosquito demographic parameters (net grown rate, $r_t$, and death rate, $d_t$) are modeled as an AR(1) process with a periodic regression component to account for unmodeled seasonal forcing (e.g. from temperature, precipitation, etc.):
+The mosquito demographic parameters (net emergence rate, $b_t$, and per capita death rate, $d_t$) are modeled with a periodic regression component to account for unmodeled seasonal forcing (e.g. from temperature, precipitation, etc.):
 \begin{align}
-r_t & = \alpha_{1}r_{t-1} + \alpha_2 \sin(2\pi t / 52) + \alpha_3 \cos(2\pi t / 52) + \epsilon_t\\
-\log(d_{t}) & = \beta_{1}\log(d_{t-1}) + \beta_2 \sin(2\pi t / 52) + \beta_3 \cos(2\pi t / 52) + \xi_t,
+\log(b_t) & = \alpha_{0} + \alpha_1 \sin(2\pi t / 52) + \alpha_2 \cos(2\pi t / 52) \\
+\log(d_{t}) & = \beta_{0} + \beta_1 \sin(2\pi t / 52) + \beta_2 \cos(2\pi t / 52) + \epsilon_t,
 \end{align}
 where
 \begin{align}
-\epsilon_t & \sim \text{Normal}(0, \sigma_{\epsilon})\\
-\xi_t & \sim \text{Normal}(0, \sigma_{\xi}).
+\epsilon_t & \sim \text{Normal}(0, \sigma)\\
 \end{align}
 
 \subsection*{Data model}
@@ -326,7 +325,7 @@ The population size and average life span (which we use to parameterize the birt
 To maintain identifiability, the transmission rate and case reporting probability are also fixed at literature values.
 Lastly, the extrinsic incubation period in mosquitoes is modeled as a function of weekly mean temperature and forced with data pulled from WeatherUnderground.
 
-The remaining parameters include the epidemiological parameters that control the flows between the compartments of the differential equation model ($\rho$, $\gamma$, $\delta$), the initial conditions of the model ($S_0$, $E_0$, $I_0$, $R_0$, $V_{N0}$), the regression parameters and process noise in the models for mosquito growth and death rates ($\mathbf{\alpha}$, $\mathbf{\beta}$, and $\sigma_{\epsilon}$ and $\sigma_{\xi}$), and the remaining measurement parameters ($\phi_q$, $\eta_y$, $\eta_q$).  
+The remaining parameters include the epidemiological parameters that control the flows between the compartments of the differential equation model ($\rho$, $\gamma$, $\delta$), the initial conditions of the model ($S_0$, $E_0$, $I_0$, $R_0$, $V_{N0}$), the regression parameters and process noise in the models for mosquito growth and death rates ($\mathbf{\alpha}$, $\mathbf{\beta}$, and $\sigma$), and the remaining measurement parameters ($\phi_q$, $\eta_y$, $\eta_q$).  
 Where possible, we place informative priors on these parameters based on existing laboratory and field studies (see Table \ref{fixedparms} for means and Supplemental Material for detailed explanations).
 
 For any given values of these parameters, the mosquito process model should be flexible enough to produce a good fit to the case reports data.
@@ -423,154 +422,10 @@ Weekly observations from 2008 to week 34 of 2012 (points), with corresponding me
 
 \section*{Supporting information}
 
-\subsection*{Full model}
-
-
-\begin{align}
-y_t & \sim \text{NegBin}(\phi_y  (X_t - X_{t-1})N, \eta_y)\\
-q_t & \sim \text{NegBin}(V_{Ct} - V_{Ct-1}, \eta_q),
-\\ 
-\frac{dX}{dt} &= \rho E \\
-\frac{dS}{dt} &= b - bS - \alpha V_{I} S + \delta R\\
-\frac{dE}{dt} &= \alpha V_{I}S - (\rho + b)E\\
-\frac{dI}{dt} &= \rho E - (\gamma + b)I\\
-\frac{dR}{dt} &= \gamma I - (\delta + b)R\\
-\\
-\frac{dV_N}{dt} & = r_t V_N - \phi_q V_N\\
-\frac{dV_E}{dt} &= \alpha \frac{I}{N} V_S - (\rho_{vt} + d)V_E\\
-\frac{dV_I}{dt} &= \rho_{vt} V_E - d V_I\\
-\frac{dV_C}{dt} & = \phi_q V_N\\
-V_S &= V_N - V_E - V_I\\
-\\
-r_t & = \alpha_{1}r_{t-1} + \alpha_2 \sin(2\pi t / 52) + \alpha_3 \cos(2\pi t / 52) + \epsilon_t\\
-\log(d_{t}) & = \beta_{1}\log(d_{t-1}) + \beta_2 \sin(2\pi t / 52) + \beta_3 \cos(2\pi t / 52) + \xi_t\\
-\epsilon_t & \sim \text{Normal}(0, \sigma_{\epsilon})\\
-\xi_t & \sim \text{Normal}(0, \sigma_{\xi})
-\end{align}
-
-\begin{align}
-\mathbf{\beta} & \sim \text{Normal}(0, 0.4)\\
-\mathbf{\alpha} & \sim \text{Normal}(0, 0.4)\\
-\sigma_{\epsilon} & \sim \text{Normal}(0, 0.3)\\
-\sigma_{\xi} & \sim \text{Normal}(0, 0.3)\\
--\log(\phi_q) & \sim \text{Half-normal}(13, 0.5)\\
-\eta_y &\sim \text{Half-normal}(0, 5)\\
-\eta_q & \sim \text{Half-normal}(0, 5)\\
-T_{\rho} & \sim \text{Gamma}(8.3, 8.3)\\
-\rho & = (0.87 T_{\rho})^{-1}\\
-T_{\delta} & \sim \text{Gamma}(10, 10)\\
-\delta & = (97 T_{\delta})^{-1}\\
-\gamma' & \sim \text{Gamma}(100, 100)\\
-\gamma & = 3.5\gamma'\\
-d_{v}' & \sim \text{Gamma}(100, 100)\\
-d_v & = 1.47 d_v'\\
-S_0' & \sim \text{Normal}(-0.4, 0.2)\\
-E_0' & \sim \text{Normal}(-9, 0.6)\\
-I_0' & \sim \text{Normal}(-9, 0.6)\\
-R_0' & = 0\\
-S_0 & = \frac{\exp(S_0)}{\exp(S_0' + E_0' + I_0' + R_0')} \\
-\end{align}
-
-\subsection*{Details of prior specification}
-
-\begin{itemize}
-\item \textbf{Period of cross-immunity} ($T_{\delta}$): Reich \emph{et al.} \cite{Reich2013} estimate a mean of 1.88 years (97 weeks) with a 95\% confidence interval of (0.88, 4.31).
-We specify a gamma prior on the multiplicative scale to have a mean of one and 0.01 and 0.99 quantiles at roughly $0.88/1.88 = 0.47$ and $4.31/1.88 = 2.3$,, respectively:
-\begin{equation}
-T_{\delta} \sim \text{Gamma}(10, 10)
-\end{equation}
-where $\delta = (97 T_\delta)^{-1}$.
-Note that we use a slightly more conservative interval than Reich \emph{et al.} to avoid numerical instability at extreme values.
-\\
-\item \textbf{Intrinsic incubation period} ($T_{\rho}$): Chan and Johansson \cite{Chan2012} estimate a mean of 6.1 days with a 95\% credible interval of (3, 10).
-Thus, we specify a gamma prior on the multiplicative scale to have a mean of one, and 0.05 and 0.95 quantiles of $3 / 6.1 = 0.49$ and $10 / 6.1 = 1.6$, respectively:
-\begin{equation}
-T_{\rho} \sim \text{Gamma}(8.3, 8.3)
-\end{equation}
-where $\rho = (0.87 T_{\rho})^{-1}$.
-\\
-\item \textbf{Decay rate of infectiousness} ($\gamma$): Nguyet \emph{et al.} \cite{Nguyet2013} find that there is very little transmission of dengue from humans to mosquitoes after 5-6 days since the onset of fever (with roughly an extra of infectiousness prior to onset of fever).
-In reality, an individual's infectiousness decays with time, but the ODE model assumes infectiousness is constant for the (exponentially distributed) duration of the infection period.    
-To parameterize the model then, we assume a rough equivalence between the probability of infection from a single individual at a given time and the proportion of individuals still infectious at a given time.
-Thus we choose our prior for $\gamma$ to keep the time at which only 5\% of individuals are still infectious between 5 and 7 days, with a mean 5\% threshold of 6 days.
-Again we specify the prior on the multiplicative scale to have a mean of one and 0.05 and 0.95 quantiles at $2.99/3.5 = 0.85$ and $4.19 / 3.5 = 1.2$, respectively:
-\begin{equation}
-\gamma' \sim \text{Gamma}(100, 100)
-\end{equation}
-where $\gamma = 3.5\gamma'$.
-\\
-\item \textbf{Initial mosquito mortality rate} ($d_0$): Brady \textit{et al.} \cite{Brady2013} estimated \textit{Aedes aegypti} temperature-dependent field survivorship curves from over 190 laboratory and field experiments.
-They found that increased mortality in the field generally washes out the effect of temperature, so we use their estimates for 25 degrees C to construct our prior for $d$.  
-We use nonlinear least squares to fit the exponential cdf with rate $d_v$ to the estimated mortality curve provided by Brady \textit{et al.}, which gives $d = 1.47$.
-We use the same procedure to estimate $d$ for the 0.25 and 0.75 quantiles of the estimated mortality curves (assuming symmetry around the mean), which gives 1.6 and 1.37.
-We then specify the prior on $\log(d)$ to induce the above quantiles on $d$, which gives us:
-\begin{equation}
-\log(d) \sim \text{Normal}(0.39, 0.12).
-\end{equation}
-\\
-\item \textbf{Initial mosquito growth rate} ($r_0$):
-\\
-\item \textbf{Initial conditions} ($S_0, E_0, I_0, R_0$): The SEIRS model assumes a constant population size and is scaled so that $S_0+E_0+I_0+R_0 = 1$.
-We specify our prior on an unconstrained scale and transform to the simplex with the softmax transformation.
-To maintain identifiability of this transformation, we fix $R_0' = 0$.
-We choose the prior for $S_0'$  so that $S_0$ has a mean of roughly  0.4, with the mass concentrated between 0.2 and 0.6.
-This range produces dynamics with recurring annual outbreaks and avoids the extremes where the disease either does not spread or spreads far too quickly and then dies out.
-This is also roughly consistent with \cite{Cardoso2011a} who report notified cases for Vitoria from 1995 to 2008. 
-They report that the 2008 outbreak (where our data begins) was driven by serotypes 2 and 3, and 2009 by serotype 2 only, with 13590 reported cases in previous serotype 2 years.
-Assuming 12 unreported cases for every reported case, 163,080 total cases, or about 50\% of the population immune to serotype 2 at the start of 2008.
-We choose the priors for $E_0'$ and $I_0'$ so that the initial sizes of these compartments were less than 100 individuals, but with a mode slightly off from zero.
-This was again chosen primarily to ensure sustained multi-annual transmission.
-\\
-\item \textbf{Mosquito population size and capture probability} ($\log(V_{N0}), \phi_q$): Wearing and Rohani \cite{Wearing2006} assume 2 mosquitoes per person in their model of dengue transmission, so we use that to inform our prior on $\log(V_{N0})$.
-Since $V_{N}$ has been scaled by the human population size, we center the prior for $\log(V_{N0})$ at $\log(2) = 0.7$ and set the variance to concentrate mass between 0.5 and 5 mosquitoes per person.
-Maybe see Focks (2000) for further justification of range of mosquitoes/person.
-The per-trap mosquito capture probability, $\phi_q$ follows $V_{N0}$ closely and scales the estimated mosquito abundance down to magnitude of the trap counts.
-Since $ E[q_t] = \phi_q \tau V_{Nt} N$, we set the prior on $\log(\phi_q)$ to have a mean of $\log(q_1) - \log(\tau_1) - \log(V_{N0}) - \log(N) = -13$ and a variance to match the prior on $\log(V_{N0})$.
-\\
-\item \textbf{Overdispersion parameters} ($\eta_y, \eta_q$): The negative binomial likelihoods were parameterized as:
-\begin{equation}
-\text{NegBin}(y | \mu, \eta) = {y + 1/\eta -1 \choose y}\left(\frac{\mu\eta}{1 + \mu\eta}\right)^y\left(\frac{1}{1+\eta\mu}\right)^{1/\eta}
-\end{equation}
-such that
-\begin{align}
-E[y] & = \mu\\
-\text{Var}[y] &= \mu + \eta\mu^2
-\end{align}
-Thus, $\eta = 0$ corresponds to Poisson, and $\eta > 0$ leads to overdispersion.
-We put a relatively conservative truncated normal prior on both $\eta_y$ and $\eta_q$ that concentrates mass near zero but allows for larger values.
-\\
-\item \textbf{Regression parameters} ($\mathbf{\beta}$, $\mathbf{\alpha}$): Though the autoregressive framework requires that $|\beta| < 1$, for computational efficiency, we avoid hard bounds and instead use a normal prior centered at zero, with variance such that the majority of mass falls between -1 and 1.
-\\
-\item \textbf{Process variances} ($\sigma_{\epsilon}$, $\sigma_{\xi}$):
-\end{itemize}
-
-\subsection*{Fixed parameters}
-
-\begin{itemize}
-\item \textbf{Transmission rate} ($\alpha$): The transmission rate only appears multiplied by a term from the mosquito model (either $V_I$ or $V_S$) and is thus effectively non-identifiable when we are also estimating the overall size of the mosquito population.
-Because of this, we fix $\alpha$ at a reasonable value from the literature (though our results should not be sensitive to the exact value used).
-The transmission rate is the product of the mosquito feeding rate and the probability of transmission given feeding.
-Scott \textit{et al.} \cite{Scott2000} estimate that \textit{Aedes aegypti} females take 0.63 blood meals per day in Puerto Rico, and 0.76 blood meals per day in Thailand.
-We take the average of these and set the biting rate at 0.69 per day, or 4.87 per week.
-There are relatively few reliable estimates of the transmission probability of DENV, but Lambrechts \textit{et al.} \cite{Lambrechts2011} estimate transmission probabilities close to one  for several related flaviviruses at 25 degrees C (roughly the mean temperature for Vitoria).
-\\
-\item \textbf{Reporting probability} ($\phi_y$): Silva \textit{et al.} \cite{Silva2016} estimate that there are 12 cases of dengue for every case reported to Brazil's Notifiable Diseases Information System (SINAN, the source of our data), so we fix $\phi_y = 1/12$.
-\\
-\item \textbf{Extrinsic incubation period} ($1/\rho_{vt}$): Temperature is thought to play an important role in the seasonality of dengue, in particular through its influence on the extrinsic incubation period of the virus in the mosquito  (the amount of time until a mosquito becomes infectious after taking an infectious blood meal).
-To account for this, we make $1/\rho_v$ a function of temperature, and force it with weekly mean temperature records for Vitoria downloaded from Weather Underground (URL/citation).
-We use the temperature relationship from the recent meta-analysis of \cite{Chan2012}, which incorporates a large number of records and accounts for the interval-censored nature of the data usually available from mosquito transmission studies.
-We use a slightly more conservative fitted relationship from a log-normal model that excludes right-censored data and produces a less extreme temperature dependence:
-\begin{align}
-\frac{1}{\rho_v} &= \exp \left(\mu + \frac{1}{14}\right)\\
-\mu & = \exp(1.9 - 0.04 T)
-\end{align}
-This relationship is similar to those reported in \cite{Focks1995} and \cite{Tjaden2013}, though there is uncertainty about the exact shape of this relationship.
-\end{itemize}
-
 % Include only the SI item label in the paragraph heading. Use the \nameref{label} command to cite SI items in the text.
-\paragraph*{S1 HMC Diagnostics.}
+\paragraph*{S1 Text.}
 \label{S1_Diag}
-{\bf Trace plots and convergence tests.}
+{\bf Full description of model and priors.}
 
 \section*{Acknowledgments}
 
