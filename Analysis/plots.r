@@ -3,8 +3,10 @@
 library(rstan)
 library(plyr)
 library(magrittr)
+library(lubridate)
 library(ggplot2)
 library(gridExtra)
+
 
 # Loading and processing mosquito and case data
 tseries <- read.csv("Data/Vitoria.data.csv")
@@ -28,7 +30,7 @@ covars <- ddply(weather, .(tot.week), summarise,
                 humidity = mean(Mean.Humidity, na.rm = T))
 
 # Loading MCMC results
-sim <- readRDS("Results/seasonal.rds")
+sim <- readRDS("Results/covars.rds")
 
 #===============================================================================
 # Figure 1: Observed and estimated time series
@@ -79,21 +81,11 @@ dev.off()
 #===============================================================================
 # Figure 2: estimated demographic rates
 
-b <- rstan::extract(sim, "bv", permute = T)[[1]] %>% apply(2, quantile, c(0.1, 0.5, 0.9))
 d <- rstan::extract(sim, "dv", permute = T)[[1]] %>% apply(2, quantile, c(0.1, 0.5, 0.9))
+epsilon <- rstan::extract(sim, "z_d", permute = T)[[1]] %>% apply(2, quantile, c(0.1, 0.5, 0.9))
 
-post[, c("bmin", "b", "bmax")] <- t(b)
 post[, c("dmin", "d", "dmax")] <- t(d)
-
-ggplot(post, aes(tot.week, b)) + 
-  geom_ribbon(aes(ymin = bmin, ymax = bmax), fill = "grey70") +
-  geom_line() + 
-  theme_classic() +
-  scale_y_continuous(expand = c(0.05, 0)) + 
-  scale_x_continuous(expand = c(0, 1)) +
-  ylab("mosquito net emergence rate") +
-  xlab("week") +
-  ggtitle("A") -> fig2.a
+post[, c("epsmin", "eps", "epsmax")] <- t(epsilon)
 
 ggplot(post, aes(tot.week, d)) + 
   geom_ribbon(aes(ymin = dmin, ymax = dmax), fill = "grey70") +
@@ -102,6 +94,17 @@ ggplot(post, aes(tot.week, d)) +
   scale_y_continuous(expand = c(0.05, 0)) + 
   scale_x_continuous(expand = c(0, 1)) +
   ylab("mosquito per-capita death rate") +
+  xlab("week") +
+  ggtitle("B") -> fig2.a
+
+ggplot(post, aes(tot.week, eps)) + 
+  geom_ribbon(aes(ymin = epsmin, ymax = epsmax), fill = "grey70") +
+  geom_line() + 
+  geom_hline(yintercept = 0, alpha = 0.5) +
+  theme_classic() +
+  scale_y_continuous(expand = c(0.05, 0)) + 
+  scale_x_continuous(expand = c(0, 1)) +
+  ylab("epsilon") +
   xlab("week") +
   ggtitle("B") -> fig2.b
 
@@ -113,15 +116,11 @@ grid.arrange(fig2.a, fig2.b, ncol = 2)
 
 dev.off()
 
-betas <- rstan::extract(sim, c("beta0", "beta"), permute = T)
-betas <- cbind(betas[[1]], betas[[2]])
-
-X <- cbind(1, scale(covars[, -1]))
-mud <- exp(X %*% t(betas)) %>% rowMeans()
-res <- mud - d[2, ]
-
 #===============================================================================
 # Figure 3: Predicting 2012 outbreak
+
+T_pred <- 34
+T_fit <- 243 - T_pred
 
 predsim <- readRDS("Results/covar_predict.rds")
 post$fit <- c(rep(1, 243 - 34), rep(0, 34))
