@@ -251,16 +251,9 @@ Lastly, we explore the ability of this fitted model to predict annual dengue out
 \subsection*{Study system and data}
 
 Vitoria is a coastal city and the capital of the state of Espirito Santo, Brazil, with a population of 327,801 in the city proper, and an additional 1.5 million people in the greater metropolitan area.  
-The city has an area of approximately 93 sq. km., with most of that area taken up by a large island surrounded by the river Rio Santa Maria and bay Baia de Vitoria.  
-
-Since 2008, the city has monitored mosquito abundance using 1327 sticky traps (MosquiTRAP, \cite{Eiras2009}) arranged in a grid across the city.
-Each trap is checked weekly, providing us with 243 weeks (2008 through week 34 of 2012) of counts of gravid female \emph{Aedes aegypti}.
-Dengue is a mandatory notifiable disease, and thus the city's Ministry of Health Secretary maintains a database of weekly notified probable dengue cases (i.e. medical care sought for dengue-like symptoms).
-
-Governador Valladares is also a city for which we have data.
-
-Sete Lagoas is also a city for which we have data.
-
+Since 2008, the company Ecovec has monitored mosquito abundance for the city using approximately 1327 sticky traps (MosquiTRAP, \cite{Eiras2009}) arranged in a grid across the city.
+Each trap is checked weekly and the mosquitoes inside counted and identified, providing us with 243 weeks (2008 through week 34 of 2012) of counts of gravid female \emph{Aedes aegypti}.
+Dengue is a mandatory notifiable disease, and thus the city's Ministry of Health Secretary maintains a database of weekly notified probable dengue cases (i.e. medical care sought for dengue-like symptoms) for this same time period.
 
 \subsection*{Process Model}
 
@@ -268,17 +261,18 @@ Dengue epidemiology is complicated considerably by the presence of four simultan
 Infection with one serotype confers life-long immunity to that serotype, along with temporary immunity to other serotypes.  
 As this cross-immunity wanes, antibodies from the previous infection can actually result in antibody-dependent enhancement (ADE), wherein hosts are more susceptible to infection with the other serotypes and more likely to develop severe symptoms (i.e. dengue haemorrhagic fever or dengue shock syndrome).
 The strength and duration of these different inter-serotype interactions are not well understood, though different models suggest that temporary cross-immunity alone (without ADE) is sufficient to reproduce observed multi-annual dynamics in Thailand \cite{Wearing2006,Reich2013}.
-Similarly, \cite{Aguiar2013} find that capturing both primary and secondary infections and the period of cross-immunity is critical, but that explicitly including all four serotypes (at great cost to model complexity) does not perform much better than a two serotype model, and indeed that the number of hospital admissions caused by a third or fourth infection is very low \cite{Aguiar2011a}.
+Similarly, \cite{Aguiar2013} find that capturing both primary and secondary infections and the period of cross-immunity is critical, but that explicitly including all four serotypes (at great cost to model complexity) does not perform much better than a two serotype model.
 
 Explicitly accounting for interactions between serotypes, even only two of the four, leads to a large and complex mechanistic model.
 Moreover, since dengue case reports do not include information on serotype, we do not have enough information to inform the dynamics of individual serotypes.
 As such, we simplify the model of \cite{Wearing2006} to an SEIRS framework, which drops serotype-specific dynamics but preserves the period of cross-immunity and the possibility of reinfection.
 In this framework, susceptible individuals ($S$) become exposed ($E$) through contact with infectious mosquitoes ($V_I$).
 Following a latent period ($\frac{1}{\rho}$), exposed individuals become infectious ($I$) at which point they can infect susceptible mosquitoes ($V_S$).
-Infectious individuals recover at rate $\gamma$ and remain immune for a period ($\frac{1}{\delta}$) after which they re-enter the susceptible class.
+Infectious individuals recover at rate $\gamma$ and subsequenty remain immune for a period ($\frac{1}{\delta}$) after which they re-enter the susceptible class.
 
 Similarly, susceptible mosquitoes ($V_S$) become exposed by biting infectious humans and pass through a temperature-dependent latent period ($\frac{1}{\rho_{vt}}$) before becoming infectious ($V_I$).
-Total mosquito population size ($V_N$) is controlled by a time-varying net emergence rate, $b_t$, and captured mosquitoes ($V_C$) accumulate at rate $\phi_q \tau_t$, where $\phi_q$ is the per-trap capture rate, and $\tau_t$ is the number of traps deployed in week $t$.
+Total mosquito population size ($V_N$) is controlled by a periodically varying net emergence rate, $b_t$, and a stochastic, weather dependent death rate, $d_t$.
+Captured mosquitoes ($V_C$) accumulate at rate $\phi_q \tau_t$, where $\phi_q$ is the per-trap capture rate, and $\tau_t$ is the number of traps deployed in week $t$.
 
 The complete differential equation model is then given as:
 \begin{align} 
@@ -290,27 +284,26 @@ The complete differential equation model is then given as:
 \frac{dV_E}{dt} &= \lambda \frac{I}{N} V_S - (\rho_{vt} + d_t + \phi_q \tau_t)V_E\\
 \frac{dV_I}{dt} &= \rho_{vt} V_E - (d_t + \phi_q \tau_t) V_I\\
 \frac{dV_C}{dt} & = \phi_q \tau_t V_N\\
-V_N &= V_S + V_E + V_I
-\end{align}
-
-The mosquito demographic parameters (net emergence rate, $b_t$, and per capita death rate, $d_t$) are modeled with a periodic regression component to account for unmodeled seasonal forcing (e.g. from temperature, precipitation, etc.):
-\begin{align}
-\log(b_t) & = \alpha_{0} + \alpha_1 \sin(2\pi t / 52) + \alpha_2 \cos(2\pi t / 52) \\
-\log(d_{t}) & = \beta_{0} + \beta_1 \sin(2\pi t / 52) + \beta_2 \cos(2\pi t / 52) + \epsilon_t,
+V_N &= V_S + V_E + V_I,
 \end{align}
 where
+\begin{equation}
+\log(b_t) = \alpha_{0} + \alpha_1 \sin(2\pi t / 52) + \alpha_2 \cos(2\pi t / 52),
+\end{equation}
+and
 \begin{align}
-\epsilon_t & \sim \text{Normal}(0, \sigma)\\
+\log(d_{t}) & = \beta_{0} + X\beta + \epsilon_t\\
+\epsilon_t & \sim \text{Normal}(0, \sigma).
 \end{align}
 
 \subsection*{Data model}
 
-To connect the differential equation model the the observed case reports, we add an extra state, $X$, that collects the cumulative number of transitions from the exposed to infectious class (assuming that case reporting coincides with the onset of symptoms).
+To connect the differential equation model the the observed case reports, we add an extra state, $C$, that collects the cumulative number of transitions from the exposed to infectious class (assuming that case reporting coincides with the onset of symptoms).
 We then model the number of new cases reported in week $t$ ($y_t$) as:
 \begin{equation}
-y_t  \sim \text{NegBin}(\phi_y (X_t - X_{t-1}), \eta_y),
+y_t  \sim \text{NegBin}(\phi_y (C_t - C_{t-1}), \eta_y),
 \end{equation}
-where $\phi_y$ is the reporting probability, $X_t - X_{t-1}$ is the number of new infectious individuals in week $t$, and $\eta_y$ controls the overdispersion relative to the Poisson.
+where $\phi_y$ is the reporting probability, $C_t - C_{t-1}$ is the number of new infectious individuals in week $t$, and $\eta_y$ controls the overdispersion relative to the Poisson.
 
 We similarly model the number of mosquitoes trapped in week $t$ ($q_t$) as:
 \begin{equation}
@@ -322,10 +315,10 @@ where $V_{Ct} - V_{Ct-1}$ is the number of new mosquitoes captured in week $t$, 
 
 Several of the parameters in this model are assumed to fixed and known. 
 The population size and average life span (which we use to parameterize the birth/death rate) for Vitoria are taken from the 2010 census.
-To maintain identifiability, the transmission rate and case reporting probability are also fixed at literature values.
-Lastly, the extrinsic incubation period in mosquitoes is modeled as a function of weekly mean temperature and forced with data pulled from WeatherUnderground.
+To maintain identifiability, the transmission rate ($\lambda$) and case reporting probability ($\phi_y$) are also fixed at literature values.
+Lastly, the extrinsic incubation period in mosquitoes is modeled as a function of weekly mean temperature and forced with weather station data obtained from WeatherUnderground.
 
-The remaining parameters include the epidemiological parameters that control the flows between the compartments of the differential equation model ($\rho$, $\gamma$, $\delta$), the initial conditions of the model ($S_0$, $E_0$, $I_0$, $R_0$, $V_{N0}$), the regression parameters and process noise in the models for mosquito growth and death rates ($\mathbf{\alpha}$, $\mathbf{\beta}$, and $\sigma$), and the remaining measurement parameters ($\phi_q$, $\eta_y$, $\eta_q$).  
+The remaining parameters include the epidemiological parameters ($\rho$, $\gamma$, $\delta$), the initial conditions of the model ($S_0$, $E_0$, $I_0$, $R_0$, $V_{N0}$), the regression parameters controlling mean, phase, and amplitude of the emergence rate ($\alpha_0,\alpha_1,\alpha_2$), the regression and variance parameters for the mosquito death rate process ($\beta_0,\mathbf{\beta},\sigma$), and the remaining measurement parameters ($\phi_q$, $\eta_y$, $\eta_q$).  
 Where possible, we place informative priors on these parameters based on existing laboratory and field studies (see Table \ref{fixedparms} for means and Supplemental Material for detailed explanations).
 
 For any given values of these parameters, the mosquito process model should be flexible enough to produce a good fit to the case reports data.
@@ -341,54 +334,36 @@ Parameter & Description & Value & Citation\\
 \hline
 $N$ & Population size & 327801 & Vitoria Census\\
 $1/d$ & Human life-span & 76 years & Vitoria Census\\
-$\alpha$ & Transmission rate & 4.87 week$^{-1}$ & \cite{Scott2000}\\
+$\lambda$ & Transmission rate & 4.87 week$^{-1}$ & \cite{Scott2000}\\
 $\phi_y$ & Reporting probability & 0.083 & \cite{Silva2016}\\
 $1/\rho_{vt}$ & Extrinsic incubation period & $\exp \left(\exp(1.9 - 0.04 T_t) + \frac{1}{14}\right)$ & \cite{Chan2012}\\
-$\sigma$  & Standard dev. of AR(1) process & 0.2 & \\
 $V_{E0}$ & Initial exposed mosquitoes &  0 & \\
 $V_{I0}$ & Initial infectious mosquitoes & 0 & \\
 \hline
-$d_v$ & Vector death rate & 1.47 week$^{-1}$ & \cite{Brady2013} \\
+$\exp(\beta_0)$ & Mean vector death rate & 1.47 week$^{-1}$ & \cite{Brady2013} \\
+$\exp(\alpha_0)$ & Mean vector net emergence rate & ?? & \\
 $1/\rho$ & Latent period in host & 0.87 weeks  & \cite{Chan2012}\\
 $\gamma$ & Rate of loss of infectiousness & 3.5 week$^{-1}$ & \cite{Nguyet2013}\\
 $1/\delta$ & Period of cross-immunity & 97 weeks &  \cite{Reich2013}\\
 $S_0$ & Proportion initially susceptible & 0.4 & \cite{Cardoso2011a} \\
 $E_0$ & Proportion initially exposed & $8\times 10 ^ {-5}$ & \\
 $I_0$ & Proportion initially infectious & $8\times 10 ^ {-5}$ & \\
-$\phi_q$ & Per-trap mosquito capture probability & $2 \times 10^{-6}$ & 
+$\phi_q$ & Per-trap mosquito capture rate & $2 \times 10^{-6}$ week$^{-1}$ & 
 \end{tabular}
 \end{center}
 \end{adjustwidth}
 \end{table}
 
+\subsection*{Model validation}
+
+We evaluate the model's predictive ability by fitting to the first 191 weeks of data (up to the trough following the fourth outbreak), and predicting case reports for the subsequent year.
+In order to make these predictions, we project weather covariates into the future using weekly averages of the first 191 weeks.
 
 \subsection*{Implementation}
  
-Samples from the posterior distribution were generated using Hamiltonian Monte Carlo (CITATIONS) implemented in the rstan package for R. 
+Samples from the posterior distribution were generated using Hamiltonian Monte Carlo (CITATIONS) implemented in the rstan package for R (CITATIONS). 
 We ran 3 chains with different starting values for 10,000 iterations each, discarding the first 5,000 as burn-in.
 Within stan, the solution to the differential equation model was approximated with an Euler scheme with a time step of 1 day.  
-
-\subsection*{Posterior predictive checks}
-
-We evaluate the goodness-of-fit of the estimated mosquito abundance time series through the use of posterior predictive checks \cite{Gelman1996,Gelman2003}.
-Specifically, for each iteration, $i$, of MCMC, we sample replicate mosquito surveillance data:
-\begin{equation}
-q^{rep(i)}_t \sim \text{NegBin}(\phi^{(i)}_q \tau_t V^{(i)}_{Nt}, \eta^{(i)}_q)
-\end{equation}
-and compute
-\begin{equation}
-p_t = P(q^{rep}_t > q_t) = \frac{1}{M}\sum I(q^{rep(i)}_t > q_t).
-\end{equation}
-If the reconstructed mosquito trajectories are a good fit for the observed mosquito trap counts, then we would expect the time series $p_t$ to be random in time (CITATION?).
-Any systematic trends in $p_t$ indicate lack-of-fit.
-
-In addition to looking at weekly comparisons, we also develop posterior checks to compare the temporal variability and correlation structures of the observed and estimated time series.
-To test whether the modeled mosquito time series capture the seasonal features of the observed mosquito data, we compute the posterior auto-correlation function of the replicate data:
-\begin{equation}
-R^{rep(i)}(l) = \text{corr}(q^{rep(i)}_t, q^{rep(i)}_{t-l}),
-\end{equation}
-for lags ranging from 1 to 55 weeks.
-We also compute posterior distributions of $\min(q^{rep}_t)$ , $\max(q^{rep}_t)$, and $\sigma(q^{rep}_t - q^{rep}_{t-1})$ as measures of the smoothness of the modeled process.
 
 \section*{Results}
 
