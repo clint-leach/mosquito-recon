@@ -44,6 +44,16 @@ annual <- ddply(weather, .(week), summarise,
 predvars <- rbind(covars[, -1],
                   annual[week(start + weeks((T_fit + 1):243)), -1])
 
+predvars <- cbind(predvars, matrix(c(sin(2 * pi * c(1:243) / 52), 
+                                 cos(2 * pi * c(1:243) / 52),
+                                 sin(4 * pi * c(1:243) / 52), 
+                                 cos(4 * pi * c(1:243) / 52),
+                                 sin(8 * pi * c(1:243) / 52), 
+                                 cos(8 * pi * c(1:243) / 52),
+                                 sin(16 * pi * c(1:243) / 52), 
+                                 cos(16 * pi * c(1:243) / 52)), 
+                               ncol = 8))
+
 rov <- 7 / exp(exp(1.9 - 0.04 * predvars$temp) + 1 / (2 * 7))
 
 #===============================================================================
@@ -51,7 +61,7 @@ rov <- 7 / exp(exp(1.9 - 0.04 * predvars$temp) + 1 / (2 * 7))
 
 dat.stan <- list(T = T_fit,
                  T_pred = T_pred,
-                 D = 2,
+                 D = dim(predvars)[2],
                  y = head(obs, T_fit),
                  q = head(q, T_fit),
                  tau = head(tau, T_fit),
@@ -73,14 +83,14 @@ inits = list(list(p0_raw = c(-0.4, -9, -9),
                   alpha0 = 1,
                   alpha = c(0, 0),
                   beta0 = 0.39,
-                  beta = c(0, 0),
+                  beta = rep(0, 10),
                   sigmad = 0.1,
                   z_d = rep(0, T_fit)))
 
 fit <- stan(file = "Code/predict.stan", 
             data = dat.stan, 
             init = inits, 
-            iter = 500, 
+            iter = 5000, 
             chains = 1,
             control = list(adapt_delta = 0.9))
 

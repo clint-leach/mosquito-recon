@@ -170,7 +170,7 @@ model {
   logNv0 ~ normal(0.7, 0.5);
   
   // Mosquito demographic series
-  sigmad ~ normal(0, 1);
+  sigmad ~ exponential(10);
   
   alpha0 ~ normal(-1, 1);
   alpha ~ normal(0, 2);
@@ -178,7 +178,7 @@ model {
   beta0 ~ normal(0.39, 0.12);
   beta ~ normal(0, 0.2);
 
-  z_d ~ normal(0, 1);
+  z_d ~ student_t(5, 0, 1);
   
   // Process model
   
