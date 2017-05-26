@@ -31,13 +31,16 @@ covars <- ddply(weather, .(tot.week), summarise,
                 humidity = mean(Mean.Humidity, na.rm = T)
                 )
 
+covars <- covars[, -1]
+
 rov <- 7 / exp(exp(1.9 - 0.04 * covars$temp) + 1 / (2 * 7))
 
 #===============================================================================
 # Running stan
 
 dat.stan <- list(T = 243,
-                 D = 2,
+                 T_pred = 0,
+                 D = dim(covars)[2],
                  y = obs,
                  q = q,
                  tau = tau,
@@ -45,10 +48,10 @@ dat.stan <- list(T = 243,
                  sincos = matrix(c(sin(2 * pi * c(1:243) / 52), 
                                    cos(2 * pi * c(1:243) / 52)), 
                                  ncol = 2),
-                 covars = scale(covars[, -1]),
+                 covars = scale(covars),
                  pop = pop)
 
-inits = list(list(p0_raw = c(-0.4, -9, -9),
+inits = list(list(p0_raw = c(0.8, -9, -9, -11, 0.3, -11, -11,-11, -11, -2, 0.3, -9, -9),
                   log_phi_q = -13,
                   eta_inv_y = 5,
                   eta_inv_q = 5,
@@ -57,12 +60,12 @@ inits = list(list(p0_raw = c(-0.4, -9, -9),
                   delta_c = 1,
                   logNv0 = 0.7,
                   alpha0 = 1,
-                  alpha = c(0, 0),
+                  alpha = rep(0, 2),
                   beta0 = 0.39,
-                  beta = c(0, 0),
+                  beta = rep(0, 2),
                   sigmad = 0.1,
                   z_d = rep(0, 243)),
-             list(p0_raw = c(-0.4, -9, -9),
+             list(p0_raw = c(0.6, -9, -9, -11, 0.4, -11, -11,-11, -11, -2, 0.4, -9, -9),
                   log_phi_q = -13,
                   eta_inv_y = 10,
                   eta_inv_q = 10,
@@ -76,7 +79,7 @@ inits = list(list(p0_raw = c(-0.4, -9, -9),
                   beta = c(0.2, 0.1),
                   sigmad = 0.1,
                   z_d = rep(0, 243)),
-             list(p0_raw = c(-0.4, -9, -9),
+             list(p0_raw = c(0.5, -9, -9, -11, 0.3, -11, -11,-11, -11, -2, 0.3, -9, -9),
                   log_phi_q = -13,
                   eta_inv_y = 2,
                   eta_inv_q = 2,
@@ -91,9 +94,9 @@ inits = list(list(p0_raw = c(-0.4, -9, -9),
                   sigmad = 0.5,
                   z_d = rep(0, 243)))
 
-fit <- stan(file = "Code/seirs.stan", 
+fit <- stan(file = "Code/twosero.stan", 
             data = dat.stan, 
             init = inits, 
-            iter = 500, 
+            iter = 5000, 
             chains = 3,
             control = list(adapt_delta = 0.9))
