@@ -1,23 +1,19 @@
 functions {
-  vector derivs(int t,
-               vector y,
-               real bv,
-               real rov,
-               real lambda,
-               real ro,
-               real gamma,
-               real dv,
-               real delta,
-               real cap,
-               int pop) {
+  real[] derivs(real t,
+                real[] y,
+                real[] theta,
+                real[] x_r,
+                int[] x_i) {
     
     /**
     * documentation block
     */
     
-    vector[21] dydt;
+    real dydt[21];
     
     real b;
+    real bv;
+    real lambda;
     real Sv;
     real R;
     
@@ -27,8 +23,21 @@ functions {
     real foi_hv_1;
     real foi_hv_2;
     
+    real alpha0 = theta[1];
+    real alpha1 = theta[2];
+    real alpha2 = theta[3];
+    real ro = theta[4];
+    real delta = theta[5];
+    real gamma = theta[6];
+    real cap = theta[7] * x_i[1];
+    real dv = theta[8];
+    
+    real rov = x_r[1];
+    
     // Assigning data
     b = 7.0 / (76 * 365);
+    lambda = 4.87;
+    bv = exp(alpha0 + alpha1 * sin(2 * pi() * t / 52) + alpha2 * cos(2 * pi() * t / 52));
 
     // Computing mosquito population size
     Sv = y[15] - y[16] - y[17] - y[18] - y[19];
@@ -83,22 +92,28 @@ functions {
 data {
   int<lower=1> T;
   int<lower=0> T_pred;
+  real ts[T + 1, 1];
   int<lower=1> D;
   int y[T];
   int q[T];
-  vector[T] tau;
-  real rov[T + T_pred];
-  matrix[T + T_pred, 2] sincos;
+  int tau[T, 1];
+  real rov[T + T_pred, 1];
   matrix[T + T_pred, D] covars;
   int pop;
 }
 transformed data {
-  real lambda = 4.87;
+  matrix[T, D] Q_ast;
+  matrix[D, D] R_ast;
+  matrix[D, D] R_ast_inv;
   real phi_y = 1.0 / 12.0;
+
+  Q_ast = qr_Q(covars[1:T, ])[, 1:D] * sqrt(T - 1);
+  R_ast = qr_R(covars[1:T, ])[1:D, ] / sqrt(T - 1);
+  R_ast_inv = inverse(R_ast);
 }
 parameters {
   vector[13] p0_raw;                   // untransformed initial conditions
-  real<upper=0> log_phi_q;             // log per-trap capture rate
+  real log_phi_q;                      // log per-trap capture rate
   real<lower=0> eta_inv_y;             // overdispersion of case reports
   real<lower=0> eta_inv_q;             // overdispersion of mosquito capture
   real<lower=0> ro_c;                  // human latenet period
@@ -106,18 +121,17 @@ parameters {
   real<lower=0> delta_c;               // cross-immune period
   real logNv0;                         // initial mosquito population size
   real alpha0;
-  vector[D] alpha;
-  real beta0;
+  real alpha1;
+  real alpha2;
+  real<lower=0> beta0;
   vector[D] beta;
   real<lower=0> sigmad;
-  vector[T] z_d;                       // mosquito death rate series
+  vector[T] logdv;
 }
 transformed parameters {
   vector[14] p0;
-  vector[21] y0;
+  real y0[21];
   vector[T] dv;
-  vector[T + T_pred] mu_log_dv;
-  vector[T + T_pred] bv;
   real<lower=0> ro;
   real<lower=0> gamma;
   real<lower=0> delta;
@@ -126,7 +140,7 @@ transformed parameters {
   real<lower=0> phi_q;
 
   // initial conditions
-  
+
   p0 = softmax_id(p0_raw);
 
   for(i in 1:14){
@@ -139,7 +153,7 @@ transformed parameters {
   y0[19] = 0.0;
   y0[20] = 0.0;
   y0[21] = 0.0;
-  
+
   // measurement parameters
   eta_y = 1 / eta_inv_y;
   eta_q = 1 / eta_inv_q;
@@ -149,17 +163,15 @@ transformed parameters {
   ro = 1 / (0.87 * ro_c);
   gamma = 3.5 * gamma_c;
   delta = 1 / (97 * delta_c);
-  
+ 
   // mosquito demographic parameters
-  bv = exp(covars * alpha + alpha0);
-  mu_log_dv = covars * beta + beta0;
-  dv = exp(head(mu_log_dv, T) + sigmad * z_d);
+  dv = 1.47 * beta0 * exp(logdv);
 }
 model {
   vector[T] y_hat;
   vector[T] q_hat;
-  vector[21] state[T * 7 + 1];
-  int idx = 1;
+  real state[T + 1, 21];
+  real theta[8];
   
   // Priors
   
@@ -185,7 +197,7 @@ model {
   eta_inv_q ~ normal(0, 5);
   
   // Epidemiological parameters
-  ro_c ~ gamma(8.3, 8.3); 
+  ro_c ~ gamma(8.3, 8.3);
   gamma_c ~ gamma(100, 100);
   delta_c ~ gamma(10, 10);
   
@@ -196,28 +208,37 @@ model {
   sigmad ~ normal(0, 0.1);
   
   alpha0 ~ normal(-1, 1);
-  alpha ~ normal(0, 2);
+  alpha1 ~ normal(0, 2);
+  alpha2 ~ normal(0, 2);
   
-  beta0 ~ normal(0.39, 0.12);
-  beta ~ normal(0, 2);
+  beta0 ~ gamma(100, 100);
+  beta ~ normal(0, 5);
 
-  z_d ~ normal(0, 1);
+  logdv ~ student_t(10, Q_ast * beta, sigmad);
   
   // Process model
-  
   state[1] = y0;
+  
+  theta[1] = alpha0;
+  theta[2] = alpha1;
+  theta[3] = alpha2;
+  theta[4] = ro;
+  theta[5] = delta;
+  theta[6] = gamma;
+  theta[7] = phi_q;
+  
+  for(i in 1:T){
+  
+    theta[8] = dv[i];
+    state[i, 20] = 0;
+    state[i, 21] = 0;
 
-  for (t in 1:T){
-    for(j in 1:7){
+    state[i + 1] = integrate_ode_rk45(derivs, state[i], ts[i, 1], ts[i + 1], theta, rov[i], tau[i], 
+                                      1e-3, 1e-3, 7)[1];
       
-      state[idx + 1] = state[idx] + 1.0 / 7.0 *
-        derivs(t, state[idx], bv[t], rov[t], lambda, ro, gamma, dv[t], delta, phi_q * tau[t], pop);
-        
-      idx = idx + 1;
-    }
+    q_hat[i] = state[i + 1, 21];
+    y_hat[i] = state[i + 1, 20];
     
-    q_hat[t] = state[idx, 21] - state[idx - 7, 21];
-    y_hat[t] = state[idx, 20] - state[idx - 7, 20];
   }
   
   // Measurement models
@@ -228,40 +249,34 @@ generated quantities {
 
   vector[T + T_pred] y_hat;
   vector[T + T_pred] q_hat;
-  vector[21] state;
+  vector[T + T_pred] mu_logdv;
   vector[T_pred] d_pred;
-  
-  state = y0;
 
-  for (t in 1:T){
-    for(j in 1:7){
+  mu_logdv = covars * R_ast_inv * beta;
+
+  {
+    real state[T + 1, 21];
+    real theta[8];
+    
+    state[1] = y0;
+
+    theta[1] = alpha0;
+    theta[2] = alpha1;
+    theta[3] = alpha2;
+    theta[4] = ro;
+    theta[5] = delta;
+    theta[6] = gamma;
+    theta[7] = phi_q;
+    
+    for(i in 1:T){
       
-      state = state + 1.0 / 7.0 * 
-        derivs(t, state, bv[t], rov[t], lambda, ro, gamma, dv[t], delta, phi_q * tau[t], pop);
-    }
+      theta[8] = dv[i];
 
-    q_hat[t] = neg_binomial_2_rng(state[21] * pop, eta_q);
-    y_hat[t] = neg_binomial_2_rng(phi_y * pop * state[20], eta_y);
-
-    state[20] = 0;
-    state[21] = 0;
-    
-  }
-  for (k in 1:T_pred){
-    
-    d_pred[k] = exp(mu_log_dv[T + k] + sigmad * normal_rng(0, 1));
-    
-    for(j in 1:7){
+      state[i + 1] = integrate_ode_rk45(derivs, state[i], ts[i, 1], ts[i + 1], theta, rov[i], tau[i], 
+                                        1e-3, 1e-3, 7)[1];
       
-      state = state + 1.0 / 7.0 * 
-        derivs(T + k, state, bv[T + k], rov[T + k], lambda, ro, gamma, d_pred[k], delta, phi_q * tau[T], pop);
+      q_hat[i] = neg_binomial_2_rng(pop * (state[i + 1, 21] - state[i, 21]), eta_q);
+      y_hat[i] = neg_binomial_2_rng(phi_y * pop * (state[i + 1, 20]- state[i, 20]), eta_y);
     }
-
-    q_hat[T + k] = neg_binomial_2_rng(state[21] * pop, eta_q);
-    y_hat[T + k] = neg_binomial_2_rng(phi_y * pop * state[20], eta_y);
-
-    state[20] = 0;
-    state[21] = 0;
-    
   }
 }
