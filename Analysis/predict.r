@@ -25,7 +25,7 @@ weather <- read.csv("Data/Vitoria.weather.csv") %>%
   mutate(date = ymd(BRST), year = year(date), week = week(date))
 
 start <- weather$date[1]
-T_pred <- 34
+T_pred <- 52
 T_fit <- 243 - T_pred
 
 weather <- subset(weather, date < date[1] + weeks(T_fit))
@@ -41,38 +41,25 @@ annual <- ddply(weather, .(week), summarise,
                 humidity = mean(Mean.Humidity, na.rm = T)
                 )
 
-predvars <- rbind(covars[, -1],
-                  annual[week(start + weeks((T_fit + 1):243)), -1])
+covars <- rbind(covars[, -1],
+                annual[week(start + weeks((T_fit + 1):243)), -1])
 
-predvars <- cbind(predvars, matrix(c(sin(2 * pi * c(1:243) / 52), 
-                                 cos(2 * pi * c(1:243) / 52),
-                                 sin(4 * pi * c(1:243) / 52), 
-                                 cos(4 * pi * c(1:243) / 52),
-                                 sin(8 * pi * c(1:243) / 52), 
-                                 cos(8 * pi * c(1:243) / 52),
-                                 sin(16 * pi * c(1:243) / 52), 
-                                 cos(16 * pi * c(1:243) / 52)), 
-                               ncol = 8))
-
-rov <- 7 / exp(exp(1.9 - 0.04 * predvars$temp) + 1 / (2 * 7))
+rov <- 7 / exp(exp(1.9 - 0.04 * covars$temp + 1 / (2 * 7)))
 
 #===============================================================================
 # Running stan
 
 dat.stan <- list(T = T_fit,
                  T_pred = T_pred,
-                 D = dim(predvars)[2],
+                 D = dim(covars)[2],
                  y = head(obs, T_fit),
                  q = head(q, T_fit),
                  tau = head(tau, T_fit),
                  rov = rov,
-                 sincos = matrix(c(sin(2 * pi * c(1:243) / 52),
-                                   cos(2 * pi * c(1:243) / 52)),
-                                 ncol = 2),
-                 covars = scale(predvars),
+                 covars = scale(covars),
                  pop = pop)
 
-inits = list(list(p0_raw = c(-0.4, -9, -9),
+inits = list(list(p0_raw = c(0.6, -1, 0.3, -15, -15, 0.2),
                   log_phi_q = -13,
                   eta_inv_y = 5,
                   eta_inv_q = 5,
@@ -81,16 +68,47 @@ inits = list(list(p0_raw = c(-0.4, -9, -9),
                   delta_c = 1,
                   logNv0 = 0.7,
                   alpha0 = 1,
-                  alpha = c(0, 0),
-                  beta0 = 0.39,
-                  beta = rep(0, 10),
+                  alpha1 = 1,
+                  alpha2 = 1,
+                  beta0 = 1,
+                  beta = c(0.3, 0.1),
                   sigmad = 0.1,
+                  z_d = rep(0, T_fit)),
+             list(p0_raw = c(0.3, -1, 0.2, -15, -15, 0.1),
+                  log_phi_q = -13,
+                  eta_inv_y = 10,
+                  eta_inv_q = 10,
+                  ro_c = 1,
+                  gamma_c = 1,
+                  delta_c = 1,
+                  logNv0 = 1,
+                  alpha0 = 0,
+                  alpha1 = 2,
+                  alpha2 = 3,
+                  beta0 = 1,
+                  beta = c(0.2, -0.1),
+                  sigmad = 0.1,
+                  z_d = rep(0, T_fit)),
+             list(p0_raw = c(0.8, -1, 0.3, -15, -15, 0.2),
+                  log_phi_q = -13,
+                  eta_inv_y = 2,
+                  eta_inv_q = 2,
+                  ro_c = 1,
+                  gamma_c = 1,
+                  delta_c = 1,
+                  logNv0 = 0.5,
+                  alpha0 = 1,
+                  alpha1 = 0,
+                  alpha2 = 2,
+                  beta0 = 1,
+                  beta = c(0.5, 0.05),
+                  sigmad = 0.5,
                   z_d = rep(0, T_fit)))
 
-fit <- stan(file = "Code/predict.stan", 
+fit <- stan(file = "Code/twosero.stan", 
             data = dat.stan, 
             init = inits, 
-            iter = 5000, 
-            chains = 1,
+            iter = 10, 
+            chains = 3,
             control = list(adapt_delta = 0.9))
 
