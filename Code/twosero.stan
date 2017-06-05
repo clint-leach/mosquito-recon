@@ -99,7 +99,7 @@ transformed data {
   real phi_y = 1.0 / 12.0;
 }
 parameters {
-  vector[6] p0_raw;                   // untransformed initial conditions
+  vector[5] p0_raw;                   // untransformed initial conditions
   real<upper=0> log_phi_q;             // log per-trap capture rate
   real<lower=0> eta_inv_y;             // overdispersion of case reports
   real<lower=0> eta_inv_q;             // overdispersion of mosquito capture
@@ -116,7 +116,7 @@ parameters {
   vector[T] z_d;                       // mosquito death rate series
 }
 transformed parameters {
-  vector[7] p0;
+  vector[6] p0;
   vector[21] y0;
   vector[T] dv;
   vector[T + T_pred] mu_log_dv;
@@ -139,12 +139,12 @@ transformed parameters {
   y0[6] = 0;
   y0[7] = 0;
   y0[8] = p0[4];
-  y0[9] = p0[5];
+  y0[9] = 0;
   y0[10] = 0;
-  y0[11] = p0[6];
+  y0[11] = p0[5];
   y0[12] = 0;
   y0[13] = 0;
-  y0[14] = p0[7];
+  y0[14] = p0[6];
   y0[15] = exp(logNv0);
   y0[16] = 0.0;
   y0[17] = 0.0;
@@ -180,8 +180,7 @@ model {
   p0_raw[2] ~ normal(-11, 0.6); // cross-immune to 2
   p0_raw[3] ~ normal(0.3, 0.2); // susceptible to 2, immune to 1
   p0_raw[4] ~ normal(-11, 0.6); // exposed to 2
-  p0_raw[5] ~ normal(-11, 0.6); // infectious with 2
-  p0_raw[6] ~ normal(0.3, 0.2); // susceptible to 1, immune to 2
+  p0_raw[5] ~ normal(0.3, 0.2); // susceptible to 1, immune to 2
 
   // Measurement models
   log_phi_q ~ normal(-13, 0.5);
