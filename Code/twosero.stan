@@ -22,7 +22,7 @@ functions {
     real bv;
     real Sv;
     real R;
-    
+
     real foi_vh_1;
     real foi_vh_2;
     
@@ -42,8 +42,8 @@ functions {
     foi_vh_2 = lambda * y[19];
     
     // Human to mosquito
-    foi_hv_1 = lambda * (y[3] + y[13] + 1e-6);
-    foi_hv_2 = lambda * (y[7] + y[9] + 1e-6);
+    foi_hv_1 = lambda * (y[3] + y[13] + 1e-8);
+    foi_hv_2 = lambda * (y[7] + y[9] + 1e-8);
     
     // Compute derivatives
     /*S0*/  dydt[1] = b - b * y[1] - (foi_vh_1 + foi_vh_2) * y[1];
@@ -95,8 +95,16 @@ data {
   int pop;
 }
 transformed data {
-  real lambda = 4.87;
+  matrix[T, D] Q_ast;
+  matrix[D, D] R_ast;
+  matrix[D, D] R_ast_inv;
+  
   real phi_y = 1.0 / 12.0;
+  real lambda = 4.87;
+
+  Q_ast = qr_Q(covars[1:T, ])[, 1:D] * sqrt(T - 1);
+  R_ast = qr_R(covars[1:T, ])[1:D, ] / sqrt(T - 1);
+  R_ast_inv = inverse(R_ast);
 }
 parameters {
   vector[5] p0_raw;                   // untransformed initial conditions
@@ -113,7 +121,7 @@ parameters {
   real<lower=0> beta0;
   vector[D] beta;
   real<lower=0> sigmad;
-  vector[T] z_d;                       // mosquito death rate series
+  vector[T] logdv;                       // mosquito death rate series
 }
 transformed parameters {
   vector[6] p0;
@@ -165,7 +173,7 @@ transformed parameters {
   
   // mosquito demographic parameters
   mu_log_dv = covars * beta;
-  dv = 1.47 * beta0 * exp(head(mu_log_dv, T) + sigmad * z_d);
+  dv = 1.47 * beta0 * exp(logdv);
 }
 model {
   vector[T] y_hat;
@@ -194,7 +202,7 @@ model {
   
   // Initial mosquito pop size
   logNv0 ~ normal(0.7, 0.5);
-  
+
   // Mosquito demographic series
   sigmad ~ normal(0, 0.1);
   
@@ -203,10 +211,10 @@ model {
   alpha2 ~ normal(0, 2);
   
   beta0 ~ gamma(100, 100);
-  beta ~ normal(0, 2);
+  beta ~ double_exponential(0, 2);
 
-  z_d ~ normal(0, 1);
-  
+  logdv ~ student_t(10, Q_ast * beta, sigmad);
+ 
   // Process model
   
   state[1] = y0;
@@ -242,7 +250,7 @@ generated quantities {
   vector[T + T_pred] y_hat;
   vector[T + T_pred] q_hat;
   vector[21] state;
-  #vector[21] system[T];
+  vector[21] system[T + T_pred];
   vector[T_pred] d_pred;
   
   state = y0;
@@ -266,7 +274,7 @@ generated quantities {
     q_hat[t] = neg_binomial_2_rng(state[21] * pop, eta_q);
     y_hat[t] = neg_binomial_2_rng(phi_y * pop * state[20], eta_y);
     
-    #system[t] = state;
+    system[t] = state;
 
     state[20] = 0;
     state[21] = 0;
@@ -294,6 +302,8 @@ generated quantities {
     q_hat[T + k] = neg_binomial_2_rng(state[21] * pop, eta_q);
     y_hat[T + k] = neg_binomial_2_rng(phi_y * pop * state[20], eta_y);
 
+    system[T + k] = state;
+    
     state[20] = 0;
     state[21] = 0;
     
