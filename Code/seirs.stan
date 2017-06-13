@@ -1,15 +1,16 @@
 functions {
   vector derivs(int t,
                vector y,
-               real bv,
+               real alpha0,
+               real alpha1,
+               real alpha2,
                real rov,
                real lambda,
                real ro,
                real gamma,
                real dv,
                real delta,
-               real cap,
-               int pop) {
+               real cap) {
     
     /**
     * documentation block
@@ -18,6 +19,7 @@ functions {
     vector[8] dydt;
     
     real b;
+    real bv;
     real Sv;
     real R;
     
@@ -28,6 +30,7 @@ functions {
     
     // Assigning data
     b = 7.0 / (76 * 365);
+    bv = exp(alpha0 + alpha1 * sin(2 * pi() * t / 52) + alpha2 * cos(2 * pi() * t / 52));
 
     // Computing mosquito population size
     Sv = y[6] - y[4] - y[5];
@@ -72,13 +75,13 @@ functions {
 }
 data {
   int<lower=1> T;
-  int<lower=1> D;
+  int<lower=0> T_pred;
+  int<lower=0> D;
   int y[T];
   int q[T];
   vector[T] tau;
-  real rov[T];
-  matrix[T, 2] sincos;
-  matrix[T, D] covars;
+  real rov[T + T_pred];
+  matrix[T + T_pred, D] covars;
   int pop;
 }
 transformed data {
@@ -95,7 +98,8 @@ parameters {
   real<lower=0> delta_c;               // cross-immune period
   real logNv0;                         // initial mosquito population size
   real alpha0;
-  vector[2] alpha;
+  real alpha1;
+  real alpha2;
   real beta0;
   vector[2] beta;
   real<lower=0> sigmad;
@@ -105,7 +109,7 @@ transformed parameters {
   vector[4] p0;
   vector[8] y0;
   vector[T] dv;
-  vector[T] bv;
+  vector[T + T_pred] mu_log_dv;
   real<lower=0> ro;
   real<lower=0> gamma;
   real<lower=0> delta;
@@ -137,8 +141,8 @@ transformed parameters {
   delta = 1 / (97 * delta_c);
   
   // mosquito demographic parameters
-  bv = exp(sincos * alpha + alpha0);
-  dv = exp(covars * beta + beta0 + sigmad * z_d);
+  mu_log_dv = covars * beta + beta0;
+  dv = exp(head(mu_log_dv, T) + sigmad * z_d);
 }
 model {
   vector[T] y_hat;
@@ -169,8 +173,9 @@ model {
   // Mosquito demographic series
   sigmad ~ normal(0, 1);
   
-  alpha0 ~ normal(-1, 1);
-  alpha ~ normal(0, 2);
+  alpha0 ~ normal(-1, 2);
+  alpha1 ~ normal(0, 2);
+  alpha2 ~ normal(0, 2);
   
   beta0 ~ normal(0.39, 0.12);
   beta ~ normal(0, 0.2);
@@ -185,7 +190,7 @@ model {
     for(j in 1:7){
       
       state[idx + 1] = state[idx] + 1.0 / 7.0 *
-        derivs(t, state[idx], bv[t], rov[t], lambda, ro, gamma, dv[t], delta, phi_q * tau[t], pop);
+        derivs(t, state[idx], alpha0, alpha1, alpha2, rov[t], lambda, ro, gamma, dv[t], delta, phi_q * tau[t]);
         
       idx = idx + 1;
     }
@@ -200,8 +205,9 @@ model {
 }
 generated quantities {
 
-  vector[T] y_hat;
-  vector[T] q_hat;
+  vector[T + T_pred] y_hat;
+  vector[T + T_pred] q_hat;
+  vector[T_pred] d_pred;
   vector[8] state;
   
   state = y0;
@@ -211,11 +217,28 @@ generated quantities {
     for(j in 1:7){
       
       state = state + 1.0 / 7.0 * 
-        derivs(t, state, bv[t], rov[t], lambda, ro, gamma, dv[t], delta, phi_q * tau[t], pop);
+        derivs(t, state, alpha0, alpha1, alpha2, rov[t], lambda, ro, gamma, dv[t], delta, phi_q * tau[t]);
     }
 
     q_hat[t] = neg_binomial_2_rng(state[7] * pop, eta_q);
     y_hat[t] = neg_binomial_2_rng(phi_y * pop * state[8], eta_y);
+
+    state[7] = 0;
+    state[8] = 0;
+    
+  }
+  for (k in 1:T_pred){
+    
+    d_pred[k] = exp(mu_log_dv[T + k] + sigmad * normal_rng(0, 1));
+    
+    for(j in 1:7){
+      
+      state = state + 1.0 / 7.0 * 
+        derivs(T + k, state, alpha0, alpha1, alpha2, rov[T + k], lambda, ro, gamma, d_pred[k], delta, phi_q * tau[T]);
+    }
+
+    q_hat[T + k] = neg_binomial_2_rng(state[7] * pop, eta_q);
+    y_hat[T + k] = neg_binomial_2_rng(phi_y * pop * state[8], eta_y);
 
     state[7] = 0;
     state[8] = 0;
