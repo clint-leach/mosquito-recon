@@ -64,14 +64,6 @@ functions {
     
     return dydt;
   }
-  // Softmax function
-  vector softmax_id(vector alpha) {
-    vector[num_elements(alpha) + 1] alphac;
-      for (k in 1:num_elements(alpha))
-        alphac[k] = alpha[k];
-    alphac[num_elements(alphac)] = 0;
-    return softmax(alphac);
-  }
 }
 data {
   int<lower=1> T;
@@ -89,7 +81,9 @@ transformed data {
   real phi_y = 1.0 / 12.0;
 }
 parameters {
-  vector[3] p0_raw;                    // untransformed initial conditions
+  real<lower=0,upper=1> S0;            // untransformed initial conditions
+  real<lower=0> E0;
+  real<lower=0> I0;
   real<upper=0> log_phi_q;             // log per-trap capture rate
   real<lower=0> eta_inv_y;             // overdispersion of case reports
   real<lower=0> eta_inv_q;             // overdispersion of mosquito capture
@@ -105,7 +99,6 @@ parameters {
   vector[T] z_d;                       // mosquito death rate series
 }
 transformed parameters {
-  vector[4] p0;
   vector[8] y0;
   vector[T] dv;
   vector[T + T_pred] mu_log_dv;
@@ -118,12 +111,9 @@ transformed parameters {
   real<lower=0> alpha0;
 
   // initial conditions
-  
-  p0 = softmax_id(p0_raw);
-
-  for(i in 1:3){
-    y0[i] = p0[i];
-  }
+  y0[1] = S0 * (pop - E0 - I0) / pop;
+  y0[2] = E0 / pop;
+  y0[3] = I0 / pop;
   y0[4] = 0.0;
   y0[5] = 0.0;
   y0[6] = exp(logNv + alpha2 + covars[1] * beta);
@@ -155,9 +145,9 @@ model {
   // Priors
   
   // Initial conditions
-  p0_raw[1] ~ normal(-0.4, 0.2);
-  p0_raw[2] ~ normal(-9, 0.6);
-  p0_raw[3] ~ normal(-9, 0.6);
+  S0 ~ beta(4, 6);
+  E0 ~ gamma(10, 0.1);
+  I0 ~ gamma(6, 0.1);
 
   // Measurement models
   log_phi_q ~ normal(-13, 0.5);
