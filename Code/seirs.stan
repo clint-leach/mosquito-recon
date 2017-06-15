@@ -30,7 +30,7 @@ functions {
     
     // Assigning data
     b = 7.0 / (76 * 365);
-    bv = exp(alpha0 + alpha1 * sin(2 * pi() * t / 52) + alpha2 * cos(2 * pi() * t / 52));
+    bv = alpha0 * exp(alpha1 * sin(2 * pi() * t / 52) + alpha2 * cos(2 * pi() * t / 52));
 
     // Computing mosquito population size
     Sv = y[6] - y[4] - y[5];
@@ -96,11 +96,10 @@ parameters {
   real<lower=0> ro_c;                  // human latenet period
   real<lower=0> gamma_c;               // human infectious period
   real<lower=0> delta_c;               // cross-immune period
-  real logNv0;                         // initial mosquito population size
-  real alpha0;
+  real logNv;                         // initial mosquito population size
   real alpha1;
   real alpha2;
-  real beta0;
+  real<lower=0> beta0;
   vector[2] beta;
   real<lower=0> sigmad;
   vector[T] z_d;                       // mosquito death rate series
@@ -116,6 +115,7 @@ transformed parameters {
   real<lower=0> eta_y;
   real<lower=0> eta_q;
   real<lower=0> phi_q;
+  real<lower=0> alpha0;
 
   // initial conditions
   
@@ -126,7 +126,7 @@ transformed parameters {
   }
   y0[4] = 0.0;
   y0[5] = 0.0;
-  y0[6] = exp(logNv0);
+  y0[6] = exp(logNv + alpha2 + covars[1] * beta);
   y0[7] = 0.0;
   y0[8] = 0.0;
   
@@ -141,8 +141,10 @@ transformed parameters {
   delta = 1 / (97 * delta_c);
   
   // mosquito demographic parameters
-  mu_log_dv = covars * beta + beta0;
-  dv = exp(head(mu_log_dv, T) + sigmad * z_d);
+  alpha0 = beta0 * exp(logNv);
+  
+  mu_log_dv = covars * beta;
+  dv = beta0 * exp(head(mu_log_dv, T) + sigmad * z_d);
 }
 model {
   vector[T] y_hat;
@@ -168,16 +170,15 @@ model {
   delta_c ~ gamma(10, 10);
   
   // Initial mosquito pop size
-  logNv0 ~ normal(0.7, 0.5);
+  logNv ~ normal(0.7, 0.3);
   
   // Mosquito demographic series
   sigmad ~ normal(0, 1);
   
-  alpha0 ~ normal(-1, 2);
   alpha1 ~ normal(0, 2);
   alpha2 ~ normal(0, 2);
   
-  beta0 ~ normal(0.39, 0.12);
+  beta0 ~ gamma(100, 100);
   beta ~ normal(0, 0.2);
 
   z_d ~ normal(0, 1);
@@ -229,7 +230,7 @@ generated quantities {
   }
   for (k in 1:T_pred){
     
-    d_pred[k] = exp(mu_log_dv[T + k] + sigmad * normal_rng(0, 1));
+    d_pred[k] = beta0 * exp(mu_log_dv[T + k] + sigmad * normal_rng(0, 1));
     
     for(j in 1:7){
       
