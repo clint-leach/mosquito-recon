@@ -74,6 +74,7 @@ data {
   vector[T] tau;
   real rov[T + T_pred];
   matrix[T + T_pred, D] covars;
+  int week[T + T_pred];
   int pop;
 }
 transformed data {
@@ -97,11 +98,12 @@ parameters {
   vector[2] beta;
   real<lower=0> sigmad;
   vector[T] z_d;                       // mosquito death rate series
+  vector[53] nu;
 }
 transformed parameters {
   vector[8] y0;
   vector[T] dv;
-  vector[T + T_pred] mu_log_dv;
+  vector[T] mu;
   real<lower=0> ro;
   real<lower=0> gamma;
   real<lower=0> delta;
@@ -131,10 +133,10 @@ transformed parameters {
   delta = 1 / (97 * delta_c);
   
   // mosquito demographic parameters
-  alpha0 = beta0 * exp(logNv);
+  alpha0 = 1.47 * beta0 * exp(logNv);
   
-  mu_log_dv = covars * beta;
-  dv = beta0 * exp(head(mu_log_dv, T) + sigmad * z_d);
+  mu = covars[1:T, ] * beta;
+  dv = 1.47 * beta0 * exp(mu + sigmad * z_d + nu[head(week, T)]);
 }
 model {
   vector[T] y_hat;
@@ -172,6 +174,7 @@ model {
   beta ~ normal(0, 0.2);
 
   z_d ~ normal(0, 1);
+  nu ~ normal(0, 1);
   
   // Process model
   
@@ -180,8 +183,18 @@ model {
   for (t in 1:T){
     for(j in 1:7){
       
-      state[idx + 1] = state[idx] + 1.0 / 7.0 *
-        derivs(t, state[idx], alpha0, alpha1, alpha2, rov[t], lambda, ro, gamma, dv[t], delta, phi_q * tau[t]);
+      state[idx + 1] = state[idx] + 1.0 / 7.0 * derivs(t, 
+                                                       state[idx], 
+                                                       alpha0, 
+                                                       alpha1, 
+                                                       alpha2, 
+                                                       rov[t], 
+                                                       lambda, 
+                                                       ro, 
+                                                       gamma, 
+                                                       dv[t], 
+                                                       delta, 
+                                                       phi_q * tau[t]);
         
       idx = idx + 1;
     }
@@ -207,8 +220,18 @@ generated quantities {
   for (t in 1:T){
     for(j in 1:7){
       
-      state = state + 1.0 / 7.0 * 
-        derivs(t, state, alpha0, alpha1, alpha2, rov[t], lambda, ro, gamma, dv[t], delta, phi_q * tau[t]);
+      state = state + 1.0 / 7.0 * derivs(t, 
+                                         state, 
+                                         alpha0, 
+                                         alpha1, 
+                                         alpha2, 
+                                         rov[t], 
+                                         lambda, 
+                                         ro, 
+                                         gamma, 
+                                         dv[t], 
+                                         delta, 
+                                         phi_q * tau[t]);
     }
 
     q_hat[t] = neg_binomial_2_rng(state[7] * pop, eta_q);
@@ -220,7 +243,7 @@ generated quantities {
   }
   for (k in 1:T_pred){
     
-    d_pred[k] = beta0 * exp(mu_log_dv[T + k] + sigmad * normal_rng(0, 1));
+    d_pred[k] = 1.47 * beta0 * exp(covars[T + k] * beta + nu[week[T + k]] + sigmad * normal_rng(0, 1));
     
     for(j in 1:7){
       
