@@ -118,7 +118,7 @@ transformed parameters {
   y0[3] = I0 / pop;
   y0[4] = 0.0;
   y0[5] = 0.0;
-  y0[6] = exp(logNv + alpha2 + covars[1] * beta);
+  y0[6] = exp(logNv + alpha2 + covars[1] * beta + nu[1]);
   y0[7] = 0.0;
   y0[8] = 0.0;
   
@@ -135,8 +135,8 @@ transformed parameters {
   // mosquito demographic parameters
   alpha0 = 1.47 * beta0 * exp(logNv);
   
-  mu = covars[1:T, ] * beta;
-  dv = 1.47 * beta0 * exp(mu + sigmad * z_d + nu[head(week, T)]);
+  mu = 1.47 * beta0 * exp(covars[1:T, ] * beta + nu[head(week, T)]);
+  dv = mu .* exp(sigmad * z_d);
 }
 model {
   vector[T] y_hat;
@@ -247,8 +247,18 @@ generated quantities {
     
     for(j in 1:7){
       
-      state = state + 1.0 / 7.0 * 
-        derivs(T + k, state, alpha0, alpha1, alpha2, rov[T + k], lambda, ro, gamma, d_pred[k], delta, phi_q * tau[T]);
+      state = state + 1.0 / 7.0 * derivs(T + k, 
+                                         state, 
+                                         alpha0, 
+                                         alpha1, 
+                                         alpha2, 
+                                         rov[T + k], 
+                                         lambda, 
+                                         ro, 
+                                         gamma, 
+                                         d_pred[k], 
+                                         delta, 
+                                         phi_q * tau[T]);
     }
 
     q_hat[T + k] = neg_binomial_2_rng(state[7] * pop, eta_q);
