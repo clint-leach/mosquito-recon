@@ -1,25 +1,23 @@
 functions {
   vector derivs(int t,
                vector y,
-               real alpha0,
-               real alpha1,
-               real alpha2,
+               real bv,
                real rov,
                real lambda,
                real ro,
                real gamma,
                real dv,
                real delta,
+               real xi,
                real cap) {
     
     /**
     * documentation block
     */
     
-    vector[8] dydt;
+    vector[9] dydt;
     
     real b;
-    real bv;
     real Sv;
     real R;
     
@@ -30,15 +28,14 @@ functions {
     
     // Assigning data
     b = 7.0 / (76 * 365);
-    bv = alpha0 * exp(alpha1 * sin(2 * pi() * t / 52) + alpha2 * cos(2 * pi() * t / 52));
 
     // Computing mosquito population size
-    Sv = y[6] - y[4] - y[5];
+    Sv = y[7] - y[6] - y[5];
     R = 1 - y[1] - y[2] - y[3];
 
     // Compute transition rates
     // Mosquito to human foi
-    foi_vh = lambda * y[5] * y[1];
+    foi_vh = lambda * y[6] * y[1];
 
     // Human to mosquito foi
     foi_hv = lambda * y[3] * Sv;
@@ -47,20 +44,21 @@ functions {
     infectious = ro * y[2];
     
     // Infectious mosq
-    infect_mosq = rov * y[4];
+    infect_mosq = rov * y[5];
     
     // Compute derivatives
     /*S*/  dydt[1] = b - b * y[1] - foi_vh + delta * R;
     
     /*E*/ dydt[2] = foi_vh - infectious - b * y[2];
     /*I*/ dydt[3] = infectious - (gamma + b) * y[3];
-
-    /*VE*/ dydt[4] = foi_hv - infect_mosq - dv * y[4] - cap * y[4];
-    /*VI*/ dydt[5] = infect_mosq - dv * y[5] - cap * y[5];
-    /*VN*/ dydt[6] = bv - dv * y[6] - cap * y[6];
     
-    /*VC*/ dydt[7] = cap * y[6];
-    /*cases*/ dydt[8] = infectious;
+    /*VA*/ dydt[4] = xi * y[7] - bv * y[4];
+    /*VE*/ dydt[5] = foi_hv - infect_mosq - (dv + cap) * y[5];
+    /*VI*/ dydt[6] = infect_mosq - (dv + cap) * y[6];
+    /*VN*/ dydt[7] = bv * y[4] - (dv + cap) * y[7];
+    
+    /*VC*/ dydt[8] = cap * y[7];
+    /*cases*/ dydt[9] = infectious;
     
     return dydt;
   }
@@ -91,36 +89,37 @@ parameters {
   real<lower=0> ro_c;                  // human latenet period
   real<lower=0> gamma_c;               // human infectious period
   real<lower=0> delta_c;               // cross-immune period
+  real<lower=0> xi;
   real logNv;                         // initial mosquito population size
-  real alpha1;
-  real alpha2;
   real<lower=0> beta0;
-  vector[2] beta;
+  vector[D] beta;
+  vector[D] alpha;
   real<lower=0> sigmad;
-  vector[T] z_d;                       // mosquito death rate series
-  vector[53] nu;
+  real<lower=0> sigmab;
+  vector[T] eps_d;  
+  vector[T] eps_b;
 }
 transformed parameters {
-  vector[8] y0;
+  vector[9] y0;
   vector[T] dv;
-  vector[T] mu;
+  vector[T] bv;
   real<lower=0> ro;
   real<lower=0> gamma;
   real<lower=0> delta;
   real<lower=0> eta_y;
   real<lower=0> eta_q;
   real<lower=0> phi_q;
-  real<lower=0> alpha0;
 
   // initial conditions
   y0[1] = S0 * (pop - E0 - I0) / pop;
   y0[2] = E0 / pop;
   y0[3] = I0 / pop;
-  y0[4] = 0.0;
+  y0[4] = exp(logNv);
   y0[5] = 0.0;
-  y0[6] = exp(logNv + alpha2 + covars[1] * beta + nu[1]);
-  y0[7] = 0.0;
+  y0[6] = 0.0;
+  y0[7] = exp(logNv + covars[1] * alpha - covars[1] * beta);
   y0[8] = 0.0;
+  y0[9] = 0.0;
   
   // measurement parameters
   eta_y = 1 / eta_inv_y;
@@ -133,15 +132,13 @@ transformed parameters {
   delta = 1 / (97 * delta_c);
   
   // mosquito demographic parameters
-  alpha0 = 1.47 * beta0 * exp(logNv);
-  
-  mu = 1.47 * beta0 * exp(covars[1:T, ] * beta + nu[head(week, T)]);
-  dv = mu .* exp(sigmad * z_d);
+  bv = 1.47 * beta0 * exp(covars[1:T] * alpha + sigmab * eps_b);
+  dv = 1.47 * beta0 * exp(covars[1:T] * beta + sigmad * eps_d);
 }
 model {
   vector[T] y_hat;
   vector[T] q_hat;
-  vector[8] state[T * 7 + 1];
+  vector[9] state[T * 7 + 1];
   int idx = 1;
   
   // Priors
@@ -165,16 +162,17 @@ model {
   logNv ~ normal(0.7, 0.3);
   
   // Mosquito demographic series
-  sigmad ~ normal(0, 1);
-  
-  alpha1 ~ normal(0, 2);
-  alpha2 ~ normal(0, 2);
+  xi ~ gamma(1, 0.1);
   
   beta0 ~ gamma(100, 100);
-  beta ~ normal(0, 0.2);
+  beta ~ normal(0, 2);
+  alpha ~ normal(0, 2);
+  
+  sigmad ~ normal(0, 0.5);
+  sigmab ~ normal(0, 0.5);
 
-  z_d ~ normal(0, 1);
-  nu ~ normal(0, 1);
+  eps_d ~ normal(0, 1);
+  eps_b ~ normal(0, 1);
   
   // Process model
   
@@ -185,22 +183,21 @@ model {
       
       state[idx + 1] = state[idx] + 1.0 / 7.0 * derivs(t, 
                                                        state[idx], 
-                                                       alpha0, 
-                                                       alpha1, 
-                                                       alpha2, 
+                                                       bv[t], 
                                                        rov[t], 
                                                        lambda, 
                                                        ro, 
                                                        gamma, 
                                                        dv[t], 
                                                        delta, 
+                                                       xi,
                                                        phi_q * tau[t]);
         
       idx = idx + 1;
     }
     
-    q_hat[t] = state[idx, 7] - state[idx - 7, 7];
-    y_hat[t] = state[idx, 8] - state[idx - 7, 8];
+    q_hat[t] = state[idx, 8] - state[idx - 7, 8];
+    y_hat[t] = state[idx, 9] - state[idx - 7, 9];
   }
   
   // Measurement models
@@ -212,7 +209,8 @@ generated quantities {
   vector[T + T_pred] y_hat;
   vector[T + T_pred] q_hat;
   vector[T_pred] d_pred;
-  vector[8] state;
+  vector[T_pred] b_pred;
+  vector[9] state;
   
   state = y0;
 
@@ -222,50 +220,49 @@ generated quantities {
       
       state = state + 1.0 / 7.0 * derivs(t, 
                                          state, 
-                                         alpha0, 
-                                         alpha1, 
-                                         alpha2, 
+                                         bv[t],
                                          rov[t], 
                                          lambda, 
                                          ro, 
                                          gamma, 
                                          dv[t], 
                                          delta, 
+                                         xi,
                                          phi_q * tau[t]);
     }
 
-    q_hat[t] = neg_binomial_2_rng(state[7] * pop, eta_q);
-    y_hat[t] = neg_binomial_2_rng(phi_y * pop * state[8], eta_y);
+    q_hat[t] = neg_binomial_2_rng(state[8] * pop, eta_q);
+    y_hat[t] = neg_binomial_2_rng(phi_y * pop * state[9], eta_y);
 
-    state[7] = 0;
     state[8] = 0;
+    state[9] = 0;
     
   }
   for (k in 1:T_pred){
     
-    d_pred[k] = 1.47 * beta0 * exp(covars[T + k] * beta + nu[week[T + k]] + sigmad * normal_rng(0, 1));
-    
+    d_pred[k] = 1.47 * beta0 * exp(covars[T + k] * beta + normal_rng(0, sigmad));
+    b_pred[k] = 1.47 * beta0 * exp(logNv + covars[T + k] * alpha + normal_rng(0, sigmad));
+
     for(j in 1:7){
       
       state = state + 1.0 / 7.0 * derivs(T + k, 
                                          state, 
-                                         alpha0, 
-                                         alpha1, 
-                                         alpha2, 
+                                         b_pred[k],
                                          rov[T + k], 
                                          lambda, 
                                          ro, 
                                          gamma, 
                                          d_pred[k], 
                                          delta, 
+                                         xi,
                                          phi_q * tau[T]);
     }
 
-    q_hat[T + k] = neg_binomial_2_rng(state[7] * pop, eta_q);
-    y_hat[T + k] = neg_binomial_2_rng(phi_y * pop * state[8], eta_y);
+    q_hat[T + k] = neg_binomial_2_rng(state[8] * pop, eta_q);
+    y_hat[T + k] = neg_binomial_2_rng(phi_y * pop * state[9], eta_y);
 
-    state[7] = 0;
     state[8] = 0;
+    state[9] = 0;
     
   }
 }
