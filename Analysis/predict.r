@@ -33,19 +33,14 @@ weather$tot.week <- rep(c(1:243), each = 7)
 
 covars <- ddply(weather, .(tot.week), summarise,
                 temp = mean(Mean.TemperatureC, na.rm = T), 
-                humidity = mean(Mean.Humidity, na.rm = T)
+                humidity = mean(Mean.Humidity, na.rm = T),
+                dtr = mean(Max.TemperatureC - Min.TemperatureC, na.rm = T),
+                wind = mean(Mean.Wind.SpeedKm.h, na.rm = T)
                 )
 
-annual <- ddply(weather, .(week), summarise,
-                temp = mean(Mean.TemperatureC, na.rm = T),
-                humidity = mean(Mean.Humidity, na.rm = T)
-                )
+rov <- 7 * exp(0.2 * covars$temp - 8)
 
-covars <- covars[, -1]
-# covars <- rbind(covars[, -1],
-#                 annual[week(start + weeks((T_fit + 1):243)), -1])
-
-rov <- 7 / exp(exp(1.9 - 0.04 * covars$temp + 1 / (2 * 7)))
+covars <- scale(covars[, -1])
 
 #===============================================================================
 # Running stan
@@ -57,76 +52,74 @@ dat.stan <- list(T = T_fit,
                  q = head(q, T_fit),
                  tau = head(tau, T_fit),
                  rov = rov,
-                 covars = scale(covars),
+                 covars = covars,
                  week = week(weather$date[1] + weeks(c(0:242))),
                  pop = pop)
 
-inits = list(list(S0 = 0.5,
-                  E0 = 100,
-                  I0 = 90,
+inits = list(list(S0 = 0.4,
+                  E0 = 80,
+                  I0 = 40,
                   log_phi_q = -13,
+                  eta_inv_y = 0.1,
+                  eta_inv_q = 0.1,
+                  ro_c = 0.8,
+                  gamma_c = 1,
+                  delta_c = 0.8,
+                  logNv = 0.7,
+                  beta0 = 1,
+                  beta = c(0, 0, 0, 0),
+                  alpha = c(0, 0, 0, 0),
+                  sigmad = 0.2,
+                  eps_d = rep(0, T_fit)),
+             list(S0 = 0.6,
+                  E0 = 30,
+                  I0 = 30,
+                  log_phi_q = -13.5,
                   eta_inv_y = 5,
                   eta_inv_q = 5,
+                  ro_c = 1.1,
+                  gamma_c = 0.8,
+                  delta_c = 0.6,
+                  logNv = 0.4,
+                  beta0 = 1.2,
+                  beta = c(0, 0, 0, 0),
+                  alpha = c(0, 0, 0, 0),
+                  sigmad = 0.05,
+                  eps_d = rep(0, T_fit)),
+             list(S0 = 0.3,
+                  E0 = 100,
+                  I0 = 60,
+                  log_phi_q = -12,
+                  eta_inv_y = 1,
+                  eta_inv_q = 1,
                   ro_c = 1,
                   gamma_c = 1,
                   delta_c = 1,
-                  logNv = 0.7,
-                  alpha1 = 0,
-                  alpha2 = 0,
-                  beta0 = 1,
-                  beta = c(0.3, 0.1),
-                  sigmad = 0.1,
-                  z_d = rep(0, T_fit),
-                  nu = rep(0, 53)),
-             list(S0 = 0.4,
-                  E0 = 40,
-                  I0 = 50,
-                  log_phi_q = -13,
-                  eta_inv_y = 1,
-                  eta_inv_q = 1,
-                  ro_c = 1.2,
-                  gamma_c = 1.2,
-                  delta_c = 1.2,
-                  logNv1 = 1,
-                  alpha1 = 1,
-                  alpha2 = 1,
+                  logNv = 1,
                   beta0 = 0.8,
-                  beta = c(0, 0),
+                  beta = c(0, 0, 0, 0),
+                  alpha = c(0, 0, 0, 0),
                   sigmad = 0.5,
-                  z_d = rep(0, T_fit),
-                  nu = rep(0, 53)),
-             list(S0 = 0.3,
-                  E0 = 150,
-                  I0 = 50,
-                  log_phi_q = -13,
-                  eta_inv_y = 10,
-                  eta_inv_q = 10,
-                  ro_c = 0.8,
-                  gamma_c = 0.8,
-                  delta_c = 0.8,
-                  logNv = 0.5,
-                  alpha1 = 0.5,
-                  alpha2 = 0.5,
-                  beta0 = 1.2,
-                  beta = c(0.3, -0.1),
-                  sigmad = 0.05,
-                  z_d = rnorm(T_fit, 0, 1),
-                  nu = rnorm(53, 0, 0.1)))
+                  eps_d = rep(0, T_fit)))
 
 fit <- stan(file = "Code/seirs.stan", 
             data = dat.stan, 
             init = inits, 
-            iter = 1000, 
+            iter = 5000, 
             chains = 3,
             control = list(adapt_delta = 0.9,
                            max_treedepth = 12))
 
 yhat <- rstan::extract(fit, "y_hat", permute = F) %>% apply(3, quantile, probs = c(0.1, 0.5, 0.9))
-plot(yhat[2, ], type = "l")
+plot(yhat[3, ], type = "l")
 lines(yhat[1, ])
-lines(yhat[3, ])
+lines(yhat[2, ])
 points(obs, pch = 20)
 
 dv <- rstan::extract(fit, "dv", permute = F) %>% apply(3, mean)
 plot(dv, type = "l")
+
+bv <- rstan::extract(fit, "bv", permute = F) %>% apply(3, mean)
+plot(bv, type = "l")
+
 

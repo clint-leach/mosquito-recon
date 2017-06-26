@@ -18,6 +18,7 @@ functions {
     vector[9] dydt;
     
     real b;
+    real loss;
     real Sv;
     real R;
     
@@ -33,6 +34,8 @@ functions {
     Sv = y[7] - y[6] - y[5];
     R = 1 - y[1] - y[2] - y[3];
 
+    loss = dv + cap;
+    
     // Compute transition rates
     // Mosquito to human foi
     foi_vh = lambda * y[6] * y[1];
@@ -53,9 +56,9 @@ functions {
     /*I*/ dydt[3] = infectious - (gamma + b) * y[3];
     
     /*VA*/ dydt[4] = xi * y[7] - bv * y[4];
-    /*VE*/ dydt[5] = foi_hv - infect_mosq - (dv + cap) * y[5];
-    /*VI*/ dydt[6] = infect_mosq - (dv + cap) * y[6];
-    /*VN*/ dydt[7] = bv * y[4] - (dv + cap) * y[7];
+    /*VE*/ dydt[5] = foi_hv - infect_mosq - loss * y[5];
+    /*VI*/ dydt[6] = infect_mosq - loss * y[6];
+    /*VN*/ dydt[7] = bv * y[4] - loss * y[7];
     
     /*VC*/ dydt[8] = cap * y[7];
     /*cases*/ dydt[9] = infectious;
@@ -89,15 +92,12 @@ parameters {
   real<lower=0> ro_c;                  // human latenet period
   real<lower=0> gamma_c;               // human infectious period
   real<lower=0> delta_c;               // cross-immune period
-  real<lower=0> xi;
   real logNv;                         // initial mosquito population size
   real<lower=0> beta0;
   vector[D] beta;
   vector[D] alpha;
   real<lower=0> sigmad;
-  real<lower=0> sigmab;
-  vector[T] eps_d;  
-  vector[T] eps_b;
+  vector[T] eps_d;
 }
 transformed parameters {
   vector[9] y0;
@@ -109,6 +109,7 @@ transformed parameters {
   real<lower=0> eta_y;
   real<lower=0> eta_q;
   real<lower=0> phi_q;
+  real<lower=0> xi;
 
   // initial conditions
   y0[1] = S0 * (pop - E0 - I0) / pop;
@@ -117,7 +118,7 @@ transformed parameters {
   y0[4] = exp(logNv);
   y0[5] = 0.0;
   y0[6] = 0.0;
-  y0[7] = exp(logNv + covars[1] * alpha - covars[1] * beta);
+  y0[7] = exp(logNv);
   y0[8] = 0.0;
   y0[9] = 0.0;
   
@@ -132,7 +133,8 @@ transformed parameters {
   delta = 1 / (97 * delta_c);
   
   // mosquito demographic parameters
-  bv = 1.47 * beta0 * exp(covars[1:T] * alpha + sigmab * eps_b);
+  xi = 1.47 * beta0;
+  bv = 1.47 * beta0 * exp(covars[1:T] * alpha);
   dv = 1.47 * beta0 * exp(covars[1:T] * beta + sigmad * eps_d);
 }
 model {
@@ -162,18 +164,14 @@ model {
   logNv ~ normal(0.7, 0.3);
   
   // Mosquito demographic series
-  xi ~ gamma(1, 0.1);
-  
   beta0 ~ gamma(100, 100);
-  beta ~ normal(0, 2);
-  alpha ~ normal(0, 2);
+  beta ~ normal(0, 1);
+  alpha ~ normal(0, 1);
   
-  sigmad ~ normal(0, 0.5);
-  sigmab ~ normal(0, 0.5);
-
+  sigmad ~ normal(0, 0.1);
+  
   eps_d ~ normal(0, 1);
-  eps_b ~ normal(0, 1);
-  
+
   // Process model
   
   state[1] = y0;
@@ -241,7 +239,7 @@ generated quantities {
   for (k in 1:T_pred){
     
     d_pred[k] = 1.47 * beta0 * exp(covars[T + k] * beta + normal_rng(0, sigmad));
-    b_pred[k] = 1.47 * beta0 * exp(logNv + covars[T + k] * alpha + normal_rng(0, sigmad));
+    b_pred[k] = 1.47 * beta0 * exp(covars[T + k] * alpha);
 
     for(j in 1:7){
       
