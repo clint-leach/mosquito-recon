@@ -71,14 +71,18 @@ data {
   int y[T];
   int q[T];
   vector[T] tau;
-  real rov[T + T_pred];
+  vector[T + T_pred] rov;
   matrix[T + T_pred, D] covars;
-  int week[T + T_pred];
+  vector[T + T_pred] week;
   int pop;
 }
 transformed data {
+  matrix[T + T_pred, 2] sincos;
   real lambda = 4.87;
   real phi_y = 1.0 / 12.0;
+  
+  sincos[, 1] = sin(2 * pi() * week / 52);
+  sincos[, 2] = cos(2 * pi() * week / 52);
 }
 parameters {
   real<lower=0,upper=1> S0;            // untransformed initial conditions
@@ -91,9 +95,15 @@ parameters {
   real<lower=0> gamma_c;               // human infectious period
   real<lower=0> delta_c;               // cross-immune period
   real logNv;                         // initial mosquito population size
-  real<lower=0> sigmad;
-  real<lower=0> sigmab;
-  vector[T] eps_d;
+  real ar_psi;
+  real ar_rv;
+  real alpha0;
+  real beta0;
+  vector[2] alpha;
+  vector[2] beta;
+  real<lower=0> sigmapsi;
+  real<lower=0> sigmarv;
+  vector[T] eps_psi;
   vector[T] rv;
 }
 transformed parameters {
@@ -127,7 +137,7 @@ transformed parameters {
   delta = 1 / (97 * delta_c);
   
   // mosquito demographic parameters
-  dv = 1.47 * exp(sigmad * eps_d);
+  dv = rov[1:T] .* exp(1.27 - eps_psi);
 }
 model {
   vector[T] y_hat;
@@ -156,14 +166,28 @@ model {
   logNv ~ normal(0.7, 0.3);
   
   // Mosquito demographic series
-  sigmad ~ normal(0, 0.2);
-  sigmab ~ normal(0, 0.2);
   
-  eps_d[1] ~ normal(0, sigmad);
-  tail(eps_d, T - 1) ~ normal(head(eps_d, T - 1), sigmad);
+  // Autoregressive parameters
+  ar_rv ~ normal(0, 0.4);
+  ar_psi ~ normal(0, 0.4);
   
-  rv[1] ~ normal(0, sigmab);
-  tail(rv, T - 1) ~ normal(head(rv, T - 1), sigmab);
+  // Regression parameters
+  alpha0 ~ normal(0, 0.1);
+  beta0 ~ normal(0, 0.1);
+  
+  alpha ~ normal(0, 2);
+  beta ~ normal(0, 2);
+  
+  // Noise parameters
+  sigmapsi ~ normal(0, 0.2);
+  sigmarv ~ normal(0, 0.2);
+  
+  // AR(1) model
+  eps_psi[1] ~ normal(beta0 + sincos[1, ] * beta, sigmapsi);
+  tail(eps_psi, T - 1) ~ normal(beta0 + ar_psi * head(eps_psi, T - 1) + sincos[2:T, ] * beta, sigmapsi);
+
+  rv[1] ~ normal(alpha0 + sincos[1, ] * alpha, sigmarv);
+  tail(rv, T - 1) ~ normal(alpha0 + ar_rv *  head(rv, T - 1) + sincos[2:T, ] * alpha, sigmarv);
 
   // Process model
   
@@ -198,12 +222,26 @@ generated quantities {
 
   vector[T + T_pred] y_hat;
   vector[T + T_pred] q_hat;
-  vector[T_pred + 1] d_pred;
-  vector[T_pred + 1] b_pred;
+  vector[T + T_pred] psi;
+  vector[T + T_pred] risk;
+  vector[T_pred] d_pred;
+  vector[T_pred] r_pred;
+  vector[T_pred] eps_psi_pred;
   vector[8] system[T + T_pred];
   vector[8] state;
   
   state = y0;
+
+  // Projecting demographic rates into future
+  r_pred[1] = normal_rng(alpha0 + ar_rv * rv[T] + sincos[T + 1, ] * alpha, sigmarv);
+  eps_psi_pred[1] = normal_rng(beta0 + ar_psi * eps_psi[T] + sincos[T + 1, ] * beta, sigmapsi);
+  
+  for(i in 2:T_pred){
+    r_pred[i] = normal_rng(alpha0 + ar_rv * r_pred[i - 1] + sincos[T + i] * alpha, sigmarv);
+    eps_psi_pred[i] = normal_rng(beta0 + ar_psi * eps_psi_pred[i - 1] + sincos[T + i] * beta, sigmapsi);
+  }
+  
+  d_pred = tail(rov, T_pred) .* exp(1.27 - eps_psi_pred);
 
   // Estimated trajectories
   for (t in 1:T){
@@ -228,18 +266,19 @@ generated quantities {
 
     state[7] = 0;
     state[8] = 0;
+    
+    psi[t] = inv_logit(eps_psi[t]);
+    risk[t] = (state[6] - state[5] - state[4]) * psi[t];
   }
   
-  b_pred[1] = normal_rng(rv[T], sigmab);
-  d_pred[1] = normal_rng(dv[T], sigmad);
-  
+  // Predicted trajectory
   for (k in 1:T_pred){
     
     for(j in 1:7){
       
       state = state + 1.0 / 7.0 * derivs(T + k, 
                                          state, 
-                                         b_pred[k],
+                                         r_pred[k],
                                          rov[T + k], 
                                          lambda, 
                                          ro, 
@@ -256,8 +295,9 @@ generated quantities {
     
     state[7] = 0;
     state[8] = 0;
-   
-    b_pred[k + 1] = normal_rng(b_pred[k], sigmab); 
-    d_pred[k + 1] = normal_rng(d_pred[k], sigmad); 
+    
+    psi[T + k] = inv_logit(eps_psi_pred[k]);
+    risk[T + k] = (state[6] - state[5] - state[4]) * psi[T + k];
+
   }
 }

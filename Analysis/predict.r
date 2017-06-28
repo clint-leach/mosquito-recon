@@ -53,7 +53,7 @@ dat.stan <- list(T = T_fit,
                  tau = head(tau, T_fit),
                  rov = rov,
                  covars = covars,
-                 week = week(weather$date[1] + weeks(c(0:242))),
+                 week = c(1:243),
                  pop = pop)
 
 inits = list(list(S0 = 0.4,
@@ -66,47 +66,22 @@ inits = list(list(S0 = 0.4,
                   gamma_c = 1,
                   delta_c = 0.8,
                   logNv = 0.7,
-                  beta0 = 1,
-                  beta = c(0, 0, 0, 0),
-                  alpha = c(0, 0, 0, 0),
-                  sigmad = 0.2,
-                  eps_d = rep(0, T_fit)),
-             list(S0 = 0.6,
-                  E0 = 30,
-                  I0 = 30,
-                  log_phi_q = -13.5,
-                  eta_inv_y = 5,
-                  eta_inv_q = 5,
-                  ro_c = 1.1,
-                  gamma_c = 0.8,
-                  delta_c = 0.6,
-                  logNv = 0.4,
-                  beta0 = 1.2,
-                  beta = c(0, 0, 0, 0),
-                  alpha = c(0, 0, 0, 0),
-                  sigmad = 0.05,
-                  eps_d = rep(0, T_fit)),
-             list(S0 = 0.3,
-                  E0 = 100,
-                  I0 = 60,
-                  log_phi_q = -12,
-                  eta_inv_y = 1,
-                  eta_inv_q = 1,
-                  ro_c = 1,
-                  gamma_c = 1,
-                  delta_c = 1,
-                  logNv = 1,
-                  beta0 = 0.8,
-                  beta = c(0, 0, 0, 0),
-                  alpha = c(0, 0, 0, 0),
-                  sigmad = 0.5,
-                  eps_d = rep(0, T_fit)))
+                  ar_psi = 0,
+                  ar_rv = 0,
+                  alpha0 = 0,
+                  beta0 = 0,
+                  alpha = c(0, 0),
+                  beta = c(0, 0),
+                  sigmapsi = 0.2,
+                  sigmarv = 0.2,
+                  eps_psi = rep(0, T_fit),
+                  rv = rep(0, T_fit)))
 
 fit <- stan(file = "Code/seirs.stan", 
             data = dat.stan, 
             init = inits, 
-            iter = 5000, 
-            chains = 3,
+            iter = 1000, 
+            chains = 1,
             control = list(adapt_delta = 0.9,
                            max_treedepth = 12))
 
@@ -116,10 +91,22 @@ lines(yhat[1, ])
 lines(yhat[2, ])
 points(obs, pch = 20)
 
+qhat <- rstan::extract(fit, "q_hat", permute = F) %>% apply(3, quantile, probs = c(0.1, 0.5, 0.9))
+plot(qhat[3, ], type = "l")
+lines(qhat[1, ])
+lines(qhat[2, ])
+points(q, pch = 20)
+
 dv <- rstan::extract(fit, "dv", permute = F) %>% apply(3, mean)
 plot(dv, type = "l")
 
-bv <- rstan::extract(fit, "bv", permute = F) %>% apply(3, mean)
-plot(bv, type = "l")
+rv <- rstan::extract(fit, "rv", permute = F) %>% apply(3, mean)
+plot(rv, type = "l")
+
+psi <- rstan::extract(fit, "psi", permute = F) %>% apply(3, mean)
+plot(psi, type = "l")
+
+eps <- rstan::extract(fit, "eps_psi", permute = F) %>% apply(3, mean)
+plot(eps, type = "l")
 
 
