@@ -73,16 +73,16 @@ data {
   vector[T] tau;
   vector[T + T_pred] rov;
   matrix[T + T_pred, D] covars;
-  vector[T + T_pred] week;
+  int week[T + T_pred];
   int pop;
 }
 transformed data {
-  matrix[T + T_pred, 2] sincos;
   real lambda = 4.87;
   real phi_y = 1.0 / 12.0;
-  
-  sincos[, 1] = sin(2 * pi() * week / 52);
-  sincos[, 2] = cos(2 * pi() * week / 52);
+  real ar_psi = 1.0;
+  real ar_rv = 1.0;
+  real seas_psi = 1.0;
+  real seas_rv = 1.0;
 }
 parameters {
   real<lower=0,upper=1> S0;            // untransformed initial conditions
@@ -95,20 +95,16 @@ parameters {
   real<lower=0> gamma_c;               // human infectious period
   real<lower=0> delta_c;               // cross-immune period
   real logNv;                         // initial mosquito population size
-  real ar_psi;
-  real ar_rv;
-  real alpha0;
-  real beta0;
-  vector[2] alpha;
-  vector[2] beta;
   real<lower=0> sigmapsi;
   real<lower=0> sigmarv;
   vector[T] eps_psi;
-  vector[T] rv;
+  vector[T] eps_rv;
 }
 transformed parameters {
   vector[8] y0;
   vector[T] dv;
+  vector[T] rv;
+  vector[T] psi_raw;
   real<lower=0> ro;
   real<lower=0> gamma;
   real<lower=0> delta;
@@ -137,7 +133,26 @@ transformed parameters {
   delta = 1 / (97 * delta_c);
   
   // mosquito demographic parameters
-  dv = rov[1:T] .* exp(1.27 - eps_psi);
+  rv[1] = eps_rv[1];
+  psi_raw[1] = eps_psi[1];
+  
+  for(i in 2:53){
+    rv[i] = ar_rv * rv[i - 1] + eps_rv[i];
+    psi_raw[i] = ar_psi * psi_raw[i - 1] + eps_psi[i]; 
+  }
+  for(i in 54:T){
+    rv[i] = ar_rv * rv[i - 1] + 
+            seas_rv * rv[i - 52] - 
+            ar_rv * seas_rv * rv[i - 53] + 
+            eps_rv[i];
+            
+    psi_raw[i] = ar_psi * psi_raw[i - 1] + 
+                 seas_psi * psi_raw[i - 52] - 
+                 ar_psi * seas_psi * psi_raw[i - 53] +
+                 eps_psi[i]; 
+  }
+  
+  dv = rov[1:T] .* exp(1.27 - psi_raw);
 }
 model {
   vector[T] y_hat;
@@ -166,29 +181,15 @@ model {
   logNv ~ normal(0.7, 0.3);
   
   // Mosquito demographic series
-  
-  // Autoregressive parameters
-  ar_rv ~ normal(0, 0.4);
-  ar_psi ~ normal(0, 0.4);
-  
-  // Regression parameters
-  alpha0 ~ normal(0, 0.1);
-  beta0 ~ normal(0, 0.1);
-  
-  alpha ~ normal(0, 2);
-  beta ~ normal(0, 2);
-  
-  // Noise parameters
-  sigmapsi ~ normal(0, 0.2);
-  sigmarv ~ normal(0, 0.2);
-  
-  // AR(1) model
-  eps_psi[1] ~ normal(beta0 + sincos[1, ] * beta, sigmapsi);
-  tail(eps_psi, T - 1) ~ normal(beta0 + ar_psi * head(eps_psi, T - 1) + sincos[2:T, ] * beta, sigmapsi);
 
-  rv[1] ~ normal(alpha0 + sincos[1, ] * alpha, sigmarv);
-  tail(rv, T - 1) ~ normal(alpha0 + ar_rv *  head(rv, T - 1) + sincos[2:T, ] * alpha, sigmarv);
-
+  // Error component
+  eps_rv ~ normal(0, sigmarv);
+  eps_psi ~ normal(0, sigmapsi);
+  
+  // Variance parameters
+  sigmapsi ~ normal(0, 0.1);
+  sigmarv ~ normal(0, 0.1);
+  
   // Process model
   
   state[1] = y0;
@@ -224,25 +225,13 @@ generated quantities {
   vector[T + T_pred] q_hat;
   vector[T + T_pred] psi;
   vector[T + T_pred] risk;
-  vector[T_pred] d_pred;
-  vector[T_pred] r_pred;
-  vector[T_pred] eps_psi_pred;
+  vector[T + T_pred] psi_raw_full;
+  vector[T + T_pred] rv_full;
   vector[8] system[T + T_pred];
   vector[8] state;
   
   state = y0;
-
-  // Projecting demographic rates into future
-  r_pred[1] = normal_rng(alpha0 + ar_rv * rv[T] + sincos[T + 1, ] * alpha, sigmarv);
-  eps_psi_pred[1] = normal_rng(beta0 + ar_psi * eps_psi[T] + sincos[T + 1, ] * beta, sigmapsi);
   
-  for(i in 2:T_pred){
-    r_pred[i] = normal_rng(alpha0 + ar_rv * r_pred[i - 1] + sincos[T + i] * alpha, sigmarv);
-    eps_psi_pred[i] = normal_rng(beta0 + ar_psi * eps_psi_pred[i - 1] + sincos[T + i] * beta, sigmapsi);
-  }
-  
-  d_pred = tail(rov, T_pred) .* exp(1.27 - eps_psi_pred);
-
   // Estimated trajectories
   for (t in 1:T){
     for(j in 1:7){
@@ -267,23 +256,36 @@ generated quantities {
     state[7] = 0;
     state[8] = 0;
     
-    psi[t] = inv_logit(eps_psi[t]);
+    psi_raw_full[t] = psi_raw[t];
+    rv_full[t] = rv[t];
+    
+    psi[t] = inv_logit(-1.27 + psi_raw[t]);
     risk[t] = (state[6] - state[5] - state[4]) * psi[t];
   }
   
   // Predicted trajectory
   for (k in 1:T_pred){
     
+    psi_raw_full[T + k] = ar_psi * psi_raw_full[T + k - 1] + 
+                          seas_psi * psi_raw_full[T + k - 52] - 
+                          ar_psi * seas_psi * psi_raw_full[T + k - 53] +
+                          normal_rng(0, sigmapsi); 
+                          
+    rv_full[T + k] = ar_psi * rv_full[T + k - 1] + 
+                          seas_psi * rv_full[T + k - 52] - 
+                          ar_psi * seas_psi * rv_full[T + k - 53] +
+                          normal_rng(0, sigmarv); 
+
     for(j in 1:7){
       
       state = state + 1.0 / 7.0 * derivs(T + k, 
                                          state, 
-                                         r_pred[k],
+                                         rv[T + k],
                                          rov[T + k], 
                                          lambda, 
                                          ro, 
                                          gamma, 
-                                         d_pred[k], 
+                                         rov[T + k] * exp(1.27 - psi_raw_full[T + k]), 
                                          delta, 
                                          phi_q * tau[T]);
     }
@@ -296,7 +298,7 @@ generated quantities {
     state[7] = 0;
     state[8] = 0;
     
-    psi[T + k] = inv_logit(eps_psi_pred[k]);
+    psi[T + k] = inv_logit(-1.27 + psi_raw_full[T + k]);
     risk[T + k] = (state[6] - state[5] - state[4]) * psi[T + k];
 
   }

@@ -25,7 +25,7 @@ weather <- read.csv("Data/Vitoria.weather.csv") %>%
   mutate(date = ymd(BRST), year = year(date), week = week(date))
 
 start <- weather$date[1]
-T_pred <- 52
+T_pred <- 0
 T_fit <- 243 - T_pred
 
 weather <- subset(weather, date < date[1] + weeks(243))
@@ -53,7 +53,7 @@ dat.stan <- list(T = T_fit,
                  tau = head(tau, T_fit),
                  rov = rov,
                  covars = covars,
-                 week = c(1:243),
+                 week = week(start + weeks(c(1:243))),
                  pop = pop)
 
 inits = list(list(S0 = 0.4,
@@ -68,60 +68,18 @@ inits = list(list(S0 = 0.4,
                   logNv = 0.7,
                   ar_psi = 0,
                   ar_rv = 0,
-                  alpha0 = 0,
-                  beta0 = 0,
-                  alpha = c(0, 0),
-                  beta = c(0, 0),
+                  seas_psi = 0,
+                  seas_rv = 0,
                   sigmapsi = 0.2,
                   sigmarv = 0.2,
                   eps_psi = rep(0, T_fit),
-                  rv = rep(0, T_fit)),
-             list(S0 = 0.5,
-                  E0 = 40,
-                  I0 = 10,
-                  log_phi_q = -12,
-                  eta_inv_y = 1,
-                  eta_inv_q = 1,
-                  ro_c = 1,
-                  gamma_c = 1.2,
-                  delta_c = 1,
-                  logNv = 0.6,
-                  ar_psi = 0,
-                  ar_rv = 0,
-                  alpha0 = 0,
-                  beta0 = 0,
-                  alpha = c(0, 0),
-                  beta = c(0, 0),
-                  sigmapsi = 0.5,
-                  sigmarv = 0.5,
-                  eps_psi = rep(0, T_fit),
-                  rv = rep(0, T_fit)),
-             list(S0 = 0.3,
-                  E0 = 100,
-                  I0 = 80,
-                  log_phi_q = -14,
-                  eta_inv_y = 5,
-                  eta_inv_q = 5,
-                  ro_c = 1.2,
-                  gamma_c = 0.8,
-                  delta_c = 0.8,
-                  logNv = 1,
-                  ar_psi = 0,
-                  ar_rv = 0,
-                  alpha0 = 0,
-                  beta0 = 0,
-                  alpha = c(0, 0),
-                  beta = c(0, 0),
-                  sigmapsi = 0.05,
-                  sigmarv = 0.05,
-                  eps_psi = rep(0, T_fit),
-                  rv = rep(0, T_fit)))
+                  eps_rv = rep(0, T_fit)))
 
 fit <- stan(file = "Code/seirs.stan", 
             data = dat.stan, 
             init = inits, 
-            iter = 2000, 
-            chains = 3,
+            iter = 100, 
+            chains = 1,
             control = list(adapt_delta = 0.9,
                            max_treedepth = 12))
 
@@ -146,7 +104,6 @@ plot(rv, type = "l")
 psi <- rstan::extract(fit, "psi", permute = F) %>% apply(3, mean)
 plot(psi, type = "l")
 
-eps <- rstan::extract(fit, "eps_psi", permute = F) %>% apply(3, mean)
-plot(eps, type = "l")
-
+risk <- rstan::extract(fit, "risk", permute = F) %>% apply(3, mean)
+plot(risk, type = "l")
 
