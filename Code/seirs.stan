@@ -67,22 +67,15 @@ functions {
 data {
   int<lower=1> T;
   int<lower=0> T_pred;
-  int<lower=0> D;
   int y[T];
   int q[T];
   vector[T] tau;
   vector[T + T_pred] rov;
-  matrix[T + T_pred, D] covars;
-  int week[T + T_pred];
   int pop;
 }
 transformed data {
   real lambda = 4.87;
   real phi_y = 1.0 / 12.0;
-  real ar_psi = 1.0;
-  real ar_rv = 1.0;
-  real seas_psi = 1.0;
-  real seas_rv = 1.0;
 }
 parameters {
   real<lower=0,upper=1> S0;            // untransformed initial conditions
@@ -95,6 +88,10 @@ parameters {
   real<lower=0> gamma_c;               // human infectious period
   real<lower=0> delta_c;               // cross-immune period
   real logNv;                         // initial mosquito population size
+  real<lower=-1,upper=1> ar_rv;
+  real<lower=-1,upper=1> ar_psi;
+  real<lower=-1,upper=1> seas_rv;
+  real<lower=-1,upper=1> seas_psi;
   real<lower=0> sigmapsi;
   real<lower=0> sigmarv;
   vector[T] eps_psi;
@@ -136,23 +133,12 @@ transformed parameters {
   rv[1] = eps_rv[1];
   psi_raw[1] = eps_psi[1];
   
-  for(i in 2:53){
+  for(i in 2:T){
     rv[i] = ar_rv * rv[i - 1] + eps_rv[i];
     psi_raw[i] = ar_psi * psi_raw[i - 1] + eps_psi[i]; 
   }
-  for(i in 54:T){
-    rv[i] = ar_rv * rv[i - 1] + 
-            seas_rv * rv[i - 52] - 
-            ar_rv * seas_rv * rv[i - 53] + 
-            eps_rv[i];
-            
-    psi_raw[i] = ar_psi * psi_raw[i - 1] + 
-                 seas_psi * psi_raw[i - 52] - 
-                 ar_psi * seas_psi * psi_raw[i - 53] +
-                 eps_psi[i]; 
-  }
-  
-  dv = rov[1:T] .* exp(1.27 - psi_raw);
+
+  dv = rov[1:T] .* exp(psi_raw);
 }
 model {
   vector[T] y_hat;
@@ -182,9 +168,18 @@ model {
   
   // Mosquito demographic series
 
+  // AR parameters
+  ar_rv ~ normal(0, 0.4);
+  ar_psi ~ normal(0, 0.4);
+  seas_rv ~ normal(0, 0.4);
+  seas_psi ~ normal(0, 0.4);
+  
   // Error component
-  eps_rv ~ normal(0, sigmarv);
-  eps_psi ~ normal(0, sigmapsi);
+  eps_rv[1:52] ~ normal(0, sigmarv);
+  eps_psi[1:52] ~ normal(0, sigmapsi);
+  
+  eps_rv[53:T] ~ normal(seas_rv * eps_rv[1:(T - 52)], sigmarv);
+  eps_psi[53:T] ~ normal(seas_psi * eps_psi[1:(T - 52)], sigmapsi);
   
   // Variance parameters
   sigmapsi ~ normal(0, 0.1);
@@ -227,7 +222,7 @@ generated quantities {
   vector[T + T_pred] risk;
   vector[T + T_pred] psi_raw_full;
   vector[T + T_pred] rv_full;
-  vector[8] system[T + T_pred];
+  // vector[8] system[T + T_pred];
   vector[8] state;
   
   state = y0;
@@ -248,7 +243,7 @@ generated quantities {
                                          phi_q * tau[t]);
     }
     
-    system[t] = state;
+    // system[t] = state;
 
     q_hat[t] = neg_binomial_2_rng(state[7] * pop, eta_q);
     y_hat[t] = neg_binomial_2_rng(phi_y * pop * state[8], eta_y);
@@ -280,7 +275,7 @@ generated quantities {
       
       state = state + 1.0 / 7.0 * derivs(T + k, 
                                          state, 
-                                         rv[T + k],
+                                         rv_full[T + k],
                                          rov[T + k], 
                                          lambda, 
                                          ro, 
@@ -290,7 +285,7 @@ generated quantities {
                                          phi_q * tau[T]);
     }
 
-    system[T + k] = state;
+    // system[T + k] = state;
     
     q_hat[T + k] = neg_binomial_2_rng(state[7] * pop, eta_q);
     y_hat[T + k] = neg_binomial_2_rng(phi_y * pop * state[8], eta_y);
