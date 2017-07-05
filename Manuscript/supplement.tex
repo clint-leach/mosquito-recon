@@ -35,11 +35,11 @@ q_t & \sim \text{NegBin}((V_{Ct} - V_{Ct-1})N, \eta_q)\\
 \frac{dV_C}{dt} & = \phi_q \tau_t V_N\\
 V_S &= V_N - V_E - V_I\\
 \\
-d_t &= \rho_{vt} \exp(-\nu_t)\\
+d_t &= \rho_{vt} \exp(-\mu-\nu_t)\\
 \nu_{t} & = \alpha_{\nu} \nu_{t-1} + \theta_{\nu} (\nu_{t-52} - \alpha_{\nu} \nu_{t-53}) +\epsilon_{\nu t}\\
 r_t &= \alpha_r r_{t-1} + \theta_r (r_{t-52} - \alpha_r r_{t-53}) + \epsilon_{rt},
 \end{align}
-where
+
 \begin{align}
 \epsilon_{rt} & \sim \text{Normal}(0, \sigma_r)\\
 \epsilon_{\nu t} & \sim \text{Normal}(0, \sigma_{\nu}).
