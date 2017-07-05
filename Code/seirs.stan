@@ -138,7 +138,7 @@ transformed parameters {
     psi_raw[i] = ar_psi * psi_raw[i - 1] + eps_psi[i]; 
   }
 
-  dv = rov[1:T] .* exp(psi_raw);
+  dv = rov[1:T] .* exp(1.27 - psi_raw);
 }
 model {
   vector[T] y_hat;
@@ -167,7 +167,7 @@ model {
   logNv ~ normal(0.7, 0.3);
   
   // Mosquito demographic series
-
+  
   // AR parameters
   ar_rv ~ normal(0, 0.4);
   ar_psi ~ normal(0, 0.4);
@@ -266,10 +266,10 @@ generated quantities {
                           ar_psi * seas_psi * psi_raw_full[T + k - 53] +
                           normal_rng(0, sigmapsi); 
                           
-    rv_full[T + k] = ar_psi * rv_full[T + k - 1] + 
-                          seas_psi * rv_full[T + k - 52] - 
-                          ar_psi * seas_psi * rv_full[T + k - 53] +
-                          normal_rng(0, sigmarv); 
+    rv_full[T + k] = ar_rv * rv_full[T + k - 1] + 
+                     seas_rv * rv_full[T + k - 52] - 
+                     ar_rv * seas_rv * rv_full[T + k - 53] +
+                     normal_rng(0, sigmarv); 
 
     for(j in 1:7){
       
