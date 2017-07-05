@@ -15,25 +15,34 @@
 
 \section*{Full model}
 
+Note that in practice, we rescale the model described in the main text by human population size to keep state variables on a unit scale.
+This also rescales mosquito population size to number of mosquitoes per person.
+Adopting this rescaling, we can express the model as:
+
 \begin{align}
 y_t & \sim \text{NegBin}(\phi_y  (X_t - X_{t-1})N, \eta_y)\\
 q_t & \sim \text{NegBin}((V_{Ct} - V_{Ct-1})N, \eta_q)\\
-\\ 
+\\
 \frac{dX}{dt} &= \rho E \\
 \frac{dS}{dt} &= b - bS - \lambda V_{I}S + \delta R\\
 \frac{dE}{dt} &= \lambda V_{I}S - (\rho + b)E\\
 \frac{dI}{dt} &= \rho E - (\gamma + b)I\\
 \frac{dR}{dt} &= \gamma I - (\delta + b)R\\
 \\
-\frac{dV_S}{dt} & = b_t - \lambda I V_S - (d_t + \phi_q \tau_t) V_S \\
+\frac{dV_N}{dt} & = r_t V_N \\
 \frac{dV_E}{dt} &= \lambda IV_S - (\rho_{vt} + d_t + \phi_q \tau_t)V_E\\
 \frac{dV_I}{dt} &= \rho_{vt} V_E - (d_t + \phi_q \tau_t) V_I\\
 \frac{dV_C}{dt} & = \phi_q \tau_t V_N\\
-V_N &= V_S + V_E + V_I\\
+V_S &= V_N - V_E - V_I\\
 \\
-\log(b_t) & = \alpha_{0} + \alpha_1 \sin(2\pi t / 52) + \alpha_2 \cos(2\pi t / 52) \\
-\log(d_{t}) & = \beta_{0} + \beta_1 \sin(2\pi t / 52) + \beta_2 \cos(2\pi t / 52) + \epsilon_t\\
-\epsilon_t & \sim \text{Normal}(0, \sigma)
+d_t &= \rho_{vt} \exp(-\nu_t)\\
+\nu_{t} & = \alpha_{\nu} \nu_{t-1} + \theta_{\nu} (\nu_{t-52} - \alpha_{\nu} \nu_{t-53}) +\epsilon_{\nu t}\\
+r_t &= \alpha_r r_{t-1} + \theta_r (r_{t-52} - \alpha_r r_{t-53}) + \epsilon_{rt},
+\end{align}
+where
+\begin{align}
+\epsilon_{rt} & \sim \text{Normal}(0, \sigma_r)\\
+\epsilon_{\nu t} & \sim \text{Normal}(0, \sigma_{\nu}).
 \end{align}
 
 \begin{align}

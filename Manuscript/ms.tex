@@ -211,40 +211,42 @@ Jennifer Hoeting\textsuperscript{4}
 % Please keep the abstract below 300 words
 \section*{Abstract}
 
-We know mosquitoes spread dengue, but mosquito abundance, as estimated from trap-based surveillance data, is not causally linked to human disease risk.
+Mosquito abundance alone is not a strong predictor of dengue fever risk, but provides information that, when coupled with case data, allows us to estimate mosquito demographic rates.
 
 % Please keep the Author Summary between 150 and 200 words
 % Use first person. PLOS ONE authors please skip this step. 
 % Author Summary not valid for PLOS ONE submissions.   
 \section*{Author summary}
 
-We know mosquitoes spread dengue, but mosquito abundance, as estimated from trap-based surveillance data, is not causally linked to human disease risk.
-
+Mosquitoes are dumb.
 
 \linenumbers
 
 % Use "Eq" instead of "Equation" for equation citations.
 \section*{Introduction}
 
-Dengue fever is a massive global public health burden, with millions of cases per year in Brazil alone (CITATION).  
+Dengue fever is a massive global public health burden, with millions of cases per year in Brazil alone \cite{Bhatt2013}.  
 Since the dengue virus (DENV) is vectored by the mosquito \textit{Aedes aegypti}, dengue fever is prevented primarily through mosquito control programs \cite{Achee2015}.
-Though eradication of \textit{Aedes aegypti} is infeasible, effectively targeted control interventions may still substantially reduce disease risk.
-
-Cities deploy mosquito control based on trap-based mosquito surveillance data.
-For instance, the "MI-Dengue" system deployed throughout several cities in Brazil uses a grid of mosquito sticky-traps (MosquiTRAPs) for spatial prioritization of source reduction and larvicide application \cite{Eiras2009}.
-Comparing cities with and without this system, \cite{Pepin2013} estimated that it prevented X cases and saved X dollars in economic losses from 20XX - 20XX.
+To be effective, control efforts should be guided by consistent, high resolution mosquito surveillance \cite{Morrison2008}.
+The "MI-Dengue" system, implemented by the company Ecovec and deployed throughout cities in Brazil, uses a city-wide grid of mosquito sticky-traps (MosquiTRAPs) for spatial prioritization of source reduction and larvicide application \cite{Eiras2009}.
+Comparing cities with and without this system, \cite{Pepin2013} estimated that it prevented 27,191 cases of dengue fever from 2007 - 2011.
 Though this system has been effective, the mosquito indices and thresholds used to prioritize control efforts remain somewhat ad-hoc.
-Using such surveillance data to efficiently target limited control resources requires a more detailed understanding of the relationship between the components of mosquito abundance measured by traps and disease risk.
+As noted in \cite{Morrison2008}, entomological indices are only relevant in the context of local epidemiology, and thus control policies will be most effective when they synthesize both entomological and clinical surveillance.
 
-Many of the attempts to establish this relationship statistically have relied on tests of the ability of mosquito abundance measures to predict human disease risk in regression models.
-For example, \cite{Pepin2015} found that models that included MosquiTRAP surveillance data failed to predict weekly dengue cases any better than models that include lagged case data alone.
-However, these models fail to account for the mechanistic, non-linear relationship between mosquito population dynamics and dengue epidemiology.
-In particular, the cycle of transmission between humans and dengue is controlled not just by mosquito population size, but also by the emergence of new susceptible adults and the mortality rate.
+Many of the attempts to link these two sources of information have found a weak relationship between mosquito surveillance disease risk (CITATIONS).
+These efforts have often relied on tests of the ability of mosquito abundance measures to predict human disease risk in regression models.
+For example, \cite{Pepin2015} found that models that included MosquiTRAP surveillance data failed to predict weekly dengue cases any better than models that included lagged case data alone.
+However, such tests fail to account for the mechanistic, non-linear relationship between mosquito population dynamics and dengue epidemiology.
+The cycle of transmission between humans and dengue is controlled not just by mosquito abundance, but also by mosquito survival relative to the virus' incubation period \cite{Achee2015}.
+In fact, the probability that an exposed mosquito will survive long enough to become infectious provides a more direct measure of transmission potential than mosquito abundance alone.
 
-In this paper, we seek to connect mosquito surveillance data with human case reports through the use of a Bayesian, mechanistic model.
-We first propose a differential equation model for dengue epidemiology.
+Adult surveillance data (e.g. time series of mosquito trap counts) is insufficient on its own to estimate mosquito survival rates and thus transmission potential.
+However, we can borrow from the field of 'integrated population modeling' from wildlife ecology and use multiple sources of information to estimate mosquito demographic rates (CITATIONS).
+Since mosquito survival is a critical bottleneck in the transmission process, it can be informed from the observed transmission dynamics (i.e. reports of human cases), given an appropriate underlying mechanistic model.
+
+In this paper, we propose a mechanistic transmission model that connects mosquito abundance and survival with dengue epidemiology and human case reports.
 We then embed this model into a Bayesian statistical framework that allows us to estimate latent time series of mosquito demographic parameters from time series of mosquito trap counts and reported cases of dengue fever.
-Lastly, we explore the ability of this fitted model to predict annual dengue outbreaks and its utility for targeting control efforts.
+Lastly, we explore the utility of these estimated transmission risks for guiding targeted control efforts relative to using mosquito abundance alone.
 
 \section*{Methods}
 
@@ -268,10 +270,10 @@ Moreover, since dengue case reports do not include information on serotype, we d
 As such, we simplify the model of \cite{Wearing2006} to an SEIRS framework, which drops serotype-specific dynamics but preserves the period of cross-immunity and the possibility of reinfection.
 In this framework, susceptible individuals ($S$) become exposed ($E$) through contact with infectious mosquitoes ($V_I$).
 Following a latent period ($\frac{1}{\rho}$), exposed individuals become infectious ($I$) at which point they can infect susceptible mosquitoes ($V_S$).
-Infectious individuals recover at rate $\gamma$ and subsequenty remain immune for a period ($\frac{1}{\delta}$) after which they re-enter the susceptible class.
+Infectious individuals recover at rate $\gamma$ and subsequently remain immune for a period ($\frac{1}{\delta}$) after which they re-enter the susceptible class.
 
 Similarly, susceptible mosquitoes ($V_S$) become exposed by biting infectious humans and pass through a temperature-dependent latent period ($\frac{1}{\rho_{vt}}$) before becoming infectious ($V_I$).
-Total mosquito population size ($V_N$) is controlled by a periodically varying net emergence rate, $b_t$, and a stochastic, weather dependent death rate, $d_t$.
+Total mosquito population size ($V_N$) is controlled by stochastic, seasonally varying growth rate ($r_t$) and death rate ($d_t$).
 Captured mosquitoes ($V_C$) accumulate at rate $\phi_q \tau_t$, where $\phi_q$ is the per-trap capture rate, and $\tau_t$ is the number of traps deployed in week $t$.
 
 The complete differential equation model is then given as:
@@ -280,20 +282,22 @@ The complete differential equation model is then given as:
 \frac{dE}{dt} &= \lambda \frac{V_{I}}{N} S - (\rho + b)E\\
 \frac{dI}{dt} &= \rho E - (\gamma + b)I\\
 \frac{dR}{dt} &= \gamma I - (\delta + b)R\\
-\frac{dV_S}{dt} & = b_t - \lambda \frac{I}{N} V_S - (d_t + \phi_q \tau_t) V_S \\
+\frac{dV_N}{dt} & = r_t V_N \\
 \frac{dV_E}{dt} &= \lambda \frac{I}{N} V_S - (\rho_{vt} + d_t + \phi_q \tau_t)V_E\\
 \frac{dV_I}{dt} &= \rho_{vt} V_E - (d_t + \phi_q \tau_t) V_I\\
 \frac{dV_C}{dt} & = \phi_q \tau_t V_N\\
-V_N &= V_S + V_E + V_I,
+V_S &= V_N - V_E - V_I,
 \end{align}
 where
-\begin{equation}
-\log(b_t) = \alpha_{0} + \alpha_1 \sin(2\pi t / 52) + \alpha_2 \cos(2\pi t / 52),
-\end{equation}
+\begin{align}
+d_t & = \rho_{vt} \exp(-\nu_t)\\
+\nu_{t} & = \alpha_{\nu} \nu_{t-1} + \theta_{\nu} (\nu_{t-52} - \alpha_{\nu} \nu_{t-53}) +\epsilon_{\nu t}\\
+r_t &= \alpha_r r_{t-1} + \theta_r (r_{t-52} - \alpha_r r_{t-53}) + \epsilon_{rt},\\
+\end{align}
 and
 \begin{align}
-\log(d_{t}) & = \beta_{0} + X\beta + \epsilon_t\\
-\epsilon_t & \sim \text{Normal}(0, \sigma).
+\epsilon_{rt} & \sim \text{Normal}(0, \sigma_r)\\
+\epsilon_{\nu t} & \sim \text{Normal}(0, \sigma_{\nu}).
 \end{align}
 
 \subsection*{Data model}
