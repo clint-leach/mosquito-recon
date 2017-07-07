@@ -88,10 +88,6 @@ parameters {
   real<lower=0> gamma_c;               // human infectious period
   real<lower=0> delta_c;               // cross-immune period
   real logNv;                         // initial mosquito population size
-  real<lower=-1,upper=1> ar_rv;
-  real<lower=-1,upper=1> ar_psi;
-  real<lower=-1,upper=1> seas_rv;
-  real<lower=-1,upper=1> seas_psi;
   real<lower=0> sigmapsi;
   real<lower=0> sigmarv;
   vector[T] eps_psi;
@@ -130,15 +126,10 @@ transformed parameters {
   delta = 1 / (97 * delta_c);
   
   // mosquito demographic parameters
-  rv[1] = eps_rv[1];
-  psi_raw[1] = eps_psi[1];
+  rv = sigmarv * cumulative_sum(eps_rv);
+  psi_raw = sigmapsi * cumulative_sum(eps_psi);
   
-  for(i in 2:T){
-    rv[i] = ar_rv * rv[i - 1] + eps_rv[i];
-    psi_raw[i] = ar_psi * psi_raw[i - 1] + eps_psi[i]; 
-  }
-
-  dv = rov[1:T] .* exp(1.27 - psi_raw);
+  dv = 3.56 * rov[1:T] .* exp(psi_raw);
 }
 model {
   vector[T] y_hat;
@@ -167,23 +158,14 @@ model {
   logNv ~ normal(0.7, 0.3);
   
   // Mosquito demographic series
-  
-  // AR parameters
-  ar_rv ~ normal(0, 0.4);
-  ar_psi ~ normal(0, 0.4);
-  seas_rv ~ normal(0, 0.4);
-  seas_psi ~ normal(0, 0.4);
-  
+
   // Error component
-  eps_rv[1:52] ~ normal(0, sigmarv);
-  eps_psi[1:52] ~ normal(0, sigmapsi);
-  
-  eps_rv[53:T] ~ normal(seas_rv * eps_rv[1:(T - 52)], sigmarv);
-  eps_psi[53:T] ~ normal(seas_psi * eps_psi[1:(T - 52)], sigmapsi);
+  eps_rv ~ normal(0, 1);
+  eps_psi ~ normal(0, 1);
   
   // Variance parameters
-  sigmapsi ~ normal(0, 0.1);
-  sigmarv ~ normal(0, 0.1);
+  sigmapsi ~ normal(0, 0.5);
+  sigmarv ~ normal(0, 0.5);
   
   // Process model
   
@@ -261,14 +243,10 @@ generated quantities {
   // Predicted trajectory
   for (k in 1:T_pred){
     
-    psi_raw_full[T + k] = ar_psi * psi_raw_full[T + k - 1] + 
-                          seas_psi * psi_raw_full[T + k - 52] - 
-                          ar_psi * seas_psi * psi_raw_full[T + k - 53] +
+    psi_raw_full[T + k] = psi_raw_full[T + k - 1] + 
                           normal_rng(0, sigmapsi); 
                           
-    rv_full[T + k] = ar_rv * rv_full[T + k - 1] + 
-                     seas_rv * rv_full[T + k - 52] - 
-                     ar_rv * seas_rv * rv_full[T + k - 53] +
+    rv_full[T + k] = rv_full[T + k - 1] + 
                      normal_rng(0, sigmarv); 
 
     for(j in 1:7){
