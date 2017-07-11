@@ -88,10 +88,18 @@ parameters {
   real<lower=0> gamma_c;               // human infectious period
   real<lower=0> delta_c;               // cross-immune period
   real logNv;                         // initial mosquito population size
+  real psi0;
+  real rv0;
+  real<lower=-1,upper=1> alpha_rv;
+  real<lower=-1,upper=1> alpha_psi;
+  real<lower=-1,upper=1> theta_rv;
+  real<lower=-1,upper=1> theta_psi;
+  real<lower=0> sigma0_psi;
+  real<lower=0> sigma0_rv;
   real<lower=0> sigmapsi;
   real<lower=0> sigmarv;
-  vector[T] eps_psi;
-  vector[T] eps_rv;
+  vector[T - 1] eps_psi;
+  vector[T - 1] eps_rv;
 }
 transformed parameters {
   vector[8] y0;
@@ -126,8 +134,26 @@ transformed parameters {
   delta = 1 / (97 * delta_c);
   
   // mosquito demographic parameters
-  rv = sigmarv * cumulative_sum(eps_rv);
-  psi_raw = sigmapsi * cumulative_sum(eps_psi);
+  {
+    vector[T - 1] z_psi;
+    vector[T - 1] z_rv;
+    
+    z_psi[1:52] = sigma0_psi * eps_psi[1:52];
+    z_rv[1:52] = sigma0_rv * eps_rv[1:52];
+
+    for(i in 53:(T - 1)){
+      z_psi[i] = theta_psi * z_psi[i - 52] + sigmapsi * eps_psi[i];      
+      z_rv[i] = theta_rv * z_rv[i - 52] + sigmarv * eps_rv[i];
+    }
+    
+    psi_raw[1] = psi0;
+    rv[1] = rv0;
+    
+    for(i in 2:T){
+      psi_raw[i] = alpha_psi * psi_raw[i - 1] + z_psi[i - 1];
+      rv[i] = alpha_rv * rv[i - 1] + z_rv[i - 1];
+    }
+  }
   
   dv = 3.56 * rov[1:T] .* exp(psi_raw);
 }
@@ -158,14 +184,28 @@ model {
   logNv ~ normal(0.7, 0.3);
   
   // Mosquito demographic series
-
+  
+  // Initial values
+  psi0 ~ normal(0, 0.5);
+  rv0 ~ normal(0, 0.5);
+  
+  // SAR parameters
+  alpha_rv ~ normal(0, 1);
+  alpha_psi ~ normal(0, 1);
+  
+  theta_rv ~ normal(0, 1);
+  theta_psi ~ normal(0, 1);
+  
   // Error component
   eps_rv ~ normal(0, 1);
   eps_psi ~ normal(0, 1);
   
   // Variance parameters
-  sigmapsi ~ normal(0, 0.5);
-  sigmarv ~ normal(0, 0.5);
+  sigma0_psi ~ normal(0, 0.1);
+  sigma0_rv ~ normal(0, 0.1);
+  
+  sigmapsi ~ normal(0, 0.1);
+  sigmarv ~ normal(0, 0.1);
   
   // Process model
   

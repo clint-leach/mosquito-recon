@@ -29,9 +29,11 @@ weather <- read.csv("Data/Vitoria.weather.csv") %>%
 weather <- subset(weather, date < date[1] + weeks(243))
 weather$tot.week <- rep(c(1:243), each = 7)
 
-temp <- ddply(weather, .(tot.week), summarise, temp = mean(Mean.TemperatureC, na.rm = T))
+covars <- ddply(weather, .(tot.week), summarise, 
+                temp = mean(Mean.TemperatureC, na.rm = T),
+                humid = mean(Mean.Humidity, na.rm = T))
 
-rov <- 7 * exp(0.2 * temp$temp - 8)
+rov <- 7 * exp(0.2 * covars$temp - 8)
 #===============================================================================
 # Running stan
 
@@ -41,6 +43,8 @@ dat.stan <- list(T = 243,
                  q = data$q,
                  tau = data$tau,
                  rov = rov,
+                 covars = scale(covars[, -1]),
+                 week = week(weather$date[1] + weeks(c(0:242))),
                  pop = pop)
 
 inits = list(list(S0 = 0.4,
@@ -53,11 +57,18 @@ inits = list(list(S0 = 0.4,
                   gamma_c = 1,
                   delta_c = 0.8,
                   logNv = 0.7,
-                  ar_rv = 0.8,
+                  psi0 = 0,
+                  rv0 = 0,
+                  alpha_psi = 0.8,
+                  alpha_rv = 0,
+                  theta_psi = 0.8,
+                  theta_rv = 0,
+                  sigma0_psi = 0.1,
+                  sigma0_rv = 0.1,
                   sigmapsi = 0.2,
                   sigmarv = 0.2,
-                  eps_psi = rep(0, 243),
-                  eps_rv = rep(0, 243)),
+                  eps_psi = rep(0, 242),
+                  eps_rv = rep(0, 242)),
              list(S0 = 0.3,
                   E0 = 100,
                   I0 = 80,
@@ -68,11 +79,18 @@ inits = list(list(S0 = 0.4,
                   gamma_c = 1.2,
                   delta_c = 1,
                   logNv = 1,
-                  ar_rv = 0.5,
+                  psi0 = 0,
+                  rv0 = 0,
+                  alpha_psi = 0.8,
+                  alpha_rv = 0.5,
+                  theta_psi = 0,
+                  theta_rv = 0,
+                  sigma0_psi = 0.5,
+                  sigma0_rv = 0.5,
                   sigmapsi = 0.5,
                   sigmarv = 0.5,
-                  eps_psi = rep(0, 243),
-                  eps_rv = rep(0, 243)),
+                  eps_psi = rep(0, 242),
+                  eps_rv = rep(0, 242)),
              list(S0 = 0.5,
                   E0 = 40,
                   I0 = 20,
@@ -83,11 +101,18 @@ inits = list(list(S0 = 0.4,
                   gamma_c = 1,
                   delta_c = 1,
                   logNv = 0.5,
-                  ar_rv = 0,
+                  psi0 = 0,
+                  rv0 = 0,
+                  alpha_psi = 0,
+                  alpha_rv = 0,
+                  theta_psi = 0,
+                  theta_rv = 0,
+                  sigma0_psi = 0.01,
+                  sigma0_rv = 0.01,
                   sigmapsi = 0.01,
                   sigmarv = 0.01,
-                  eps_psi = rep(0, 243),
-                  eps_rv = rep(0, 243)))
+                  eps_psi = rep(0, 242),
+                  eps_rv = rep(0, 242)))
 
 fit <- stan(file = "Code/seirs.stan", 
             data = dat.stan, 
