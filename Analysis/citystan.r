@@ -43,8 +43,6 @@ dat.stan <- list(T = 243,
                  q = data$q,
                  tau = data$tau,
                  rov = rov,
-                 covars = scale(covars[, -1]),
-                 week = week(weather$date[1] + weeks(c(0:242))),
                  pop = pop)
 
 inits = list(list(S0 = 0.4,
@@ -59,16 +57,10 @@ inits = list(list(S0 = 0.4,
                   logNv = 0.7,
                   psi0 = 0,
                   rv0 = 0,
-                  alpha_psi = 0.8,
-                  alpha_rv = 0,
-                  theta_psi = 0.8,
-                  theta_rv = 0,
-                  sigma0_psi = 0.1,
-                  sigma0_rv = 0.1,
                   sigmapsi = 0.2,
                   sigmarv = 0.2,
-                  eps_psi = rep(0, 242),
-                  eps_rv = rep(0, 242)),
+                  eps_psi = rep(0, 243),
+                  eps_rv = rep(0, 243)),
              list(S0 = 0.3,
                   E0 = 100,
                   I0 = 80,
@@ -81,16 +73,10 @@ inits = list(list(S0 = 0.4,
                   logNv = 1,
                   psi0 = 0,
                   rv0 = 0,
-                  alpha_psi = 0.8,
-                  alpha_rv = 0.5,
-                  theta_psi = 0,
-                  theta_rv = 0,
-                  sigma0_psi = 0.5,
-                  sigma0_rv = 0.5,
                   sigmapsi = 0.5,
                   sigmarv = 0.5,
-                  eps_psi = rep(0, 242),
-                  eps_rv = rep(0, 242)),
+                  eps_psi = rep(0, 243),
+                  eps_rv = rep(0, 243)),
              list(S0 = 0.5,
                   E0 = 40,
                   I0 = 20,
@@ -103,24 +89,18 @@ inits = list(list(S0 = 0.4,
                   logNv = 0.5,
                   psi0 = 0,
                   rv0 = 0,
-                  alpha_psi = 0,
-                  alpha_rv = 0,
-                  theta_psi = 0,
-                  theta_rv = 0,
-                  sigma0_psi = 0.01,
-                  sigma0_rv = 0.01,
                   sigmapsi = 0.01,
                   sigmarv = 0.01,
-                  eps_psi = rep(0, 242),
-                  eps_rv = rep(0, 242)))
+                  eps_psi = rep(0, 243),
+                  eps_rv = rep(0, 243)))
 
 fit <- stan(file = "Code/seirs.stan", 
             data = dat.stan, 
             init = inits, 
-            iter = 1000, 
+            iter = 5000, 
             chains = 3,
             control = list(adapt_delta = 0.9,
-                           max_treedepth = 12))
+                           max_treedepth = 15))
 
 pairs(fit, pars = c("eps_psi", "eps_rv", "rv", "dv", "psi_raw", "y_hat", "q_hat", 
                     "psi", "risk", "psi_raw_full", "rv_full", "state", "y0",
@@ -138,9 +118,10 @@ lines(qhat[1, ])
 lines(qhat[2, ])
 points(data$q, pch = 20)
 
-rv <- rstan::extract(fit, "rv", permute = F) %>% apply(3, mean)
-plot(rv, type = "l")
-
 psi <- rstan::extract(fit, "psi", permute = F) %>% apply(3, mean)
 plot(psi, type = "l")
 
+eps <- rstan::extract(fit, "eps_rv", permute = F) %>% apply(3, mean)
+plot(eps, type = "l")
+
+system <- rstan::extract(fit, "system", permute = T)[[1]]

@@ -1,12 +1,12 @@
 functions {
   vector derivs(int t,
                vector y,
-               real rv,
+               real eps_rv,
                real rov,
                real lambda,
                real ro,
                real gamma,
-               real dv,
+               real eps_psi,
                real delta,
                real cap) {
     
@@ -14,7 +14,7 @@ functions {
     * documentation block
     */
     
-    vector[8] dydt;
+    vector[12] dydt;
     
     real b;
     real loss;
@@ -30,10 +30,10 @@ functions {
     b = 7.0 / (76 * 365);
 
     // Computing mosquito population size
-    Sv = y[6] - y[5] - y[4];
+    Sv = exp(y[6]) - y[5] - y[4];
     R = 1 - y[1] - y[2] - y[3];
 
-    loss = dv + cap;
+    loss = 3.56 * rov * exp(-y[9]) + cap;
     
     // Compute transition rates
     // Mosquito to human foi
@@ -56,10 +56,16 @@ functions {
     
     /*VE*/ dydt[4] = foi_hv - infect_mosq - loss * y[4];
     /*VI*/ dydt[5] = infect_mosq - loss * y[5];
-    /*VN*/ dydt[6] = rv * y[6];
+    /*VN*/ dydt[6] = y[11] * y[6] - cap * y[6];
     
     /*VC*/ dydt[7] = cap * y[6];
     /*cases*/ dydt[8] = infectious;
+    
+    // Parameter processes
+    /*psi*/ dydt[9] = y[10];
+    /*dpsi*/ dydt[10] = - pi() / 26 * y[9] + eps_psi;
+    /*rv*/ dydt[11] = y[12];
+    /*drv*/ dydt[12] = - pi() / 26 * y[11] + eps_rv;
     
     return dydt;
   }
@@ -90,22 +96,13 @@ parameters {
   real logNv;                         // initial mosquito population size
   real psi0;
   real rv0;
-  real<lower=-1,upper=1> alpha_rv;
-  real<lower=-1,upper=1> alpha_psi;
-  real<lower=-1,upper=1> theta_rv;
-  real<lower=-1,upper=1> theta_psi;
-  real<lower=0> sigma0_psi;
-  real<lower=0> sigma0_rv;
   real<lower=0> sigmapsi;
   real<lower=0> sigmarv;
-  vector[T - 1] eps_psi;
-  vector[T - 1] eps_rv;
+  vector[T] eps_psi;
+  vector[T] eps_rv;
 }
 transformed parameters {
-  vector[8] y0;
-  vector[T] dv;
-  vector[T] rv;
-  vector[T] psi_raw;
+  vector[12] y0;
   real<lower=0> ro;
   real<lower=0> gamma;
   real<lower=0> delta;
@@ -119,9 +116,13 @@ transformed parameters {
   y0[3] = I0 / pop;
   y0[4] = 0.0;
   y0[5] = 0.0;
-  y0[6] = exp(logNv);
+  y0[6] = logNv;
   y0[7] = 0.0;
   y0[8] = 0.0;
+  y0[9] = psi0;
+  y0[10] = 0;
+  y0[11] = rv0;
+  y0[12] = 0;
   
   // measurement parameters
   eta_y = 1 / eta_inv_y;
@@ -132,35 +133,11 @@ transformed parameters {
   ro = 1 / (0.87 * ro_c);
   gamma = 3.5 * gamma_c;
   delta = 1 / (97 * delta_c);
-  
-  // mosquito demographic parameters
-  {
-    vector[T - 1] z_psi;
-    vector[T - 1] z_rv;
-    
-    z_psi[1:52] = sigma0_psi * eps_psi[1:52];
-    z_rv[1:52] = sigma0_rv * eps_rv[1:52];
-
-    for(i in 53:(T - 1)){
-      z_psi[i] = theta_psi * z_psi[i - 52] + sigmapsi * eps_psi[i];      
-      z_rv[i] = theta_rv * z_rv[i - 52] + sigmarv * eps_rv[i];
-    }
-    
-    psi_raw[1] = psi0;
-    rv[1] = rv0;
-    
-    for(i in 2:T){
-      psi_raw[i] = alpha_psi * psi_raw[i - 1] + z_psi[i - 1];
-      rv[i] = alpha_rv * rv[i - 1] + z_rv[i - 1];
-    }
-  }
-  
-  dv = 3.56 * rov[1:T] .* exp(psi_raw);
 }
 model {
   vector[T] y_hat;
   vector[T] q_hat;
-  vector[8] state[T * 7 + 1];
+  vector[12] state[T * 7 + 1];
   int idx = 1;
   
   // Priors
@@ -189,23 +166,13 @@ model {
   psi0 ~ normal(0, 0.5);
   rv0 ~ normal(0, 0.5);
   
-  // SAR parameters
-  alpha_rv ~ normal(0, 1);
-  alpha_psi ~ normal(0, 1);
-  
-  theta_rv ~ normal(0, 1);
-  theta_psi ~ normal(0, 1);
-  
   // Error component
   eps_rv ~ normal(0, 1);
   eps_psi ~ normal(0, 1);
   
   // Variance parameters
-  sigma0_psi ~ normal(0, 0.1);
-  sigma0_rv ~ normal(0, 0.1);
-  
-  sigmapsi ~ normal(0, 0.1);
-  sigmarv ~ normal(0, 0.1);
+  sigmapsi ~ normal(0, 0.2);
+  sigmarv ~ normal(0, 0.2);
   
   // Process model
   
@@ -216,12 +183,12 @@ model {
       
       state[idx + 1] = state[idx] + 1.0 / 7.0 * derivs(t, 
                                                        state[idx], 
-                                                       rv[t], 
+                                                       sigmarv * eps_rv[t], 
                                                        rov[t], 
                                                        lambda, 
                                                        ro, 
                                                        gamma, 
-                                                       dv[t], 
+                                                       sigmapsi * eps_psi[t], 
                                                        delta, 
                                                        phi_q * tau[t]);
         
@@ -242,10 +209,8 @@ generated quantities {
   vector[T + T_pred] q_hat;
   vector[T + T_pred] psi;
   vector[T + T_pred] risk;
-  vector[T + T_pred] psi_raw_full;
-  vector[T + T_pred] rv_full;
-  // vector[8] system[T + T_pred];
-  vector[8] state;
+  // vector[12] system[T + T_pred];
+  vector[12] state;
   
   state = y0;
   
@@ -255,12 +220,12 @@ generated quantities {
       
       state = state + 1.0 / 7.0 * derivs(t, 
                                          state, 
-                                         rv[t],
+                                         sigmarv * eps_rv[t],
                                          rov[t], 
                                          lambda, 
                                          ro, 
                                          gamma, 
-                                         dv[t], 
+                                         sigmapsi * eps_psi[t], 
                                          delta, 
                                          phi_q * tau[t]);
     }
@@ -273,32 +238,23 @@ generated quantities {
     state[7] = 0;
     state[8] = 0;
     
-    psi_raw_full[t] = psi_raw[t];
-    rv_full[t] = rv[t];
-    
-    psi[t] = inv_logit(-1.27 + psi_raw[t]);
+    psi[t] = inv_logit(-1.27 + state[9]);
     risk[t] = (state[6] - state[5] - state[4]) * psi[t];
   }
   
   // Predicted trajectory
   for (k in 1:T_pred){
-    
-    psi_raw_full[T + k] = psi_raw_full[T + k - 1] + 
-                          normal_rng(0, sigmapsi); 
-                          
-    rv_full[T + k] = rv_full[T + k - 1] + 
-                     normal_rng(0, sigmarv); 
 
     for(j in 1:7){
       
       state = state + 1.0 / 7.0 * derivs(T + k, 
                                          state, 
-                                         rv_full[T + k],
+                                         normal_rng(0, sigmarv),
                                          rov[T + k], 
                                          lambda, 
                                          ro, 
                                          gamma, 
-                                         rov[T + k] * exp(1.27 - psi_raw_full[T + k]), 
+                                         normal_rng(0, sigmapsi), 
                                          delta, 
                                          phi_q * tau[T]);
     }
@@ -311,7 +267,7 @@ generated quantities {
     state[7] = 0;
     state[8] = 0;
     
-    psi[T + k] = inv_logit(-1.27 + psi_raw_full[T + k]);
+    psi[T + k] = inv_logit(-1.27 + state[9]);
     risk[T + k] = (state[6] - state[5] - state[4]) * psi[T + k];
 
   }
