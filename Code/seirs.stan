@@ -8,7 +8,8 @@ functions {
                real gamma,
                real eps_psi,
                real delta,
-               real cap) {
+               real cap,
+               vector control) {
     
     /**
     * documentation block
@@ -17,7 +18,7 @@ functions {
     vector[12] dydt;
     
     real b;
-    real loss;
+    real dv;
     real Sv;
     real R;
     
@@ -33,14 +34,14 @@ functions {
     Sv = exp(y[6]) - y[5] - y[4];
     R = 1 - y[1] - y[2] - y[3];
 
-    loss = 3.56 * rov * exp(-y[9]) + cap;
+    dv = 3.56 * rov * exp(-y[9]) ;
     
     // Compute transition rates
     // Mosquito to human foi
-    foi_vh = lambda * y[5] * y[1];
+    foi_vh = control[3] * lambda * y[5] * y[1];
 
     // Human to mosquito foi
-    foi_hv = lambda * y[3] * Sv;
+    foi_hv = control[3] * lambda * y[3] * Sv;
 
     // Infectious humans
     infectious = ro * y[2];
@@ -54,9 +55,9 @@ functions {
     /*E*/ dydt[2] = foi_vh - infectious - b * y[2];
     /*I*/ dydt[3] = infectious - (gamma + b) * y[3];
     
-    /*VE*/ dydt[4] = foi_hv - infect_mosq - loss * y[4];
-    /*VI*/ dydt[5] = infect_mosq - loss * y[5];
-    /*VN*/ dydt[6] = y[11] * y[6] - cap * y[6];
+    /*VE*/ dydt[4] = foi_hv - infect_mosq - (control[1] * dv + cap) * y[4];
+    /*VI*/ dydt[5] = infect_mosq - (control[1] * dv + cap) * y[5];
+    /*VN*/ dydt[6] = control[2] * (y[11] + dv) * y[6] - (control[1] * dv + cap) * y[6];
     
     /*VC*/ dydt[7] = cap * y[6];
     /*cases*/ dydt[8] = infectious;
@@ -77,6 +78,7 @@ data {
   int q[T];
   vector[T] tau;
   vector[T + T_pred] rov;
+  vector[3] control[T + T_pred];
   int pop;
 }
 transformed data {
@@ -109,6 +111,8 @@ transformed parameters {
   real<lower=0> eta_y;
   real<lower=0> eta_q;
   real<lower=0> phi_q;
+  vector[T + T_pred] mu_rv;
+  vector[T + T_pred] mu_psi;
 
   // initial conditions
   y0[1] = S0 * (pop - E0 - I0) / pop;
@@ -133,6 +137,10 @@ transformed parameters {
   ro = 1 / (0.87 * ro_c);
   gamma = 3.5 * gamma_c;
   delta = 1 / (97 * delta_c);
+  
+  // Mosquito process
+  mu_rv = sigmarv * eps_rv;
+  mu_psi = sigmapsi * eps_psi;
 }
 model {
   vector[T] y_hat;
@@ -173,7 +181,7 @@ model {
   // Variance parameters
   sigmapsi ~ normal(0, 0.2);
   sigmarv ~ normal(0, 0.2);
-  
+
   // Process model
   
   state[1] = y0;
@@ -183,20 +191,22 @@ model {
       
       state[idx + 1] = state[idx] + 1.0 / 7.0 * derivs(t, 
                                                        state[idx], 
-                                                       sigmarv * eps_rv[t], 
+                                                       mu_rv[t], 
                                                        rov[t], 
                                                        lambda, 
                                                        ro, 
                                                        gamma, 
-                                                       sigmapsi * eps_psi[t], 
+                                                       mu_psi[t], 
                                                        delta, 
-                                                       phi_q * tau[t]);
+                                                       phi_q * tau[t],
+                                                       control[t]);
         
       idx = idx + 1;
     }
     
     q_hat[t] = state[idx, 7] - state[idx - 7, 7];
     y_hat[t] = state[idx, 8] - state[idx - 7, 8];
+
   }
   
   // Measurement models
@@ -209,7 +219,7 @@ generated quantities {
   vector[T + T_pred] q_hat;
   vector[T + T_pred] psi;
   vector[T + T_pred] risk;
-  // vector[12] system[T + T_pred];
+  vector[12] system[T + T_pred];
   vector[12] state;
   
   state = y0;
@@ -220,17 +230,18 @@ generated quantities {
       
       state = state + 1.0 / 7.0 * derivs(t, 
                                          state, 
-                                         sigmarv * eps_rv[t],
+                                         mu_rv[t],
                                          rov[t], 
                                          lambda, 
                                          ro, 
                                          gamma, 
-                                         sigmapsi * eps_psi[t], 
+                                         mu_psi[t], 
                                          delta, 
-                                         phi_q * tau[t]);
+                                         phi_q * tau[t],
+                                         control[t]);
     }
     
-    // system[t] = state;
+    system[t] = state;
 
     q_hat[t] = neg_binomial_2_rng(state[7] * pop, eta_q);
     y_hat[t] = neg_binomial_2_rng(phi_y * pop * state[8], eta_y);
@@ -256,10 +267,11 @@ generated quantities {
                                          gamma, 
                                          normal_rng(0, sigmapsi), 
                                          delta, 
-                                         phi_q * tau[T]);
+                                         phi_q * tau[T],
+                                         control[T + k]);
     }
 
-    // system[T + k] = state;
+    system[T + k] = state;
     
     q_hat[T + k] = neg_binomial_2_rng(state[7] * pop, eta_q);
     y_hat[T + k] = neg_binomial_2_rng(phi_y * pop * state[8], eta_y);

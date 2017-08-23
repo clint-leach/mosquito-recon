@@ -43,6 +43,7 @@ dat.stan <- list(T = 243,
                  q = data$q,
                  tau = data$tau,
                  rov = rov,
+                 control = matrix(1, nrow = 243, ncol = 3),
                  pop = pop)
 
 inits = list(list(S0 = 0.4,
@@ -102,26 +103,4 @@ fit <- stan(file = "Code/seirs.stan",
             control = list(adapt_delta = 0.9,
                            max_treedepth = 15))
 
-pairs(fit, pars = c("eps_psi", "eps_rv", "rv", "dv", "psi_raw", "y_hat", "q_hat", 
-                    "psi", "risk", "psi_raw_full", "rv_full", "state", "y0",
-                    "ro", "gamma", "delta", "eta_y", "eta_q", "phi_q"), include = F)
-
-yhat <- rstan::extract(fit, "y_hat", permute = F) %>% apply(3, quantile, probs = c(0.1, 0.5, 0.9))
-plot(yhat[3, ], type = "l")
-lines(yhat[1, ])
-lines(yhat[2, ])
-points(data$obs, pch = 20)
-
-qhat <- rstan::extract(fit, "q_hat", permute = F) %>% apply(3, quantile, probs = c(0.1, 0.5, 0.9))
-plot(qhat[3, ], type = "l")
-lines(qhat[1, ])
-lines(qhat[2, ])
-points(data$q, pch = 20)
-
-psi <- rstan::extract(fit, "psi", permute = F) %>% apply(3, mean)
-plot(psi, type = "l")
-
-eps <- rstan::extract(fit, "eps_rv", permute = F) %>% apply(3, mean)
-plot(eps, type = "l")
-
-system <- rstan::extract(fit, "system", permute = T)[[1]]
+saveRDS(fit, "Results/oscillator.rds")
