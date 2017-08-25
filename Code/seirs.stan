@@ -111,8 +111,8 @@ transformed parameters {
   real<lower=0> eta_y;
   real<lower=0> eta_q;
   real<lower=0> phi_q;
-  vector[T + T_pred] mu_rv;
-  vector[T + T_pred] mu_dv;
+  vector[T] mu_rv;
+  vector[T] mu_dv;
 
   // initial conditions
   y0[1] = S0 * (pop - E0 - I0) / pop;
@@ -255,12 +255,12 @@ generated quantities {
       
       state = state + 1.0 / 7.0 * derivs(T + k, 
                                          state, 
-                                         normal_rng(0, sigmarv),
+                                         0,
                                          rov[T + k], 
                                          lambda, 
                                          ro, 
                                          gamma, 
-                                         normal_rng(0, sigmadv), 
+                                         0, 
                                          delta, 
                                          phi_q * tau[T],
                                          control[T + k]);
