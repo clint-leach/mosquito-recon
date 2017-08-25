@@ -6,7 +6,7 @@ functions {
                real lambda,
                real ro,
                real gamma,
-               real eps_psi,
+               real eps_dv,
                real delta,
                real cap,
                vector control) {
@@ -31,10 +31,10 @@ functions {
     b = 7.0 / (76 * 365);
 
     // Computing mosquito population size
-    Sv = exp(y[6]) - y[5] - y[4];
+    Sv = y[6] - y[5] - y[4];
     R = 1 - y[1] - y[2] - y[3];
 
-    dv = 3.56 * rov * exp(-y[9]) ;
+    dv = exp(y[9]);
     
     // Compute transition rates
     // Mosquito to human foi
@@ -63,10 +63,10 @@ functions {
     /*cases*/ dydt[8] = infectious;
     
     // Parameter processes
-    /*psi*/ dydt[9] = y[10];
-    /*dpsi*/ dydt[10] = - pi() / 26 * y[9] + eps_psi;
+    /*logdv*/ dydt[9] = y[10];
+    /*dlogdv*/ dydt[10] = - (pi() / 26) ^ 2 * y[9] + eps_dv;
     /*rv*/ dydt[11] = y[12];
-    /*drv*/ dydt[12] = - pi() / 26 * y[11] + eps_rv;
+    /*drv*/ dydt[12] = - (pi() / 26) ^ 2 * y[11] + eps_rv;
     
     return dydt;
   }
@@ -96,11 +96,11 @@ parameters {
   real<lower=0> gamma_c;               // human infectious period
   real<lower=0> delta_c;               // cross-immune period
   real logNv;                         // initial mosquito population size
-  real psi0;
+  real dv0;
   real rv0;
-  real<lower=0> sigmapsi;
+  real<lower=0> sigmadv;
   real<lower=0> sigmarv;
-  vector[T] eps_psi;
+  vector[T] eps_dv;
   vector[T] eps_rv;
 }
 transformed parameters {
@@ -112,7 +112,7 @@ transformed parameters {
   real<lower=0> eta_q;
   real<lower=0> phi_q;
   vector[T + T_pred] mu_rv;
-  vector[T + T_pred] mu_psi;
+  vector[T + T_pred] mu_dv;
 
   // initial conditions
   y0[1] = S0 * (pop - E0 - I0) / pop;
@@ -120,10 +120,10 @@ transformed parameters {
   y0[3] = I0 / pop;
   y0[4] = 0.0;
   y0[5] = 0.0;
-  y0[6] = logNv;
+  y0[6] = exp(logNv);
   y0[7] = 0.0;
   y0[8] = 0.0;
-  y0[9] = psi0;
+  y0[9] = dv0;
   y0[10] = 0;
   y0[11] = rv0;
   y0[12] = 0;
@@ -140,7 +140,7 @@ transformed parameters {
   
   // Mosquito process
   mu_rv = sigmarv * eps_rv;
-  mu_psi = sigmapsi * eps_psi;
+  mu_dv = sigmadv * eps_dv;
 }
 model {
   vector[T] y_hat;
@@ -171,15 +171,15 @@ model {
   // Mosquito demographic series
   
   // Initial values
-  psi0 ~ normal(0, 0.5);
+  dv0 ~ normal(0.39, 0.5);
   rv0 ~ normal(0, 0.5);
   
   // Error component
   eps_rv ~ normal(0, 1);
-  eps_psi ~ normal(0, 1);
+  eps_dv ~ normal(0, 1);
   
   // Variance parameters
-  sigmapsi ~ normal(0, 0.2);
+  sigmadv ~ normal(0, 0.2);
   sigmarv ~ normal(0, 0.2);
 
   // Process model
@@ -196,7 +196,7 @@ model {
                                                        lambda, 
                                                        ro, 
                                                        gamma, 
-                                                       mu_psi[t], 
+                                                       mu_dv[t], 
                                                        delta, 
                                                        phi_q * tau[t],
                                                        control[t]);
@@ -217,8 +217,6 @@ generated quantities {
 
   vector[T + T_pred] y_hat;
   vector[T + T_pred] q_hat;
-  vector[T + T_pred] psi;
-  vector[T + T_pred] risk;
   vector[12] system[T + T_pred];
   vector[12] state;
   
@@ -235,7 +233,7 @@ generated quantities {
                                          lambda, 
                                          ro, 
                                          gamma, 
-                                         mu_psi[t], 
+                                         mu_dv[t], 
                                          delta, 
                                          phi_q * tau[t],
                                          control[t]);
@@ -248,9 +246,6 @@ generated quantities {
 
     state[7] = 0;
     state[8] = 0;
-    
-    psi[t] = inv_logit(-1.27 + state[9]);
-    risk[t] = (state[6] - state[5] - state[4]) * psi[t];
   }
   
   // Predicted trajectory
@@ -265,7 +260,7 @@ generated quantities {
                                          lambda, 
                                          ro, 
                                          gamma, 
-                                         normal_rng(0, sigmapsi), 
+                                         normal_rng(0, sigmadv), 
                                          delta, 
                                          phi_q * tau[T],
                                          control[T + k]);
@@ -278,9 +273,5 @@ generated quantities {
     
     state[7] = 0;
     state[8] = 0;
-    
-    psi[T + k] = inv_logit(-1.27 + state[9]);
-    risk[T + k] = (state[6] - state[5] - state[4]) * psi[T + k];
-
   }
 }
