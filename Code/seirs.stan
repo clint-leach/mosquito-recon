@@ -34,7 +34,7 @@ functions {
     Sv = y[6] - y[5] - y[4];
     R = 1 - y[1] - y[2] - y[3];
 
-    dv = exp(y[9]);
+    dv = exp(y[9] + 0.39);
     
     // Compute transition rates
     // Mosquito to human foi
