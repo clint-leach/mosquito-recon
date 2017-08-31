@@ -170,8 +170,8 @@ model {
   
   // Mosquito demographic series
   
-  // Initial values
-  dv0 ~ normal(0.39, 0.5);
+  // Mean and initial values
+  dv0 ~ normal(0, 0.5);
   rv0 ~ normal(0, 0.5);
   
   // Error component
