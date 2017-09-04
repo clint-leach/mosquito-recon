@@ -273,7 +273,7 @@ Following a latent period ($\frac{1}{\rho}$), exposed individuals become infecti
 Infectious individuals recover at rate $\gamma$ and subsequently remain immune for a period ($\frac{1}{\delta}$) after which they re-enter the susceptible class.
 
 Similarly, susceptible mosquitoes ($V_S$) become exposed by biting infectious humans and pass through a temperature-dependent latent period ($\frac{1}{\rho_{vt}}$) before becoming infectious ($V_I$).
-Total mosquito population size ($V_N$) is controlled by stochastic, seasonally varying growth rate ($r_t$) and death rate ($d_t$).
+Total mosquito population size ($V_N$) is controlled by stochastic, seasonally varying growth rate ($r(t)$) and death rate ($d(t)$).
 Captured mosquitoes ($V_C$) accumulate at rate $\phi_q \tau_t$, where $\phi_q$ is the per-trap capture rate, and $\tau_t$ is the number of traps deployed in week $t$.
 
 The complete differential equation model is then given as:
@@ -282,31 +282,25 @@ The complete differential equation model is then given as:
 \frac{dE}{dt} &= \lambda \frac{V_{I}}{N} S - (\rho + b)E\\
 \frac{dI}{dt} &= \rho E - (\gamma + b)I\\
 \frac{dR}{dt} &= \gamma I - (\delta + b)R\\
-\frac{dV_N}{dt} & = r_t V_N \\
-\frac{dV_E}{dt} &= \lambda \frac{I}{N} V_S - (\rho_{vt} + d_t + \phi_q \tau_t)V_E\\
-\frac{dV_I}{dt} &= \rho_{vt} V_E - (d_t + \phi_q \tau_t) V_I\\
+\frac{dV_N}{dt} & = r V_N - \phi_q \tau_t V_N \\
+\frac{dV_E}{dt} &= \lambda \frac{I}{N} V_S - (\rho_{vt} + d + \phi_q \tau_t)V_E\\
+\frac{dV_I}{dt} &= \rho_{vt} V_E - (d + \phi_q \tau_t) V_I\\
 \frac{dV_C}{dt} & = \phi_q \tau_t V_N\\
 V_S &= V_N - V_E - V_I.
 \end{align}
 
-We model the weekly mosquito mortality rate, $d_{vt}$, relative to $\rho_{vt}$:
-\begin{equation}
-d_{vt} = \rho_{vt} \exp(-\mu - \nu_t).
-\end{equation}
-Assuming mosquito lifespan and latent periods are exponentially distributed (as the differential equation framework implicitly does), the probability that a newly exposed mosquito will survive until it becomes infectious is then
-\begin{equation}
-\psi_t = \frac{\rho_{vt}}{\rho_{vt} + d_{vt}} = \text{logit}^{-1}(\mu + \nu_t).
-\end{equation}
-We then model $\nu_t$ and the mosquito population growth rate, $r_t$, using a (Box-Jenkins?) seasonal auto-regressive model (CITATION):
+We model the centered and log-transformed mosquito mortality rate ($\nu$) and the per-capita growth rate ($r$) as forced harmonic oscillators with natural periods of one year:
 \begin{align}
-\nu_{t} & = \alpha_{\nu} \nu_{t-1} + \theta_{\nu} (\nu_{t-52} - \alpha_{\nu} \nu_{t-53}) +\epsilon_{\nu t}\\
-r_t &= \alpha_r r_{t-1} + \theta_r (r_{t-52} - \alpha_r r_{t-53}) + \epsilon_{rt},\\
+\frac{d^2\nu}{dt^2} &= -\omega^2 \nu + \epsilon_{\nu t}\\
+\frac{d^2 r}{dt^2} &= -\omega^2 r + \epsilon_{rt},
 \end{align}
-where
+where $\omega = 2\pi / 52$, $d(t) = d_0 \exp(\nu(t)$, and
 \begin{align}
-\epsilon_{rt} & \sim \text{Normal}(0, \sigma_r)\\
-\epsilon_{\nu t} & \sim \text{Normal}(0, \sigma_{\nu}).
+\epsilon_{\nu i} & \sim \text{Normal}(0, \sigma_{\nu})\\
+\epsilon_{ri} & \sim \text{Normal}(0, \sigma_r),
 \end{align}
+for $i = 1 \dots 243$.
+These stochastically-forced harmonic oscillators provide a flexible framework for generating smooth seasonal oscillations in the latent mosquito processes (Ramsay citation?).
 
 \subsection*{Data model}
 
@@ -325,16 +319,16 @@ where $V_{Ct} - V_{Ct-1}$ is the number of new mosquitoes captured in week $t$, 
 
 \subsection*{Parameterization and priors}
 
-Several of the parameters in this model are assumed to be fixed and known. 
+Several of the parameters in this model are assumed to be fixed and known (\ref{parameters}).
 The population size and average life span (which we use to parameterize the birth/death rate) for Vitoria are taken from the 2010 census.
 To maintain identifiability, the transmission rate ($\lambda$) and case reporting probability ($\phi_y$) are also fixed at literature values.
 Lastly, the extrinsic incubation period in mosquitoes is modeled as a function of weekly mean temperature and forced with weather station data obtained from WeatherUnderground.
 
-The remaining parameters include the epidemiological parameters ($\rho$, $\gamma$, $\delta$), the initial conditions of the model ($S_0$, $E_0$, $I_0$, $R_0$, $V_{N0}$), the latent mosquito process autoregressive ($\alpha_r$, $\alpha_{\nu}$, $\theta_r$, $\theta_{\nu}$) and variance ($\sigma_r$, $\sigma_{\nu}$) parameters, and the remaining measurement parameters ($\phi_q$, $\eta_y$, $\eta_q$).  
-Where possible, we place informative priors on these parameters based on existing laboratory and field studies (see Table \ref{fixedparms} for means and Supplemental Material for detailed explanations).
+The remaining parameters include the epidemiological parameters ($\rho$, $\gamma$, $\delta$), the initial conditions of the model ($S_0$, $E_0$, $I_0$, $R_0$, $V_{N0}, \nu_0, r_0$), the variances of the latent mosquito processes ($\sigma^2_r$, $\sigma^2_{\nu}$), and the remaining measurement parameters ($\phi_q$, $\eta_y$, $\eta_q$).  
+Where possible, we place informative priors on these parameters based on existing laboratory and field studies (see Table \ref{parameters} for means and Supplemental Material for detailed explanations).
 
 \begin{table}[!ht]
-\label{fixedparms}
+\label{parameters}
 \begin{adjustwidth}{-2.25in}{0in} 
 \begin{center}
 \caption{Model parameters and their values.  Parameters above the rule are fixed, while parameters below the rule are random, with the value giving the prior mean.}
@@ -346,7 +340,7 @@ $1/d$ & Human life-span & 76 years & Vitoria Census\\
 $\lambda$ & Transmission rate & 4.87 week$^{-1}$ & \cite{Scott2000}\\
 $\phi_y$ & Reporting probability & 0.083 & \cite{Silva2016}\\
 $1/\rho_{vt}$ & Extrinsic incubation period & $7\exp \left( 0.2 T_t - 8 \right)$ & \cite{Chan2012}\\
-$\exp(\mu)$ & Mean ratio of mortality to incubation rates & 3.6 & \cite{Chan2012,Brady2013} \\
+$\exp(\mu)$ & Mean mosquito death rate & 1.47 week$^{-1}$ & \cite{Brady2013} \\
 $V_{E0}$ & Initial exposed mosquitoes &  0 & \\
 $V_{I0}$ & Initial infectious mosquitoes & 0 & \\
 \hline
@@ -367,6 +361,16 @@ $\phi_q$ & Per-trap mosquito capture rate & $2 \times 10^{-6}$ week$^{-1}$ &
 Samples from the posterior distribution were generated using Hamiltonian Monte Carlo (CITATIONS) implemented in the rstan package for R (CITATIONS). 
 We ran 3 chains with different starting values for 10,000 iterations each, discarding the first 5,000 as burn-in.
 Within stan, the solution to the differential equation model was approximated with an Euler scheme with a time step of 1 day.  
+
+\subsection*{Control simulations}
+
+Given samples from the posterior as obtained above, we can simulate the efficacy of different control strategies.
+In particular, we investigate the optimal timing of a single pulse of control within the year (e.g., if the city only has enough resource to fog for adult mosquitoes once a year, in what week is that control going to prevent the most cases?).
+To obtain the posterior distribution of the number of cases prevented by implementing control in week $i$ each year, for each posterior sample $k$, we simulate an increase in the latent mosquito death rate during each week $i$, e.g.,
+$\hat{d}^{(k)}_{yi} = (1 + \Delta) d^{(k)}_{yi}$, where $y$ indexes the year, and $i$ indexes the week of the year.
+Then we sum the total number of cases reported in this scenario and compare to the data to get an estimate of the number of cases prevented.
+To keep our simulations conservative, and to avoid pushing the model into the unrealistic range of dengue eradication, we set $\Delta = 0.05$.
+We also only simulate the effect of control in the middle three years, as the effectiveness of control in the first year is strongly affected by initial conditions, and we lack complete data for the last year.
 
 \section*{Results}
 
