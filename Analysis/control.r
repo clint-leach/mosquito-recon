@@ -54,6 +54,7 @@ extract_sample <- function(x, k){
   else return(x[k, ])
 }
 
+model <- stan_model(file = "Code/seirs.stan")
 
 reduction <- foreach(k = 1:nmcmc, .combine = "cbind", .packages = c("rstan", "magrittr")) %dopar% {
   
@@ -75,13 +76,13 @@ reduction <- foreach(k = 1:nmcmc, .combine = "cbind", .packages = c("rstan", "ma
                      control = control,
                      pop = pop)
     
-    sim <- stan(file = "Code/seirs.stan", 
-                data = dat.stan, 
-                init = init, 
-                iter = 1, 
-                chains = 1,
-                warmup = 0,
-                algorithm = "Fixed_param")
+    sim <- sampling(model,
+                    data = dat.stan, 
+                    init = init, 
+                    iter = 1, 
+                    chains = 1,
+                    warmup = 0,
+                    algorithm = "Fixed_param")
     
     cases[i] <- rstan::extract(sim, "y_hat", permute = F)[, 1, ] %>% sum()
   }
@@ -89,4 +90,8 @@ reduction <- foreach(k = 1:nmcmc, .combine = "cbind", .packages = c("rstan", "ma
   return(cases)
 }
 
+stopCluster(cl)
+
 reduction <- sum(data$obs) - reduction
+
+saveRDS(reduction, "Results/control.rds")
