@@ -9,6 +9,8 @@ functions {
                real eps_dv,
                real delta,
                real cap,
+               real omega,
+               real damp, 
                vector control) {
     
     /**
@@ -64,9 +66,9 @@ functions {
     
     // Parameter processes
     /*logdv*/ dydt[9] = y[10];
-    /*dlogdv*/ dydt[10] = - (pi() / 26) ^ 2 * y[9] + eps_dv;
+    /*dlogdv*/ dydt[10] = -2 * damp * omega * y[10] - omega ^ 2 * y[9] + eps_dv;
     /*rv*/ dydt[11] = y[12];
-    /*drv*/ dydt[12] = - (pi() / 26) ^ 2 * y[11] + eps_rv;
+    /*drv*/ dydt[12] = -2 * damp * omega * y[12] - omega ^ 2 * y[11] + eps_rv;
     
     return dydt;
   }
@@ -84,6 +86,8 @@ data {
 transformed data {
   real lambda = 4.87;
   real phi_y = 1.0 / 12.0;
+  real damp = 0.1;
+  real omega = (pi() / 26) / sqrt(1 - damp ^ 2);
 }
 parameters {
   real<lower=0,upper=1> S0;            // untransformed initial conditions
@@ -199,6 +203,8 @@ model {
                                                        mu_dv[t], 
                                                        delta, 
                                                        phi_q * tau[t],
+                                                       omega,
+                                                       damp,
                                                        control[t]);
         
       idx = idx + 1;
@@ -236,6 +242,8 @@ generated quantities {
                                          mu_dv[t], 
                                          delta, 
                                          phi_q * tau[t],
+                                         omega,
+                                         damp,
                                          control[t]);
     }
     
@@ -255,14 +263,16 @@ generated quantities {
       
       state = state + 1.0 / 7.0 * derivs(T + k, 
                                          state, 
-                                         0,
+                                         normal_rng(0, sigmarv),
                                          rov[T + k], 
                                          lambda, 
                                          ro, 
                                          gamma, 
-                                         0, 
+                                         normal_rng(0, sigmadv), 
                                          delta, 
                                          phi_q * tau[T],
+                                         omega,
+                                         damp,
                                          control[T + k]);
     }
 

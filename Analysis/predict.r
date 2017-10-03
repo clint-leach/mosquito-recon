@@ -2,6 +2,7 @@ library(rstan)
 library(plyr)
 library(magrittr)
 library(lubridate)
+library(doParallel)
 
 rstan_options(auto_write = TRUE)
 options(mc.cores = parallel::detectCores())
@@ -33,18 +34,18 @@ temp <- ddply(weather, .(tot.week), summarise, temp = mean(Mean.TemperatureC, na
 
 rov <- 7 * exp(0.2 * temp$temp - 8)
 #===============================================================================
-# Running stan
+# Fitting to first four years
 
-T_pred <- 52
-T_fit <- 243 - T_pred
+T_pred <- 0
+T_fit <- 191
 
 dat.stan <- list(T = T_fit,
                  T_pred = T_pred,
                  y = head(obs, T_fit),
                  q = head(q, T_fit),
                  tau = head(tau, T_fit),
-                 rov = rov,
-                 control = matrix(1, nrow = 243, ncol = 3),
+                 rov = head(rov, T_fit),
+                 control = matrix(1, nrow = 191, ncol = 3),
                  pop = pop)
 
 inits = list(list(S0 = 0.4,
@@ -57,9 +58,9 @@ inits = list(list(S0 = 0.4,
                   gamma_c = 1,
                   delta_c = 0.8,
                   logNv = 0.7,
-                  dv0 = 0.39,
+                  dv0 = 0,
                   rv0 = 0,
-                  sigmapsi = 0.2,
+                  sigmadv = 0.2,
                   sigmarv = 0.2,
                   eps_dv = rep(0, T_fit),
                   eps_rv = rep(0, T_fit)),
@@ -73,9 +74,9 @@ inits = list(list(S0 = 0.4,
                   gamma_c = 1.2,
                   delta_c = 1,
                   logNv = 1,
-                  dv0 = 0.39,
+                  dv0 = 0,
                   rv0 = 0,
-                  sigmapsi = 0.5,
+                  sigmadv = 0.5,
                   sigmarv = 0.5,
                   eps_dv = rep(0, T_fit),
                   eps_rv = rep(0, T_fit)),
@@ -88,10 +89,10 @@ inits = list(list(S0 = 0.4,
                   ro_c = 1,
                   gamma_c = 1,
                   delta_c = 1,
-                  logNv = 0.5,
-                  dv0 = 0.39,
+                  logNv = 0.7,
+                  dv0 = 0,
                   rv0 = 0,
-                  sigmapsi = 0.01,
+                  sigmadv = 0.01,
                   sigmarv = 0.01,
                   eps_dv = rep(0, T_fit),
                   eps_rv = rep(0, T_fit)))
@@ -99,25 +100,64 @@ inits = list(list(S0 = 0.4,
 fit <- stan(file = "Code/seirs.stan", 
             data = dat.stan, 
             init = inits, 
-            iter = 10, 
+            iter = 2000, 
             chains = 3,
-            control = list(adapt_delta = 0.9,
-                           max_treedepth = 12))
+            control = list(adapt_delta = 0.99,
+                           max_treedepth = 15))
 
-yhat <- rstan::extract(fit, "y_hat", permute = F) %>% apply(3, quantile, probs = c(0.1, 0.5, 0.9))
-plot(yhat[3, ], type = "l")
-lines(yhat[1, ])
-lines(yhat[2, ])
-points(obs, pch = 20)
+saveRDS(fit, "Results/pred.rds")
 
-qhat <- rstan::extract(fit, "q_hat", permute = F) %>% apply(3, quantile, probs = c(0.1, 0.5, 0.9))
-plot(qhat[3, ], type = "l")
-lines(qhat[1, ])
-lines(qhat[2, ])
-points(q, pch = 20)
+#===============================================================================
 
-rv <- rstan::extract(fit, "rv", permute = F) %>% apply(3, mean)
-plot(rv, type = "l")
+fit <- readRDS("Results/pred.rds")
 
-psi <- rstan::extract(fit, "psi", permute = F) %>% apply(3, mean)
-plot(psi, type = "l")
+samples <- rstan::extract(fit)[1:23]
+
+nmcmc <- length(samples[[1]])
+
+#===============================================================================
+# Setting up parallel
+
+cl <- makeCluster(10, type = "SOCK")
+registerDoParallel(cl)
+
+#===============================================================================
+
+extract_sample <- function(x, k){
+  if(length(dim(x)) == 1) return(x[k])
+  else return(x[k, ])
+}
+
+model <- stan_model(file = "Code/seirs.stan")
+
+dat.stan <- list(T = T_fit,
+                 T_pred = 52,
+                 y = head(obs, T_fit),
+                 q = head(q, T_fit),
+                 tau = head(tau, T_fit),
+                 rov = rov,
+                 control = matrix(1, nrow = 243, ncol = 3),
+                 pop = pop)
+
+cases <- foreach(k = 1:nmcmc, .combine = "rbind", .packages = c("rstan", "magrittr")) %dopar% {
+  
+  init <- list(lapply(samples, extract_sample, k))
+  
+  sim <- sampling(model,
+                  data = dat.stan, 
+                  init = init, 
+                  iter = 1, 
+                  chains = 1,
+                  warmup = 0,
+                  algorithm = "Fixed_param")
+  
+  return(rstan::extract(sim, "y_hat", permute = F)[, 1, ])
+}
+
+foo <- colMeans(cases)
+plot(obs)
+lines(foo)
+
+total <- apply(cases, 1, function(x) sum(x[191:243]))
+hist(log10(total))
+abline(v = log10(sum(obs[191:243])))
