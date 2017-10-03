@@ -98,9 +98,9 @@ inits = list(list(S0 = 0.4,
 fit <- stan(file = "Code/seirs.stan", 
             data = dat.stan, 
             init = inits, 
-            iter = 5000, 
+            iter = 10000, 
             chains = 3,
-            control = list(adapt_delta = 0.9,
+            control = list(adapt_delta = 0.99,
                            max_treedepth = 15))
 
 saveRDS(fit, "Results/oscillator.rds")
