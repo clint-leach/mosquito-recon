@@ -7,7 +7,6 @@ library(lubridate)
 library(ggplot2)
 library(gridExtra)
 
-
 # Loading and processing mosquito and case data
 tseries <- read.csv("Data/Vitoria.data.csv")
 
@@ -25,12 +24,12 @@ weather <- read.csv("Data/Vitoria.weather.csv") %>%
 weather <- subset(weather, date < date[1] + weeks(243))
 weather$tot.week <- rep(c(1:243), each = 7)
 
-covars <- ddply(weather, .(tot.week), summarise,
-                temp = mean(Mean.TemperatureC, na.rm = T),
-                humidity = mean(Mean.Humidity, na.rm = T))
+temp <- ddply(weather, .(tot.week), summarise, temp = mean(Mean.TemperatureC, na.rm = T))
+
+post$rov <- 7 * exp(0.2 * temp$temp - 8)
 
 # Loading MCMC results
-sim <- readRDS("Results/covars.rds")
+sim <- readRDS("Results/oscillator.rds")
 
 #===============================================================================
 # Figure 1: Observed and estimated time series
@@ -79,118 +78,34 @@ grid.arrange(fig1.a, fig1.b, ncol = 2)
 dev.off()
 
 #===============================================================================
-# Figure 2: estimated demographic rates
+# Figure 2: Estimates of latent mosquito demographic rates
 
-d <- rstan::extract(sim, "dv", permute = T)[[1]] %>% apply(2, quantile, c(0.1, 0.5, 0.9))
-epsilon <- rstan::extract(sim, "z_d", permute = T)[[1]] %>% apply(2, quantile, c(0.1, 0.5, 0.9))
+system <- rstan::extract(sim, "system", permute = T)[[1]]
 
-post[, c("dmin", "d", "dmax")] <- t(d)
-post[, c("epsmin", "eps", "epsmax")] <- t(epsilon)
+dv <- system[, , 9] %>% + 0.39 %>% exp() %>% 
+  adply(2, quantile, c(0.1, 0.5, 0.9), .id = NULL)
+names(dv) <- c("dvmin", "dvmed", "dvmax")
 
-ggplot(post, aes(tot.week, d)) + 
-  geom_ribbon(aes(ymin = dmin, ymax = dmax), fill = "grey70") +
-  geom_line() + 
-  theme_classic() +
-  scale_y_continuous(expand = c(0.05, 0)) + 
-  scale_x_continuous(expand = c(0, 1)) +
-  ylab("mosquito per-capita death rate") +
-  xlab("week") +
-  ggtitle("B") -> fig2.a
+rv <- system[, , 11] %>% apply(2, quantile, c(0.1, 0.5, 0.9), .id = NULL)
+names(rv) <- c("rvmin", "rvmed", "rvmax")
 
-ggplot(post, aes(tot.week, eps)) + 
-  geom_ribbon(aes(ymin = epsmin, ymax = epsmax), fill = "grey70") +
-  geom_line() + 
-  geom_hline(yintercept = 0, alpha = 0.5) +
-  theme_classic() +
-  scale_y_continuous(expand = c(0.05, 0)) + 
-  scale_x_continuous(expand = c(0, 1)) +
-  ylab("epsilon") +
-  xlab("week") +
-  ggtitle("B") -> fig2.b
-
-postscript("Manuscript/figures/fig2.eps",
-           width = 5.2, height = 3,
-           family = "ArialMT")
-
-grid.arrange(fig2.a, fig2.b, ncol = 2)
-
-dev.off()
+post <- cbind(post, dv, rv)
 
 #===============================================================================
-# Figure 3: Predicting 2012 outbreak
+# Figure 3: Effect of adult control implemented in different weeks
 
-T_pred <- 34
-T_fit <- 243 - T_pred
+reduction <- readRDS("Results/control.rds") %>% 
+  adply(1, quantile, probs = c(0.1, 0.5, 0.9)) %>% 
+  mutate(week = as.numeric(X1))
 
-predsim <- readRDS("Results/covar_predict.rds")
-post$fit <- c(rep(1, 243 - 34), rep(0, 34))
+names(reduction) <- c("X1", "min", "med", "max", "week")
 
-# Plotting the estimated and predicted cases
-ypred <- rstan::extract(predsim, c("y_hat"), permute = F) %>% apply(3, quantile, c(0.1, 0.5, 0.9))
-
-post[, c("predmin", "pred", "predmax")] <- t(ypred)
-
-ggplot(post, aes(tot.week, yobs)) + 
-  geom_ribbon(aes(ymin = predmin, ymax = predmax, fill = as.factor(fit))) +
-  scale_fill_manual(values = c("0" = "grey90", "1" = "grey70"), guide = F) + 
-  geom_point(size = 0.5) + 
-  geom_line(aes(tot.week, pred)) + 
-  theme_classic() +
-  scale_y_continuous(expand = c(0, 0)) + 
+ggplot(reduction, aes(week, med)) + 
+  geom_ribbon(aes(ymin = min, ymax = max), fill = "grey70") + 
+  geom_line() +
+  geom_abline(slope = 0, color = "grey20") + 
+  theme_classic() + 
+  theme(text = element_text(size = 15)) + 
   scale_x_continuous(expand = c(0, 1)) +
-  ylab("case reports") + 
-  xlab("week") +
-  ggtitle("A")
-
-# Plotting the estimated and predicted death rates
-dpred <- rstan::extract(predsim, "d_pred", permute = F) %>% adply(3, quantile, .id = NULL, c(0.1, 0.5, 0.9))
-names(dpred) <- c("predmin", "pred", "predmax")
-
-dpred$week <- c((T_fit + 1):243)
-dpred[, c("fitmin", "fit", "fitmax")] <- t(d[, (T_fit + 1):243])
-
-ggplot(dpred, aes(week, pred)) + 
-  geom_line(linetype = 2) + 
-  geom_line(aes(week, fit)) + 
-  theme_classic() +
-  scale_y_continuous(expand = c(0, 0)) + 
-  scale_x_continuous(expand = c(0, 1)) +
-  ylab("mosquito per capita death rate") + 
-  xlab("week") +
-  ggtitle("B")
-
-#===============================================================================
-# Figure 3: observed and posterior autocorrelation functions
-
-# Calculating the observed autocorrelation function
-obsacf <- acf(post$qobs, lag.max = 55, plot = F)$acf
-
-# Calculating the posterior acf function
-acfs <- apply(mcmc, 1, function(x){acf(x, lag.max = 55, plot = F)$acf})
-
-# Median and 80% credible interval
-acfrange <- apply(acfs, 1, quantile, c(0.1, 0.5, 0.9))
-
-# Assembling data frame for ggplot
-acfdf <- data.frame("lag" = c(0:55), 
-                    "obs" = obsacf, 
-                    "med" = acfrange[2, ], 
-                    "min" = acfrange[1, ], 
-                    "max" = acfrange[3, ])
-
-# Plot
-postscript("Manuscript/figures/fig3.eps",
-           width = 4, height = 3,
-           family = "ArialMT")
-
-ggplot(acfdf, aes(lag, obs)) + 
-  geom_hline(yintercept = 0, color = "gray50") +
-  geom_linerange(aes(lag, ymin = min, ymax = max)) +
-  geom_point() +
-  theme_classic() +
-  xlab("lag (weeks)") +
-  ylab("autocorrelation") + 
-  scale_x_continuous(expand = c(0, 0.1))
-
-dev.off()
-
+  xlab("week of control") +
+  ylab("cases prevented")
