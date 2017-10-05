@@ -17,6 +17,9 @@ post <- ddply(tseries, .(tot.week), summarise,
               week = unique(Week),
               year = unique(Year))
 
+# Population size
+pop <- 327801
+
 # Loading and processing the weather data
 weather <- read.csv("Data/Vitoria.weather.csv") %>% 
   mutate(date = ymd(BRST), year = year(date), week = week(date))
@@ -39,12 +42,12 @@ yhat <- rstan::extract(sim, c("y_hat"), permute = F) %>% apply(3, quantile, c(0.
 qhat <- rstan::extract(sim, c("q_hat"), permute = F) %>% apply(3, quantile, c(0.1, 0.5, 0.9))
 
 # Assembling data frame for ggplot
-post$yhat = yhat[2, ]
-post$ymin = yhat[1, ]
-post$ymax = yhat[3, ]
-post$qhat = qhat[2, ]
-post$qmin = qhat[1, ]
-post$qmax = qhat[3, ]
+post$yhat <- yhat[2, ]
+post$ymin <- yhat[1, ]
+post$ymax <- yhat[3, ]
+post$qhat <- qhat[2, ]
+post$qmin <- qhat[1, ]
+post$qmax <- qhat[3, ]
 
 # Plotting
 ggplot(post, aes(tot.week, yobs)) + 
@@ -86,26 +89,224 @@ dv <- system[, , 9] %>% + 0.39 %>% exp() %>%
   adply(2, quantile, c(0.1, 0.5, 0.9), .id = NULL)
 names(dv) <- c("dvmin", "dvmed", "dvmax")
 
-rv <- system[, , 11] %>% apply(2, quantile, c(0.1, 0.5, 0.9), .id = NULL)
+rv <- system[, , 11] %>% adply(2, quantile, c(0.1, 0.5, 0.9), .id = NULL)
 names(rv) <- c("rvmin", "rvmed", "rvmax")
 
 post <- cbind(post, dv, rv)
 
+# Plotting
+ggplot(post, aes(tot.week, rvmed)) + 
+  geom_ribbon(aes(ymin = rvmin, ymax = rvmax), fill = "grey70") +
+  geom_line() + 
+  theme_classic() +
+  scale_y_continuous(expand = c(0, 0)) + 
+  scale_x_continuous(expand = c(0, 1)) +
+  ylab("mosquito growth rate") + 
+  xlab("week") +
+  ggtitle("A") -> fig2.a
+
+ggplot(post, aes(tot.week, dvmed)) + 
+  geom_ribbon(aes(ymin = dvmin, ymax = dvmax), fill = "grey70") +
+  geom_line() + 
+  theme_classic() +
+  scale_y_continuous(expand = c(0.05, 0)) + 
+  scale_x_continuous(expand = c(0, 1)) +
+  ylab("mosquito death rate") +
+  xlab("week") +
+  ggtitle("B") -> fig2.b
+
+postscript("Manuscript/figures/fig2.eps",
+           width = 5.2, height = 3,
+           family = "ArialMT")
+
+grid.arrange(fig2.a, fig2.b, ncol = 2)
+
+dev.off()
 #===============================================================================
 # Figure 3: Effect of adult control implemented in different weeks
 
-reduction <- readRDS("Results/control.rds") %>% 
+adult_reduction <- readRDS("Results/adult_control.rds") %>% 
   adply(1, quantile, probs = c(0.1, 0.5, 0.9)) %>% 
   mutate(week = as.numeric(X1))
 
-names(reduction) <- c("X1", "min", "med", "max", "week")
+names(adult_reduction) <- c("X1", "min", "med", "max", "week")
 
-ggplot(reduction, aes(week, med)) + 
+larval_reduction <- readRDS("Results/larval_control.rds") %>% 
+  adply(1, quantile, probs = c(0.1, 0.5, 0.9)) %>% 
+  mutate(week = as.numeric(X1))
+
+names(larval_reduction) <- c("X1", "min", "med", "max", "week")
+
+postscript("Manuscript/figures/fig3.eps",
+           width = 4, height = 3,
+           family = "ArialMT")
+
+ggplot(larval_reduction, aes(week, med)) + 
   geom_ribbon(aes(ymin = min, ymax = max), fill = "grey70") + 
   geom_line() +
   geom_abline(slope = 0, color = "grey20") + 
   theme_classic() + 
-  theme(text = element_text(size = 15)) + 
   scale_x_continuous(expand = c(0, 1)) +
   xlab("week of control") +
-  ylab("cases prevented")
+  ylab("cases prevented") +
+  ggtitle("A")-> fig3.a
+
+ggplot(adult_reduction, aes(week, med)) + 
+  geom_ribbon(aes(ymin = min, ymax = max), fill = "grey70") + 
+  geom_line() +
+  geom_abline(slope = 0, color = "grey20") + 
+  theme_classic() + 
+  scale_x_continuous(expand = c(0, 1)) +
+  xlab("week of control") +
+  ylab("cases prevented") +
+  ggtitle("B") -> fig3.b
+
+grid.arrange(fig3.a, fig3.b, ncol = 2)
+
+dev.off()
+
+#===============================================================================
+# Comparing trends in risk, death rate, and population size
+
+post <- mutate(post, risk = rov / (rov + dvmed))
+
+stacked <- melt(post, id.vars = c("week", "year"), measure.vars = c("yhat", "qhat", "dvmed", "risk"))
+
+levels(stacked$variable) <- c("cases", "mosquitoes", "death rate", "infection risk")
+
+postscript("Manuscript/figures/fig4.eps",
+           width = 4, height = 6,
+           family = "ArialMT")
+
+ggplot(stacked, aes(week, value, color = factor(year))) +
+  geom_line() +
+  facet_grid(variable~., scales = "free_y", switch = "y") + 
+  geom_vline(xintercept = 3) +
+  theme_classic() +
+  scale_color_discrete(guide = F) + 
+  scale_x_continuous(expand = c(0, 1)) +
+  theme(strip.placement = "outside", strip.background = element_blank()) +
+  ylab("")
+
+dev.off()  
+#===============================================================================
+# Supplemental figures
+#===============================================================================
+
+#===============================================================================
+# epsilons and sigmas
+
+eps_dv <- rstan::extract(sim, "eps_dv", permute = T)[[1]] %>% 
+  adply(2, quantile, c(0.1, 0.5, 0.9)) %>% 
+  mutate(week = as.numeric(X1))
+names(eps_dv) <- c("X1", "min", "med", "max", "week")
+
+eps_rv <- rstan::extract(sim, "eps_rv", permute = T)[[1]] %>% 
+  adply(2, quantile, c(0.1, 0.5, 0.9)) %>% 
+  mutate(week = as.numeric(X1))
+names(eps_rv) <- c("X1", "min", "med", "max", "week")
+
+ggplot(eps_dv, aes(week, med)) + 
+  geom_ribbon(aes(ymin = min, ymax = max), fill = "grey70") +
+  geom_line() + 
+  theme_classic() + 
+  ylab("epsilon_dv")
+
+ggplot(eps_rv, aes(week, med)) + 
+  geom_ribbon(aes(ymin = min, ymax = max), fill = "grey70") +
+  geom_line() + 
+  theme_classic() + 
+  ylab("epsilon_rv")
+
+rstan::extract(sim, "sigmadv", permute = T)[[1]] %>% hist(main = "", xlab = expression(sigma[d]), freq = F)
+rstan::extract(sim, "sigmarv", permute = T)[[1]] %>% hist(main = "", xlab = expression(sigma[r]), freq = F)
+
+#===============================================================================
+# epidemiological parameters
+
+epiparams <- rstan::extract(sim, c("ro_c", "gamma", "delta_c"), permute = T)
+
+hist(0.87 * epiparams[[1]], main = "", xlab = "latent period", freq = F)
+abline(v = 0.87, lwd = 2)
+
+hist(epiparams[[2]], main = "", xlab = "rate of  infectious decay", freq = F)
+abline(v = 3.5, lwd = 2)
+
+hist(97 * epiparams[[3]], main = "", xlab = "period of cross-immunity", freq = F)
+abline(v = 97, lwd = 2)
+
+#===============================================================================
+# Model checking
+
+yrep <- rstan::extract(sim, "y_hat", permute = T)[[1]]
+qrep <- rstan::extract(sim, "q_hat", permute = T)[[1]]
+
+system <- rstan::extract(sim, "system", permute = T)[[1]]
+
+# ACF plots
+
+# Calculating the observed autocorrelation function
+yacf <- acf(post$yobs, lag.max = 55, plot = F)$acf
+qacf <- acf(post$qobs, lag.max = 55, plot = F)$acf
+
+# Summarizing the posterior acf
+yacfrange <- apply(yrep, 1, function(x){acf(x, lag.max = 55, plot = F)$acf}) %>% 
+  apply(1, quantile, probs = c(0.1,0.5, 0.9))
+
+qacfrange <- apply(qrep, 1, function(x){acf(x, lag.max = 55, plot = F)$acf}) %>% 
+  apply(1, quantile, probs = c(0.1,0.5, 0.9))
+
+# Assembling data frame for ggplot
+acfdf <- data.frame("lag" = c(0:55), 
+                    "yobs" = yacf,
+                    "qobs" = qacf,
+                    "ymed" = yacfrange[2, ], 
+                    "ymin" = yacfrange[1, ], 
+                    "ymax" = yacfrange[3, ],
+                    "qmed" = qacfrange[2, ], 
+                    "qmin" = qacfrange[1, ], 
+                    "qmax" = qacfrange[3, ]
+                    )
+
+# Plots
+ggplot(acfdf, aes(lag, yobs)) + 
+  geom_hline(yintercept = 0, color = "gray50") +
+  geom_linerange(aes(lag, ymin = ymin, ymax = ymax)) +
+  geom_point() +
+  theme_classic() +
+  xlab("lag (weeks)") +
+  ylab("case autocorrelation") + 
+  scale_x_continuous(expand = c(0, 0.1))
+
+ggplot(acfdf, aes(lag, qobs)) + 
+  geom_hline(yintercept = 0, color = "gray50") +
+  geom_linerange(aes(lag, ymin = qmin, ymax = qmax)) +
+  geom_point() +
+  theme_classic() +
+  xlab("lag (weeks)") +
+  ylab("mosquito autocorrelation") + 
+  scale_x_continuous(expand = c(0, 0.1))
+
+# Totals
+
+hist(rowSums(yrep), main = "", xlab = "total cases", freq = F, breaks = 20)
+abline(v = sum(post$yobs), lwd = 2)
+
+hist(rowSums(qrep), main = "", xlab = "total captured mosquitoes", freq = F, breaks = 20)
+abline(v = sum(post$qobs), lwd = 2)
+
+# Maximum
+
+hist(apply(yrep, 1, max), main = "", xlab = "maximum weekly cases", freq = F)
+abline(v = max(post$yobs), lwd = 2)
+
+hist(apply(qrep, 1, max), main = "", xlab = "maximum weekly trap count", freq = F)
+abline(v = max(post$qobs), lwd = 2)
+
+# Minimum
+
+hist(apply(yrep, 1, min), main = "", xlab = "minimum weekly cases", freq = F)
+abline(v = min(post$yobs), lwd = 2)
+
+hist(apply(qrep, 1, min), main = "", xlab = "minimum weekly trap count", freq = F)
+abline(v = min(post$qobs), lwd = 2)
