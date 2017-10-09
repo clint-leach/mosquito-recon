@@ -2,6 +2,7 @@
 
 library(rstan)
 library(plyr)
+library(reshape)
 library(magrittr)
 library(lubridate)
 library(ggplot2)
@@ -29,6 +30,7 @@ weather$tot.week <- rep(c(1:243), each = 7)
 
 temp <- ddply(weather, .(tot.week), summarise, temp = mean(Mean.TemperatureC, na.rm = T))
 
+post$temp <- temp$temp
 post$rov <- 7 * exp(0.2 * temp$temp - 8)
 
 # Loading MCMC results
@@ -122,8 +124,26 @@ postscript("Manuscript/figures/fig2.eps",
 grid.arrange(fig2.a, fig2.b, ncol = 2)
 
 dev.off()
+
 #===============================================================================
-# Figure 3: Effect of adult control implemented in different weeks
+# Figure 3: Mosquito death rate as a function of temperature
+
+postscript("Manuscript/figures/fig3.eps",
+           width = 3, height = 3,
+           family = "ArialMT")
+
+ggplot(post, aes(temp, dvmed)) +
+  geom_point() + 
+  theme_classic() + 
+  scale_y_continuous(expand = c(0.05, 0)) + 
+  scale_x_continuous(expand = c(0, 1)) +
+  ylab("mosquito death rate") +
+  xlab("weekly mean temperature")
+
+dev.off()
+
+#===============================================================================
+# Figure 4: Effect of adult control implemented in different weeks
 
 adult_reduction <- readRDS("Results/adult_control.rds") %>% 
   adply(1, quantile, probs = c(0.1, 0.5, 0.9)) %>% 
@@ -137,7 +157,7 @@ larval_reduction <- readRDS("Results/larval_control.rds") %>%
 
 names(larval_reduction) <- c("X1", "min", "med", "max", "week")
 
-postscript("Manuscript/figures/fig3.eps",
+postscript("Manuscript/figures/fig4.eps",
            width = 4, height = 3,
            family = "ArialMT")
 
@@ -149,7 +169,7 @@ ggplot(larval_reduction, aes(week, med)) +
   scale_x_continuous(expand = c(0, 1)) +
   xlab("week of control") +
   ylab("cases prevented") +
-  ggtitle("A")-> fig3.a
+  ggtitle("A")-> fig4.a
 
 ggplot(adult_reduction, aes(week, med)) + 
   geom_ribbon(aes(ymin = min, ymax = max), fill = "grey70") + 
@@ -159,14 +179,14 @@ ggplot(adult_reduction, aes(week, med)) +
   scale_x_continuous(expand = c(0, 1)) +
   xlab("week of control") +
   ylab("cases prevented") +
-  ggtitle("B") -> fig3.b
+  ggtitle("B") -> fig4.b
 
-grid.arrange(fig3.a, fig3.b, ncol = 2)
+grid.arrange(fig4.a, fig4.b, ncol = 2)
 
 dev.off()
 
 #===============================================================================
-# Comparing trends in risk, death rate, and population size
+# Figure 5: timing of control relative to population size, death rate, and risk
 
 post <- mutate(post, risk = rov / (rov + dvmed))
 
@@ -174,7 +194,7 @@ stacked <- melt(post, id.vars = c("week", "year"), measure.vars = c("yhat", "qha
 
 levels(stacked$variable) <- c("cases", "mosquitoes", "death rate", "infection risk")
 
-postscript("Manuscript/figures/fig4.eps",
+postscript("Manuscript/figures/fig5.eps",
            width = 4, height = 6,
            family = "ArialMT")
 
@@ -235,6 +255,10 @@ abline(v = 3.5, lwd = 2)
 hist(97 * epiparams[[3]], main = "", xlab = "period of cross-immunity", freq = F)
 abline(v = 97, lwd = 2)
 
+#===============================================================================
+# initial conditions
+
+ics <- rstan::extract(sim, c("S0", "E0","I0"), permute = T)
 #===============================================================================
 # Model checking
 
