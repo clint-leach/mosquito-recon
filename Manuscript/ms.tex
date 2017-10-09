@@ -294,7 +294,7 @@ We model the centered and log-transformed mosquito mortality rate ($\nu$) and th
 \frac{d^2\nu}{dt^2} &= -\omega^2 \nu + \epsilon_{\nu t}\\
 \frac{d^2 r}{dt^2} &= -\omega^2 r + \epsilon_{rt},
 \end{align}
-where $\omega = 2\pi / 52$, $d(t) = d_0 \exp(\nu(t)$, and
+where $\omega = 2\pi / 52$, $d(t) = d_0 \exp(\nu(t))$, and
 \begin{align}
 \epsilon_{\nu i} & \sim \text{Normal}(0, \sigma_{\nu})\\
 \epsilon_{ri} & \sim \text{Normal}(0, \sigma_r),
@@ -374,26 +374,60 @@ We also only simulate the effect of control in the middle three years, as the ef
 
 \section*{Results}
 
+The model is able to capture the observed dynamics of both case reports and mosquito trap counts (Figure \ref{timeseries}).
+The estimated posterior median case reports explain 91\% of the variation in the observed time series, while the posterior median mosquito trap counts explain 45\% of the variation in the observed time series. 
+In addition, posterior predictive checks show that the model reproduces the the total number of cases reported and mosquitoes captured as well as the autocorrelation structure of both time series (with the exception of slightly underestimating the autocorrelation for short lags, Supplemental Fig XX - XX).
+Posterior means for the three epidemiological parameters ($\rho, \gamma, \delta$) are close to the literature values used to set their prior means (Supplemental Fig XX).
+
+The estimated latent mosquito demographic rates are smooth and strongly seasonal, with fairly narrow credible intervals (Figure \ref{latent}).
+Mosquito death rates fluctuate within the range estimated by \cite{Brady2013} and generally increase with temperature, as expected from laboratory studies \cite{Brady2013}(Figure \ref{temp}).
+The underlying process variances are small ($\sigma_nu = 0.01$, $\sigma_r = 0.0005$), and there is little residual structure in the process noise series, though there is a weak periodic signal in the $\epsilon_{\nu}$ (Supplemental Fig XX).
+
+Modifying these estimated demographic rates to simulate targeted control efforts, we find that control (targeting either adults via increasing the death rate or larvae via decreasing the birth rate) applied in the third week of the year is the most effective at preventing cases of dengue fever (though weeks 2 and 4 are also very close, Figure \ref{control}).
+In fact, increasing the mosquito death rate by just 5\% in the third week of 2009, 2010, and 2011 prevents 13,988 (reported) cases of dengue fever (with 80\% credible interval of 11,130 to 15,811).
+Targeting larvae instead of adults (simulated by reducing the birth rate ($b_t = r_t + d_t$) by 5\%) produces nearly identical results.
+The third week of the year is generally very early in the dengue season, well before cases peak (Figure \ref{timing}).  
+It is also generally before the estimated peak in mosquito abundance, which occurs between weeks 6 and 9 (Figure \ref{timing}).
+Annual peaks in estimated mosquito death rate, and infection risk (i.e. the probability that a mosquito survives long enough to become infectious, $\frac{\rho_v}{(\rho_v + d)}$) are more variable, but also do not generally line up with the timing of optimal control.
+
 \begin{figure}[!h]
-%\includegraphics[angle = 270, scale = 1]{figures/fig1.eps}
+\includegraphics[angle = 270, scale = 1]{figures/fig1.eps}
 \caption{{\bf Vitoria data and model fits.}
-Weekly observations from 2008 to week 34 of 2012 (points), with corresponding median posterior prediction (line) and 80\% credible inverval (gray band). A: reported dengue cases. B: total number of trapped mosquiotes.
+Weekly observations from 2008 to week 34 of 2012 (points), with corresponding median posterior prediction (line) and 80\% credible interval (gray band). A: reported dengue cases. B: total number of trapped mosquiotes.
 }
 \label{timeseries}
 \end{figure}
 
 \begin{figure}[!h]
-%\includegraphics[angle = 270, scale = 1]{figures/fig1.eps}
-\caption{{\bf Estimated latent birth and death rates.}
+\includegraphics[angle = 270, scale = 1]{figures/fig2.eps}
+\caption{{\bf Estimated latent mosquito growth and death rates.}
+Median posterior estimate (line) and 80\% credible interval.  A: weekly mosquito population growth rate ($r_t$). B: weekly mosquito death rate ($d_t$).
 }
 \label{latent}
 \end{figure}
 
 \begin{figure}[!h]
-%\includegraphics[angle = 270, scale = 1]{figures/fig1.eps}
-\caption{{\bf Cases prevented by adult control.}
+\includegraphics[angle = 270, scale = 1]{figures/fig3.eps}
+\caption{{\bf Estimated mosquito death rate as a function of temperature.}
+Weekly median posterior death rate ($d_t$) plotted against weekly mean temperature (Celsius) in Vitoria, Brazil.
 }
-\label{adultcontrol}
+\label{temp}
+\end{figure}
+
+\begin{figure}[!h]
+\includegraphics[angle = 270, scale = 1]{figures/fig4.eps}
+\caption{{\bf Cases prevented by mosquito control.}
+Number of reported cases of dengue fever prevented by control deployed during a given week each year in 2009, 2010, and 2011. Median posterior prediction (line) and 80\% credible interval. A: adult control, simulated by increasing death rate in the given week by 5\%. B: larval control, simulated by decreasing birth rate ($r_t + d_t$) in a given week by 5\%.
+}
+\label{control}
+\end{figure}
+
+\begin{figure}[!h]
+\includegraphics[angle = 270, scale = 1]{figures/fig5.eps}
+\caption{{\bf Timing of optimal control relative to disease and mosquito dynamics.}
+The vertical black line indicates week 3, during which mosquito control produces the largest decline in predicted dengue case reports. Each colored line represents a different year: salmon? = 2008, green-yellow = 2009, green = 2010, blue = 2011, purple = 2012. A: posterior median estimate of dengue case reports per week. B: posterior median estimate of trapped mosquitoes per week. C: posterior median estimate of weekly mosquito death rate. D: posterior median estimate of weekly infection risk ($\frac{\rho_v}{\rho_v + d}$).
+}
+\label{timing}
 \end{figure}
 
 \section*{Discussion}
