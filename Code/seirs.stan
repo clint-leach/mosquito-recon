@@ -86,7 +86,7 @@ data {
 transformed data {
   real lambda = 4.87;
   real phi_y = 1.0 / 12.0;
-  real damp = 0.1;
+  real damp = 0.0;
   real omega = (pi() / 26) / sqrt(1 - damp ^ 2);
 }
 parameters {
