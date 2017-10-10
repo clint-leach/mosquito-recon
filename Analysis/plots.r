@@ -36,8 +36,7 @@ post$rov <- 7 * exp(0.2 * temp$temp - 8)
 # Loading MCMC results
 sim <- readRDS("Results/oscillator.rds")
 
-#===============================================================================
-# Figure 1: Observed and estimated time series
+# Figure 1: Observed and estimated time series =================================
 
 # Computing posterior median and 80% credible interval
 yhat <- rstan::extract(sim, c("y_hat"), permute = F) %>% apply(3, quantile, c(0.1, 0.5, 0.9))
@@ -82,8 +81,7 @@ grid.arrange(fig1.a, fig1.b, ncol = 2)
 
 dev.off()
 
-#===============================================================================
-# Figure 2: Estimates of latent mosquito demographic rates
+# Figure 2: Estimates of latent mosquito demographic rates =====================
 
 system <- rstan::extract(sim, "system", permute = T)[[1]]
 
@@ -125,8 +123,7 @@ grid.arrange(fig2.a, fig2.b, ncol = 2)
 
 dev.off()
 
-#===============================================================================
-# Figure 3: Mosquito death rate as a function of temperature
+# Figure 3: Mosquito death rate as a function of temperature ===================
 
 postscript("Manuscript/figures/fig3.eps",
            width = 3, height = 3,
@@ -142,34 +139,28 @@ ggplot(post, aes(temp, dvmed)) +
 
 dev.off()
 
-#===============================================================================
-# Figure 4: Effect of adult control implemented in different weeks
+# Figure 4: Effect of adult control implemented in different weeks =============
 
+# Processing adult control experiment
 adult_reduction <- readRDS("Results/adult_control.rds") %>% 
   adply(1, quantile, probs = c(0.1, 0.5, 0.9)) %>% 
   mutate(week = as.numeric(X1))
 
 names(adult_reduction) <- c("X1", "min", "med", "max", "week")
 
-larval_reduction <- readRDS("Results/larval_control.rds") %>% 
-  adply(1, quantile, probs = c(0.1, 0.5, 0.9)) %>% 
-  mutate(week = as.numeric(X1))
+# Dynamics resulting from control in week 3
+week3 <- readRDS("Results/optimal.rds")
 
-names(larval_reduction) <- c("X1", "min", "med", "max", "week")
+ycontrol <- 1/12 * pop * sapply(week3, function(x) x[, 8]) %>% 
+  adply(1, quantile, c(0.1, 0.5, 0.9), .id = NULL)
+names(ycontrol) <- c("ycmin", "ycmed", "ycmax")
 
+post <- cbind(post, ycontrol)
+
+# Plotting
 postscript("Manuscript/figures/fig4.eps",
-           width = 4, height = 3,
+           width = 5.2, height = 3,
            family = "ArialMT")
-
-ggplot(larval_reduction, aes(week, med)) + 
-  geom_ribbon(aes(ymin = min, ymax = max), fill = "grey70") + 
-  geom_line() +
-  geom_abline(slope = 0, color = "grey20") + 
-  theme_classic() + 
-  scale_x_continuous(expand = c(0, 1)) +
-  xlab("week of control") +
-  ylab("cases prevented") +
-  ggtitle("A")-> fig4.a
 
 ggplot(adult_reduction, aes(week, med)) + 
   geom_ribbon(aes(ymin = min, ymax = max), fill = "grey70") + 
@@ -179,20 +170,40 @@ ggplot(adult_reduction, aes(week, med)) +
   scale_x_continuous(expand = c(0, 1)) +
   xlab("week of control") +
   ylab("cases prevented") +
+  ggtitle("A") -> fig4.a
+
+ggplot(post, aes(tot.week, ycmed)) + 
+  geom_ribbon(aes(ymin = ycmin, ymax = ycmax), fill = "grey70") + 
+  geom_line() + 
+  geom_line(aes(tot.week, yhat), linetype = 2) +
+  theme_classic() +
+  scale_y_continuous(expand = c(0, 0)) + 
+  scale_x_continuous(expand = c(0, 1)) +
+  ylab("case reports") +
+  xlab("week") +
   ggtitle("B") -> fig4.b
 
 grid.arrange(fig4.a, fig4.b, ncol = 2)
 
 dev.off()
 
-#===============================================================================
-# Figure 5: timing of control relative to population size, death rate, and risk
+# Figure 5: timing of control ==================================================
 
-post <- mutate(post, risk = rov / (rov + dvmed))
+post <- mutate(post, 
+               ymu = system[, , 8] %>% 
+                 multiply_by(pop) %>% 
+                 apply(2, median),
+               qmu = system[, , 6] %>% 
+                 apply(2, median),
+               risk = system[, , 9] %>% 
+                 add(0.39) %>% 
+                 exp() %>% 
+                 apply(1, function(x){rov / (rov + x)}) %>% 
+                 apply(1, median))
 
-stacked <- melt(post, id.vars = c("week", "year"), measure.vars = c("yhat", "qhat", "dvmed", "risk"))
+stacked <- melt(post, id.vars = c("week", "year"), measure.vars = c("ymu", "qmu", "dvmed", "risk"))
 
-levels(stacked$variable) <- c("cases", "mosquitoes", "death rate", "infection risk")
+levels(stacked$variable) <- c("cases", "mosquitoes", "death rate", "transmission risk")
 
 postscript("Manuscript/figures/fig5.eps",
            width = 4, height = 6,
@@ -209,6 +220,7 @@ ggplot(stacked, aes(week, value, color = factor(year))) +
   ylab("")
 
 dev.off()  
+
 #===============================================================================
 # Supplemental figures
 #===============================================================================
@@ -334,3 +346,5 @@ abline(v = min(post$yobs), lwd = 2)
 
 hist(apply(qrep, 1, min), main = "", xlab = "minimum weekly trap count", freq = F)
 abline(v = min(post$qobs), lwd = 2)
+
+# Larval control ===============================================================
