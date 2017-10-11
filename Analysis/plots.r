@@ -214,7 +214,7 @@ ggplot(stacked, aes(week, value, color = factor(year))) +
   facet_grid(variable~., scales = "free_y", switch = "y") + 
   geom_vline(xintercept = 3) +
   theme_classic() +
-  scale_color_discrete(guide = F) + 
+  scale_color_brewer(palette = "Dark2", type = "qual", guide = F) + 
   scale_x_continuous(expand = c(0, 1)) +
   theme(strip.placement = "outside", strip.background = element_blank()) +
   ylab("")
