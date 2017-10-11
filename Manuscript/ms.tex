@@ -358,7 +358,7 @@ $\phi_q$ & Per-trap mosquito capture rate & $2 \times 10^{-6}$ week$^{-1}$ &
 
 \subsection*{Implementation}
  
-Samples from the posterior distribution were generated using Hamiltonian Monte Carlo (CITATIONS) implemented in the rstan package for R (CITATIONS). 
+Samples from the posterior distribution were generated using Hamiltonian Monte Carlo implemented in the rstan package \cite{Carpenter2016, Rstan2017} for R (\cite{R2016}). 
 We ran 3 chains with different starting values for 10,000 iterations each, discarding the first 5,000 as burn-in.
 Within stan, the solution to the differential equation model was approximated with an Euler scheme with a time step of 1 day.  
 
@@ -436,22 +436,45 @@ The vertical black line indicates week 3, during which mosquito control produces
 
 \section*{Discussion}
 
-\subsection*{Summarize results}
-
 Targeted mosquito control can be an effective tool in reducing the disease burden within a city.
 When faced with limited resources with which to deploy that control, these results suggest that focusing efforts early in the year, specifically in the second to fourth weeks of the year, will lead to the largest reductions in disease.
+Because adult control and larval control produce the same results, the effect of control is likely driven by reducing the standing population of adult mosquitoes, rather than by limiting the transmission potential of exposed or infectious mosquitoes.
+Targeting mosquitoes early in the year as dengue just begins to spread can disrupt the transmission cycle and prevent further amplification and feedback.
 
-\subsection*{Interpretation of results}
+The importance of reducing the population of adult mosquitoes agrees with the results of \cite{Burattini2008} whose model of dengue dynamics in Singapore suggests that killing adult mosquitoes is the most effective way to control an epidemic.
+However, they find that larval control is most effective at preventing resurgence of dengue epidemics, and thus that a mixed strategy that includes both larval and adult control is likely to be most effective in the long term.
+Fully exploring such combined strategies requires a more complete model of mosquito life history and the lags induced by the mosquito's aquatic larval stage.
+In addition, the lack of a larval phase in our model might somewhat exaggerate the effectiveness of adult control, as decreasing the adult population leads to an immediate reduction in reproduction, rather than a lagged reduction.
+Temperature-dependent development \cite{Focks1993}.
+Models of development can be very complex \cite{Marori2009}.
+\cite{Pinho2010} find that adult control alone cannot reduce $R_0$ below 1 and that aquatic control is necessary.
 
+As implemented, mosquito mortality is the only source of uncertainty/stochasticity in the transmission process.
+Related to the idea of empirical forcing functions of \cite{Hooker2015} and dynamic smoothing from Ramsay.
+The fact that death rate increases with temperature helps to validate this approach.
+Whether or not the death rate is actually interpretable as a mortality rate, it nonetheless captures the critical bottleneck in the transmission process.
+\cite{Maciel-de-Freitas2008}
 
-Caveat and future work: spatial prioritization of mosquito control:
-\begin{itemize}
-\item Human movement \cite{Adams2009, Cosner2009a, Stoddard2009, Dalziel2013}
-\item Disease risk possibly driven by high levels of contact with a relatively small proportion of the mosquito population \cite{Canyon1999}.
-\item Explicitly targeting mosquitoes that have been implicated in transmission through the use of contact tracing \cite{Vazquez-Prokopec2017}
-\end{itemize}
+Establishing that there is likely spatial heterogeneity.
+Processes that might drive spatial heterogeneity (human movement, socioeconomic factors)
+Structured human movement within the city is likely to be a major driver of heterogeneous human-mosquito mixing (\cite{Adams2009, Cosner2009a, Stoddard2009, Dalziel2013}.
+In addition variability in socioeconomic factors within the city also modulate the extent to which mosquitoes in different parts of the city contribute to disease spread \cite{Mondini2008, Honorio2009, Hu2012, DeMattosAlmeida2007}.
+What are the implications of this heterogeneity and how might spatial heterogeneity modify our conclusions? Introducing heterogeneous mixing increases $R_0$ relative to homogeneous mixing, potentially leading us to overestimate the effectiveness of control (\cite{Dye1986, Hasibeder1988}.
+This heterogeneity suggests that disease risk might be driven by high levels of contact with a relatively small proportion of the mosquito population \cite{Canyon1999, Yoon2012}.
+What can we gain by accounting for heterogeneity?
+Though the presence of this heterogeneity suggests that our model may overestimate the efficacy of mosquito control, it also points the way towards more efficient methods.
+Most generally, control efforts should target mosquitoes that are most directly implicated in transmission.
+One way to do this is through the use of contact-tracing \cite{Vazquez-Prokopec2017}.
+How would we incorporate that heterogeneity?  Embedding the mechanistic model explicitly into a metapopulation framework leads to a very large, unwieldy model that likely exacerbates existing difficulties inherent in fitting ODE models to data.
+
+Statistical novelty and connections to literature
+Integrated population modeling \cite{Schaub2010}
+Posterior sampling for ode models \cite{Girolami2008, Calderhead2011}
 
 \subsection*{Conclusions}
+
+Mosquito surveillance is a valuable tool in managing dengue fever, but is most powerful when integrated into a larger modeling framework.
+
 
 \section*{Supporting information}
 
@@ -460,7 +483,7 @@ Caveat and future work: spatial prioritization of mosquito control:
 \label{S1_Diag}
 {\bf Full description of model and priors.}
 
-\section*{Acknowledgments}
+\section*{Acknowledgements}
 
 Thanks!
 
