@@ -372,17 +372,17 @@ We also only simulate the effect of control in the middle three years, as the ef
 
 The model is able to capture the observed dynamics of both case reports and mosquito trap counts (Figure \ref{timeseries}).
 The estimated posterior median case reports explain 91\% of the variation in the observed time series, while the posterior median mosquito trap counts explain 45\% of the variation in the observed time series. 
-In addition, posterior predictive checks show that the model reproduces the the total number of cases reported and mosquitoes captured as well as the autocorrelation structure of both time series (with the exception of slightly underestimating the autocorrelation for short lags, Supplemental Fig XX - XX).
-Posterior means for the three epidemiological parameters ($\rho, \gamma, \delta$) are close to the literature values used to set their prior means (Supplemental Fig XX).
+In addition, posterior predictive checks show that the model reproduces the the total number of cases reported and mosquitoes captured as well as the autocorrelation structure of both time series (with the exception of slightly underestimating the autocorrelation for short lags, Supplemental Figures 5 - 7).
+Posterior means for the three epidemiological parameters ($\rho, \gamma, \delta$) are close to the literature values used to set their prior means (Supplemental Figure 3).
 
 The estimated latent mosquito demographic rates are smooth and strongly seasonal, with fairly narrow credible intervals (Figure \ref{latent}).
 Mosquito mortality rates fluctuate within the range estimated by \cite{Brady2013} and generally increase with temperature (Figure \ref{temp}).
-The underlying process variances are small ($\sigma_{\nu} = 0.01$, $\sigma_r = 0.0005$), and there is little residual structure in the process noise series, though there is a weak periodic signal in the $\epsilon_{\nu}$ (Supplemental Fig XX).
+The underlying process variances are small ($\sigma_{\nu} = 0.01$, $\sigma_r = 0.0005$, Supplemental Figure 2), and there is little residual structure in the process noise series, though there is a weak periodic signal in the $\epsilon_{\nu}$ (Supplemental Figure 1).
 
 Modifying these estimated demographic rates to simulate targeted control efforts, we find that control applied in the third week of the year is the most effective at preventing cases of dengue fever (though weeks 2 and 4 are also very close, Figure \ref{control}A).
 In fact, increasing the mosquito mortality rate by just 5\% in the third week of 2009, 2010, and 2011 would prevent 13,988 (reported) cases of dengue fever (with 80\% credible interval of 11,130 to 15,811).
 Most of these gains come by way of substantially reducing the size of the large 2011 outbreak, while also further damping the smaller 2010 and 2012 outbreaks (Figure \ref{control}B).
-Targeting larvae instead of adults (simulated by reducing the birth rate ($b_t = r_t + d_t$) by 5\%) produces nearly identical results.
+Targeting larvae instead of adults (simulated by reducing the birth rate ($b_t = r_t + d_t$) by 5\%) produces nearly identical results (Supplemental Figure 8).
 
 The third week of the year is generally very early in the dengue season, well before cases peak (Figure \ref{timing}).
 In the two years with large outbreaks (2009 and 2011), the third week of the year is near the inflection point where the disease burden begins to grow rapidly.  
