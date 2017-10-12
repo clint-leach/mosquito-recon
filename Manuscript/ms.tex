@@ -229,7 +229,7 @@ Comparing cities with and without this system, \cite{Pepin2013} estimated that i
 Though this system has been effective, the mosquito indices and thresholds used to prioritize control efforts remain somewhat ad-hoc.
 As noted in \cite{Morrison2008}, entomological indices are only relevant in the context of local epidemiology, and thus control policies will be most effective when they synthesize both entomological and clinical surveillance.
 
-Many of the attempts to link these two sources of information have found a weak relationship between mosquito surveillance disease risk (CITATIONS).
+Many of the attempts to link these two sources of information have found a weak relationship between mosquito surveillance and disease risk (CITATIONS).
 These efforts have often relied on tests of the ability of mosquito abundance measures to predict human disease risk in regression models.
 For example, \cite{Pepin2015} found that models that included MosquiTRAP surveillance data failed to predict weekly dengue cases any better than models that included lagged case data alone.
 However, such tests fail to account for the mechanistic, non-linear relationship between mosquito population dynamics and dengue epidemiology.
@@ -315,13 +315,13 @@ where $V_{Ct} - V_{Ct-1}$ is the number of new mosquitoes captured in week $t$, 
 
 \subsection*{Parameterization and priors}
 
-Several of the parameters in this model are assumed to be fixed and known (\ref{parameters}).
+Several of the parameters in this model are assumed to be fixed and known (Table 1).
 The population size and average life span (which we use to parameterize the birth/death rate) for Vitoria are taken from the 2010 census.
 To maintain identifiability, the transmission rate ($\lambda$) and case reporting probability ($\phi_y$) are also fixed at literature values.
 Lastly, the extrinsic incubation period in mosquitoes is modeled as a function of weekly mean temperature and forced with weather station data obtained from WeatherUnderground.
 
 The remaining parameters include the epidemiological parameters ($\rho$, $\gamma$, $\delta$), the initial conditions of the model ($S_0$, $E_0$, $I_0$, $R_0$, $V_{N0}, \nu_0, r_0$), the variances of the latent mosquito processes ($\sigma^2_r$, $\sigma^2_{\nu}$), and the remaining measurement parameters ($\phi_q$, $\eta_y$, $\eta_q$).  
-Where possible, we place informative priors on these parameters based on existing laboratory and field studies (see Table \ref{parameters} for means and Supplemental Material for detailed explanations).
+Where possible, we place informative priors on these parameters based on existing laboratory and field studies (see Table 1 for means and Supplemental Material for detailed explanations).
 
 \begin{table}[!ht]
 \label{parameters}
@@ -354,7 +354,7 @@ $\phi_q$ & Per-trap mosquito capture rate & $2 \times 10^{-6}$ week$^{-1}$ &
 
 \subsection*{Implementation}
  
-Samples from the posterior distribution were generated using Hamiltonian Monte Carlo implemented in the rstan package \cite{Carpenter2016, Rstan2017} for R (\cite{R2016}). 
+Samples from the posterior distribution were generated using Hamiltonian Monte Carlo implemented in the rstan package \cite{Carpenter2016, Rstan2017} for R \cite{R2016}. 
 We ran 3 chains with different starting values for 10,000 iterations each, discarding the first 5,000 as burn-in.
 Within stan, the solution to the differential equation model was approximated with an Euler scheme with a time step of 1 day.  
 
@@ -376,18 +376,18 @@ In addition, posterior predictive checks show that the model reproduces the the 
 Posterior means for the three epidemiological parameters ($\rho, \gamma, \delta$) are close to the literature values used to set their prior means (Supplemental Fig XX).
 
 The estimated latent mosquito demographic rates are smooth and strongly seasonal, with fairly narrow credible intervals (Figure \ref{latent}).
-Mosquito death rates fluctuate within the range estimated by \cite{Brady2013} and generally increase with temperature, as expected from laboratory studies \cite{Brady2013}(Figure \ref{temp}).
-The underlying process variances are small ($\sigma_nu = 0.01$, $\sigma_r = 0.0005$), and there is little residual structure in the process noise series, though there is a weak periodic signal in the $\epsilon_{\nu}$ (Supplemental Fig XX).
+Mosquito mortality rates fluctuate within the range estimated by \cite{Brady2013} and generally increase with temperature (Figure \ref{temp}).
+The underlying process variances are small ($\sigma_{\nu} = 0.01$, $\sigma_r = 0.0005$), and there is little residual structure in the process noise series, though there is a weak periodic signal in the $\epsilon_{\nu}$ (Supplemental Fig XX).
 
 Modifying these estimated demographic rates to simulate targeted control efforts, we find that control applied in the third week of the year is the most effective at preventing cases of dengue fever (though weeks 2 and 4 are also very close, Figure \ref{control}A).
-In fact, increasing the mosquito death rate by just 5\% in the third week of 2009, 2010, and 2011 would prevent 13,988 (reported) cases of dengue fever (with 80\% credible interval of 11,130 to 15,811).
+In fact, increasing the mosquito mortality rate by just 5\% in the third week of 2009, 2010, and 2011 would prevent 13,988 (reported) cases of dengue fever (with 80\% credible interval of 11,130 to 15,811).
 Most of these gains come by way of substantially reducing the size of the large 2011 outbreak, while also further damping the smaller 2010 and 2012 outbreaks (Figure \ref{control}B).
 Targeting larvae instead of adults (simulated by reducing the birth rate ($b_t = r_t + d_t$) by 5\%) produces nearly identical results.
 
 The third week of the year is generally very early in the dengue season, well before cases peak (Figure \ref{timing}).
 In the two years with large outbreaks (2009 and 2011), the third week of the year is near the inflection point where the disease burden begins to grow rapidly.  
 The third week is also generally before the estimated seasonal peak in mosquito abundance, which occurs between weeks 6 and 9 (Figure \ref{timing}).
-Annual peaks in estimated mosquito death rate are more variable, but do tend to fall between weeks 2 and 7.
+Annual peaks in estimated mosquito mortality rate are more variable, but tend to fall between weeks 2 and 7.
 Though mosquito death rates tend to be high early in the year, the transmission risk (i.e. the probability of an exposed mosquito surviving long enough to be infectious, $\frac{\rho_v}{\rho_v + d}$) does not pick up until later in the year.
 
 \begin{figure}[!h]
@@ -456,20 +456,20 @@ The fact that our estimated mortality rate varies seasonally and increases with 
 These observations suggest that our estimated mosquito mortality rates may actually be capturing the patterns of mosquito mortality in this system and are not obviously influenced by other sources of uncertainty or misspecification.
 
 Though the estimated mosquito mortality process seems biologically reasonable, we are still employing it to link mosquito abundance and human disease at a relatively large spatial scale, assuming homogeneous mixing between mosquitoes and humans throughout the city.
-However, structured human movement within the city is likely to be a major driver of heterogeneous human-mosquito mixing (\cite{Adams2009, Cosner2009a, Stoddard2009, Dalziel2013}.
+However, structured human movement within the city is likely to be a major driver of heterogeneous human-mosquito mixing \cite{Adams2009, Cosner2009a, Stoddard2009, Dalziel2013}.
 In addition spatial variability in socioeconomic factors within the city may also modulate the extent to which mosquitoes in different parts of the city contribute to disease spread \cite{Mondini2008, Honorio2009, Hu2012, DeMattosAlmeida2007}.
-
-This heterogeneity has substantial consequences for disease dyamics.
+This heterogeneity can have substantial consequences for disease dynamics.
 In fact, in a modeling study \cite{Dye1986, Hasibeder1988} found that introducing heterogeneous mixing always increases $R_0$ relative to homogeneous mixing.
+
 Though this suggests that our model may overestimate the efficacy of mosquito control, it also points the way towards more efficient and effective control methods.
-If disease risk is driven by high levels of contact with a relatively small proportion of the mosquito population \cite{Canyon1999, Yoon2012}, control policies that preferentially targets these subsets of the mosquito population are likely to be very effective.
-Identifying these subsets is in practice difficult.
-One way to do this is through the use of contact-tracing, which can identify and target specific premises that have been implicated in transmission \cite{Vazquez-Prokopec2017}.
+If disease risk is driven by high levels of contact with a relatively small proportion of the mosquito population \cite{Canyon1999, Yoon2012}, control policies that preferentially target these subsets of the mosquito population are likely to be very effective.
+Identifying these subsets is difficult in practice.
+One possible strategy is through the use of contact-tracing, which can identify and target specific premises that have been directly implicated in transmission \cite{Vazquez-Prokopec2017}.
 Though effective, this strategy is extremely labor-intensive and would be difficult to implement in endemic areas.
 
-On the other hand, if we can capture this heterogeneity in a framework similar to ours that makes use of currently available surveillance data, we can explore more sophisticated, spatially targeted control strategies.
+On the other hand, if we can capture this heterogeneity in a modeling framework similar to ours, that makes use of currently available surveillance data, we can explore more sophisticated, spatially targeted control strategies.
 However, incorporating spatial structure into our model would involve a substantial statistical and computational burden.
-Case reports data for the city of Vitoria are available for each of the city's 75 neighborhoods, but embedding the mechanistic model explicitly into a metapopulation framework leads to a very large, unwieldy mechanistic model that likely exacerbates existing difficulties inherent in fitting ODE models to data \cite{Girolami2008, Calderhead2011}.
+Case reports data for the city of Vitoria are available for each of the city's 75 neighborhoods, but using those neighborhoods to embed the mechanistic model explicitly into a metapopulation framework leads to a very large, unwieldy mechanistic model that likely exacerbates existing difficulties inherent in fitting ODE models to data \cite{Girolami2008, Calderhead2011}.
 Developing such spatial models and the methods necessary to deal with them is a promising area of future research.
 
 \subsection*{Conclusions}
@@ -477,7 +477,7 @@ Developing such spatial models and the methods necessary to deal with them is a 
 Mosquito surveillance is a valuable tool in managing dengue fever, but is most powerful when integrated into a larger modeling framework.
 We have developed a simple yet realistic mechanistic model of dengue fever spread that allows us to combine mosquito and clinical surveillance to estimate the latent mosquito demographic rates that govern the critical bottleneck between mosquito abundance and human disease.
 That we have done this in a fully hierarchical Bayesian framework allows for a thorough accounting of uncertainty that can be carried through to the evaluation of different control strategies.
-This combination of model features meets many of the recommendations of \cite{Morrison2008, Achee2015} for developing more effective, biologically grounded, and data-driven dengue control policies and offers a building block on which these tools can be developed in the future.
+This combination of model features meets many of the recommendations of \cite{Morrison2008, Achee2015} for developing more effective, biologically grounded, and data-driven dengue control policies and offers a building block on which these tools can be further developed in the future.
 
 \section*{Supporting information}
 
