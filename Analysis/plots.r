@@ -165,7 +165,6 @@ postscript("Manuscript/figures/fig4.eps",
 ggplot(adult_reduction, aes(week, med)) + 
   geom_ribbon(aes(ymin = min, ymax = max), fill = "grey70") + 
   geom_line() +
-  geom_abline(slope = 0, color = "grey20") + 
   theme_classic() + 
   scale_x_continuous(expand = c(0, 1)) +
   xlab("week of control") +
@@ -176,6 +175,7 @@ ggplot(post, aes(tot.week, ycmed)) +
   geom_ribbon(aes(ymin = ycmin, ymax = ycmax), fill = "grey70") + 
   geom_line() + 
   geom_line(aes(tot.week, yhat), linetype = 2) +
+  geom_vline(xintercept = c(56, 108, 160), color = "tomato3") + 
   theme_classic() +
   scale_y_continuous(expand = c(0, 0)) + 
   scale_x_continuous(expand = c(0, 1)) +
