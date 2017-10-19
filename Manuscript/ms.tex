@@ -402,7 +402,7 @@ The third week of the year is generally very early in the dengue season, well be
 In the two years with large outbreaks (2009 and 2011), the third week of the year is near the inflection point where the disease burden begins to grow rapidly.  
 The third week is also generally before the estimated seasonal peak in mosquito abundance, which occurs between weeks 6 and 9 (Figure \ref{timing}).
 Annual peaks in estimated mosquito mortality rate are more variable, but tend to fall between weeks 2 and 7.
-Though mosquito death rates tend to be high early in the year, the transmission risk (i.e. the probability of an exposed mosquito surviving long enough to be infectious, $\left(\frac{\rho_v}{\rho_v + d}\right)$ generally peaks several weeks later and again later in the year.
+Transmission risk (i.e. the probability of an exposed mosquito surviving long enough to be infectious, assuming exponential wait times in the differential equation, $\left(\frac{\rho_v}{\rho_v + d}\right)$ is noisy, but is generally highest from week 40 through week 10.
 
 \begin{figure}[!h]
 \includegraphics[angle = 270, scale = 1]{figures/fig1.eps}
@@ -439,7 +439,7 @@ A: Number of reported cases of dengue fever prevented by increasing the mosquito
 \begin{figure}[!h]
 \includegraphics[angle = 270, scale = 1]{figures/fig5.eps}
 \caption{{\bf Timing of optimal control relative to disease and mosquito dynamics.}
-The vertical black line indicates week 3, during which mosquito control produces the largest decline in predicted dengue case reports. Each colored line represents a different year: dark green = 2008, orange = 2009, purple = 2010, pink = 2011, light green = 2012. A: posterior median estimate of dengue case reports per week. B: posterior median estimate of trapped mosquitoes per week. C: posterior median estimate of weekly mosquito death rate. D: posterior median estimate of weekly transmission risk ($\frac{\rho_v}{\rho_v + d}$).
+The vertical black line indicates week 3, during which mosquito control produces the largest decline in predicted dengue case reports. Each colored line represents a different year: dark green = 2008, orange = 2009, purple = 2010, pink = 2011, light green = 2012. A: posterior median estimate of new dengue cases per week. B: posterior median estimate of number of mosquitoes per person each week. C: posterior median estimate of weekly mosquito death rate. D: posterior median estimate of weekly transmission risk ($\frac{\rho_v}{\rho_v + d}$).
 }
 \label{timing}
 \end{figure}
@@ -458,7 +458,12 @@ Fully exploring such combined strategies requires a more complete model of mosqu
 The lack of such an aquatic phase in our model makes it more suitable for exploring the immediate, direct effects of adult control on transmission, rather than for studying the lagged feedbacks on mosquito population dynamics (and their knock-on effects on transmission).
 Though models of mosquito development can be very complex, e.g. \cite{Magori2009}, our model could be extended to incorporate a compartment for the aquatic phase (as in \cite{Burattini2008, Pinho2010}), though at the cost of introducing several new parameters to the model.
 
-In our model, the relationship between mosquito abundance and human disease risk is controlled by mosquito mortality, which, together with the extrinsic incubation period ($\rho_v$), controls how  many exposed mosquitoes survive long enough to become infectious.
+In our model, the relationship between mosquito abundance and human disease risk is controlled by mosquito mortality, which, together with the extrinsic incubation period ($\rho_v$), controls the probability of an exposed mosquito surviving long enough to be infectious $\left(\frac{\rho_v}{\rho_v + d}\right)$.
+Since the extrinsic incubation period is forced by temperature, the time series of transmission risk is noisy, but is highest during what is generally the dengue off-season.
+That these periods of high transmission risk do not correspond to periods of high disease is likely due to the feedbacks between mosquito population dynamics and human epidemiology.
+Even though transmission risk is high and mosquito abundance is climbing late in the year, it takes a relatively long time for enough infection to build in the human population for an outbreak to occur.
+Despite these seasonal fluctuations, transmission risk is always fairly low (less than 0.4), suggesting that throughout the year, relatively few mosquitoes may be responsible for transmission.
+
 As implemented, mosquito mortality is the only source of uncertainty/stochasticity in the transmission process.
 As a result, mosquito mortality could be soaking up other sources of stochasticity or model misspecification.
 Our implementation of the mortality process is conceptually similar to the empirical forcing functions developed by \cite{Hooker2015}.
