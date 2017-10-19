@@ -362,8 +362,13 @@ $\phi_q$ & Per-trap mosquito capture rate & $2 \times 10^{-6}$ week$^{-1}$ &
 \end{table}
 
 \subsection*{Implementation}
- 
-Samples from the posterior distribution were generated using Hamiltonian Monte Carlo implemented in the rstan package \cite{Carpenter2016, Rstan2017} for R \cite{R2016}. 
+
+Sampling from the posterior distribution in non-linear differential equation models is often very difficult, due to multimodality, variable parameter sensitivities (e.g. small changes in one parameter may lead to large changes in output, while similar changes in another parameter may have little effect), and potentially strong posterior correlations among parameters \cite{Reilly2005, Girolami2008, Calderhead2011}.
+In addition, the computational burden of numerically solving the differential equation model at each iteration means that sampling efficiency is crucial.
+These problems can be mitigated by introducing stochasticity through the $\epsilon_t$ in the mosquito demographic processes.
+This allows the data to pull the latent states closer even when the parameters are far from optimal values \cite{Leander2014}.
+This reduces multimodality and allows gradient-based methods like Hamiltonain Monte Carlo (HMC) to more easily and efficiently traverse the posterior.
+Samples from the posterior distribution were thus generated using HMC implemented in the rstan package \cite{Carpenter2016, Rstan2017} for R \cite{R2016}. 
 We ran 3 chains with different starting values for 10,000 iterations each, discarding the first 5,000 as burn-in.
 Within stan, the solution to the differential equation model was approximated with an Euler scheme with a time step of 1 day.  
 
