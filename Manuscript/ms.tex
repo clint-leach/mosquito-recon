@@ -471,13 +471,14 @@ These lags likely mean that larval control should likely be applied prior to wee
 Models of mosquito development can be very complex, e.g. \cite{Magori2009}, but our model could be extended to account for these lags through a compartment for the aquatic phase (as in \cite{Burattini2008, Pinho2010}), though at the cost of introducing several new parameters.
 
 As implemented, mosquito mortality is the only source of uncertainty/stochasticity in the transmission process.
-As a result, mosquito mortality could be soaking up other sources of stochasticity or model misspecification.
+As a result, the estimated mosquito mortality could be soaking up other sources of stochasticity or model misspecification.
 Our implementation of the mortality process is conceptually similar to the empirical forcing functions developed by \cite{Hooker2015}.
-In that framework, \cite{Hooker2015} allow the parameters of a differential equation model to change over time and use the resulting time series to differentiate causes of lack-of-fit.
-Though we do not employ the same explicit testing framework here, we treat the estimated mosquito mortality time series in the same spirit.
-In particular, we can check whether our estimated mosquito mortality time series is mechanistically plausible.
-Our estimated mosquito mortalities generally fall within the reasonable range from the literature \cite{Maciel-de-Freitas2008, Brady2013}.
-The fact that our estimated mortality rate varies seasonally and increases with temperature also agrees with the empirical literature on mosquito survival.
+In that framework, \cite{Hooker2015} estimate nonparametric functions in time that modify either the differential equations or specific model parameters to provide a good fit to the data.
+These forcing functions serve as residuals on the time derivatives, and can be more readily interpreted as indicators of lack-of-fit than residuals on the state variables.
+Though we do not employ the same explicit testing framework as \cite{Hooker2015}, we treat the estimated mosquito mortality time series in the same spirit.
+In particular, the weak periodic structure in the estimated $\epsilon_{dt}$ suggests that there may be some unmodeled, higher frequency process influencing transmission.
+Despite this, our estimated mosquito mortalities generally fall within the reasonable range from the literature \cite{Maciel-de-Freitas2008, Brady2013}.
+The fact that our estimated mortality rate varies seasonally and increases with temperature above 20 degrees also agrees with the empirical literature on mosquito survival \cite{Yang2009}, though our estimated relationship is perhaps more extreme than usually estimated in laboratory studies.
 These observations suggest that our estimated mosquito mortality rates may actually be capturing the patterns of mosquito mortality in this system and are not obviously influenced by other sources of uncertainty or misspecification.
 
 Though the estimated mosquito mortality process seems biologically reasonable, we are still employing it to link mosquito abundance and human disease at a relatively large spatial scale, assuming homogeneous mixing between mosquitoes and humans throughout the city.
