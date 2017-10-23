@@ -238,7 +238,7 @@ Such mechanistic models can often perform better than even sophisticated statist
 Moreover, mechanistic models can provide "what-if" tools that can be used to predict the effect of management actions \cite{Buckland2007}.
 Differential equation models provide a natural way to capture the processes above and to link human epidemiology to mosquito demographic processes.
 As noted above, mosquito mortality is a critical component of this link, but cannot be estimated from mosquito surveillance alone.
-Given its role in mediating transmission, however, mosquito mortality can be informed by a combination of mosquito and clinical surveillance, borrowing from the field of integrated population modeling \cite{Shaub2010}.
+Given its role in mediating transmission, however, mosquito mortality can be informed by a combination of mosquito and clinical surveillance, borrowing from the field of integrated population modeling \cite{Schaub2010}.
 
 Many cities in Brazil generate the necessary vector surveillance data through the use of the MI-Dengue system, implemented by the company Ecovec.
 This system deploys a city-wide grid of mosquito sticky traps (MosquiTRAPs) that can be used to target control in highly infested areas \cite{Eiras2009}.
@@ -448,26 +448,32 @@ The vertical black line indicates week 3, during which mosquito control produces
 
 Targeted mosquito control can be an effective tool in reducing the disease burden within a city.
 When faced with limited resources with which to deploy that control, these results suggest that focusing efforts early in the year, specifically in the second to fourth weeks, will lead to the largest reductions in disease.
-Because adult control (increased the mortality rate) and larval control (decreasing the birth rate) produce very similar reductions in disease, the effect of control is likely driven by reducing the standing population of adult mosquitoes, rather than by limiting the transmission potential of exposed or infectious mosquitoes.
-Targeting mosquitoes early in the year as dengue just begins to spread can disrupt the transmission cycle and prevent further amplification and feedback.
+Because adult control (increasing the mortality rate) and larval control (decreasing the birth rate) produce nearly identical reductions in disease, the effect of control is likely driven by reducing the standing population of adult mosquitoes, rather than by limiting the transmission potential of exposed or infectious mosquitoes.
+The lag between optimal control and both mosquito population dynamics and human disease highlights the importance of early intervention and the need to account for the nonlinear processes governing transmission.
+Targeting the mosquito population early in the year as dengue just begins to spread can disrupt the transmission cycle and prevent further amplification and feedback.
 
-The importance of reducing the population of adult mosquitoes agrees with the results of \cite{Burattini2008} whose model of dengue dynamics in Singapore suggests that killing adult mosquitoes is the most effective way to control an epidemic.
-However, they find that larval control is most effective at preventing resurgence of dengue epidemics, and thus that a mixed strategy that includes both larval and adult control is likely to be most effective in the long term.
-The utility of mixed control strategies is further supported by \cite{Pinho2010}, whose model of dengue in Salvador, Brazil suggests that adult control alone is insufficient to bring $R_0$ below 1 and eliminate spread.
+Discussion of the effectiveness of adult control often focuses on the fact that it produces only a brief decline in mosquito abundance \cite{Newton1992, Esu2010}.
+When applied at the peak of an epidemic, this reduction in abundance is likely to have a relatively small effect, as the population rebounds while there are still a large number of infectious human hosts available \cite{Newton1992, Burattini2008}. 
+However, adult control can also have an effect by shortening mosquito lifespan and preventing mosquitoes from living long enough to progress through the extrinsic incubation period and become infectious.
+This forms the basis for much of the theory of adult control \cite{Burattini2008, Morrison2008, Smith2012}, but modeling this effect in a standard differential equation framework is difficult.
+In particular the assumption of exponential wait times implicit in a compartmental model is perhaps ill-suited to modeling the race between mosquito lifespan and incubation period.
+The long tails of the exponential distribution may overestimate the probability that a mosquito survives long enough to become infectious and underestimate the effect of decreasing mosquito lifespan.
+More accurate models of mosquito lifespan and incubation periods could incorporate explicit delays (i.e. assuming a fixed incubation period \cite{Burattini2008}), or additional chained exposed compartments (i.e. assuming the incubation period is gamma-distributed, \cite{Lloyd2001}).
+Including such mechanisms in our model would allow us to better differentiate the effects of larval and adult control and provide a more accurate picture of the effectiveness of adult control.
+In fact, modeling studies that assume exponential wait times suggest that adult control is likely to be ineffective when applied during an epidemic \cite{Newton1992, Pinho2010}, while similar models that include explicit delays for the extrinsic incubation period show adult control being much more effective \cite{Burattini2008}.
+
+Thus, we may underestimate the effect of mosquito control applied later in the year when infectious mosquitoes are prevalent.
+However, our relatively simple model nonetheless shows that reducing mosquito abundance early in the year can be highly effective at preventing dengue cases later in the year.
+This effectiveness is driven primarily by the timing and could be achieved by either adult or larval control strategies.
+Though the mechanisms above might suggest further advantages for adult control, a mixed strategy of adult and larval control may be most effective in the long-term (\cite{Burattini2008, Pinho2010}.
 Fully exploring such combined strategies requires a more complete model of mosquito life history and the lags in population dynamics induced by the mosquito's aquatic stage.
-The lack of such an aquatic phase in our model makes it more suitable for exploring the immediate, direct effects of adult control on transmission, rather than for studying the lagged feedbacks on mosquito population dynamics (and their knock-on effects on transmission).
-Though models of mosquito development can be very complex, e.g. \cite{Magori2009}, our model could be extended to incorporate a compartment for the aquatic phase (as in \cite{Burattini2008, Pinho2010}), though at the cost of introducing several new parameters to the model.
-
-In our model, the relationship between mosquito abundance and human disease risk is controlled by mosquito mortality, which, together with the extrinsic incubation period ($\rho_v$), controls the probability of an exposed mosquito surviving long enough to be infectious $\left(\frac{\rho_v}{\rho_v + d}\right)$.
-Since the extrinsic incubation period is forced by temperature, the time series of transmission risk is noisy, but is highest during what is generally the dengue off-season.
-That these periods of high transmission risk do not correspond to periods of high disease is likely due to the feedbacks between mosquito population dynamics and human epidemiology.
-Even though transmission risk is high and mosquito abundance is climbing late in the year, it takes a relatively long time for enough infection to build in the human population for an outbreak to occur.
-Despite these seasonal fluctuations, transmission risk is always fairly low (less than 0.4), suggesting that throughout the year, relatively few mosquitoes may be responsible for transmission.
+These lags likely mean that larval control should likely be applied prior to week 3, in order to achieve the desired reduction in the adult population in week 3.
+Models of mosquito development can be very complex, e.g. \cite{Magori2009}, but our model could be extended to account for these lags through a compartment for the aquatic phase (as in \cite{Burattini2008, Pinho2010}), though at the cost of introducing several new parameters.
 
 As implemented, mosquito mortality is the only source of uncertainty/stochasticity in the transmission process.
 As a result, mosquito mortality could be soaking up other sources of stochasticity or model misspecification.
 Our implementation of the mortality process is conceptually similar to the empirical forcing functions developed by \cite{Hooker2015}.
-In that framework, \cite{Hooker2015} allow parameters of differential equation models to change over time and use the resulting time series to differentiate causes of lack-of-fit.
+In that framework, \cite{Hooker2015} allow the parameters of a differential equation model to change over time and use the resulting time series to differentiate causes of lack-of-fit.
 Though we do not employ the same explicit testing framework here, we treat the estimated mosquito mortality time series in the same spirit.
 In particular, we can check whether our estimated mosquito mortality time series is mechanistically plausible.
 Our estimated mosquito mortalities generally fall within the reasonable range from the literature \cite{Maciel-de-Freitas2008, Brady2013}.
