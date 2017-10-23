@@ -482,20 +482,27 @@ The fact that our estimated mortality rate varies seasonally and increases with 
 These observations suggest that our estimated mosquito mortality rates may actually be capturing the patterns of mosquito mortality in this system and are not obviously influenced by other sources of uncertainty or misspecification.
 
 Though the estimated mosquito mortality process seems biologically reasonable, we are still employing it to link mosquito abundance and human disease at a relatively large spatial scale, assuming homogeneous mixing between mosquitoes and humans throughout the city.
-However, structured human movement within the city is likely to be a major driver of heterogeneous human-mosquito mixing \cite{Adams2009, Cosner2009a, Stoddard2009, Dalziel2013}.
+However, structured human movement within the city is likely to be a major driver of heterogeneous human-mosquito mixing \cite{Adams2009, Cosner2009a, Stoddard2009}.
 In addition spatial variability in socioeconomic factors within the city may also modulate the extent to which mosquitoes in different parts of the city contribute to disease spread \cite{Mondini2008, Honorio2009, Hu2012, DeMattosAlmeida2007}.
 This heterogeneity can have substantial consequences for disease dynamics.
-In fact, in a modeling study \cite{Dye1986, Hasibeder1988} found that introducing heterogeneous mixing always increases $R_0$ relative to homogeneous mixing.
+In fact, \cite{Dye1986, Hasibeder1988} found that introducing heterogeneous mixing to models of vector-borne disease spread always increases $R_0$ relative to homogeneous mixing.
 
 Though this suggests that our model may overestimate the efficacy of mosquito control, it also points the way towards more efficient and effective control methods.
-If disease risk is driven by high levels of contact with a relatively small proportion of the mosquito population \cite{Canyon1999, Yoon2012}, control policies that preferentially target these subsets of the mosquito population are likely to be very effective.
-Identifying these subsets is difficult in practice.
+Though our results suggest that applying control early in the year is critical to disrupting city-wide disease spread, targeting the city's entire mosquito population is likely infeasible and spatial prioritization of control is also necessary.
+If disease risk is driven by high levels of contact with a relatively small proportion of the mosquito population \cite{Yoon2012}, control policies that preferentially target these subsets of the mosquito population are likely to be very effective.
+These subsets can be difficult to identify in practice.
 One possible strategy is through the use of contact-tracing, which can identify and target specific premises that have been directly implicated in transmission \cite{Vazquez-Prokopec2017}.
 Though effective, this strategy is extremely labor-intensive and would be difficult to implement in endemic areas.
 
-On the other hand, if we can capture this heterogeneity in a modeling framework similar to ours, using currently available surveillance data, we can explore more sophisticated, spatially targeted control strategies.
-However, incorporating spatial structure into our model would involve a substantial statistical and computational burden.
-Case reports data for the city of Vitoria are available for each of the city's 75 neighborhoods, but using those neighborhoods to embed the mechanistic model explicitly into a metapopulation framework leads to a very large, unwieldy mechanistic model that likely exacerbates existing difficulties inherent in fitting ODE models to data \cite{Girolami2008, Calderhead2011}.
+This highlights again the role that can be played by coupled mechanistic-statistical models like the one developed here that can make use of currently available surveillance data.
+Though aggregated here, MosquiTRAP surveillance data are available at the level of the individual trap, and case reports for the city of Vitoria are available for each of the city's 75 neighborhoods.
+Spatial structure and human movement can be incorporated into models of dengue transmission, e.g. through the methods outlined in \cite{Cosner2015}, but at the cost of substantial statistical and computational burden.
+For instance, embedding the model presented here into a metapopulation framework based on the city's neighborhoods leads to a very large, unwieldy mechanistic model.
+Moreover, without external data on human movement \cite{Stoddard2009}, it would be very difficult to identify its role in disease dynamics.
+These dimensionality and identifiability issues would likely exacerbate existing difficulties inherent in fitting ODE models to data \cite{Girolami2008, Calderhead2011}.
+These problems could be somewhat ameliorated through the use of high-dimensional filtering techniques (Citations) or gradient matching methods.
+Intermediate methods that combine city-scale mechanistic modeling with lower-level statistical approaches may be the most promising route, e.g. use models like the one presented here to develop temporal targeting of control, while using more traditional methods to target control spatially within the recommended temporal window.
+
 Developing such spatial models and the methods necessary to deal with them is a promising area of future research.
 
 \subsection*{Conclusions}
