@@ -379,7 +379,7 @@ In particular, we investigate the optimal timing of a single pulse of control wi
 To obtain the posterior distribution of the number of cases prevented by implementing control in week $i$ each year, for each posterior sample $k$, we simulate an increase in the latent mosquito death rate during each week $i$, e.g.,
 $\hat{d}^{(k)}_{yi} = (1 + \Delta) d^{(k)}_{yi}$, where $y$ indexes the year, and $i$ indexes the week of the year.
 Then we sum the total number of cases reported in this scenario and compare to the data to get an estimate of the number of cases prevented.
-To keep our simulations conservative, and to avoid pushing the model into the unrealistic range of dengue eradication, we set $\Delta = 0.05$.
+To keep our simulations conservative relative to field estimates of the mortality induced by spraying \cite{Esu2010}, and to avoid pushing the model into the unrealistic range of dengue eradication, we set $\Delta = 0.05$.
 We also only simulate the effect of control in the middle three years, as the effectiveness of control in the first year is strongly affected by initial conditions, and we lack complete data for the last year.
 
 \section*{Results}
@@ -387,7 +387,8 @@ We also only simulate the effect of control in the middle three years, as the ef
 The model is able to capture the observed dynamics of both case reports and mosquito trap counts (Figure \ref{timeseries}).
 The estimated posterior median case reports explain 91\% of the variation in the observed time series, while the posterior median mosquito trap counts explain 45\% of the variation in the observed time series. 
 In addition, posterior predictive checks show that the model reproduces the the total number of cases reported and mosquitoes captured as well as the autocorrelation structure of both time series (with the exception of slightly underestimating the autocorrelation for short lags, Supplemental Figures 5 - 7).
-Posterior means for the three epidemiological parameters ($\rho, \gamma, \delta$) are close to the literature values used to set their prior means (Supplemental Figure 3).
+The posterior distributions of the three epidemiological parameters ($\rho, \gamma, \delta$) differ from their priors, though they do still cover the literature values used to set their prior means (Supplemental Figure 3).
+The estimated latent period in a human host ($1/\rho$) is influenced most strongly by the data, with a posterior mean of 1.4 weeks compared to a prior mean of 0.87 weeks.
 
 The estimated latent mosquito demographic rates are smooth and strongly seasonal, with fairly narrow credible intervals (Figure \ref{latent}).
 Mosquito mortality rates fluctuate within the range estimated by \cite{Brady2013} and generally increase with temperature (Figure \ref{temp}).
