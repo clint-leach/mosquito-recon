@@ -465,7 +465,7 @@ In fact, modeling studies that assume exponential wait times suggest that adult 
 Thus, we may underestimate the effect of mosquito control applied later in the year when infectious mosquitoes are prevalent.
 However, our relatively simple model nonetheless shows that reducing mosquito abundance early in the year can be highly effective at preventing dengue cases later in the year.
 This effectiveness is driven primarily by the timing and could be achieved by either adult or larval control strategies.
-Though the mechanisms above might suggest further advantages for adult control, a mixed strategy of adult and larval control may be most effective in the long-term (\cite{Burattini2008, Pinho2010}.
+Though the mechanisms above might suggest further advantages for adult control, a mixed strategy of adult and larval control may be most effective in the long-term \cite{Burattini2008, Pinho2010}.
 Fully exploring such combined strategies requires a more complete model of mosquito life history and the lags in population dynamics induced by the mosquito's aquatic stage.
 These lags likely mean that larval control should likely be applied prior to week 3, in order to achieve the desired reduction in the adult population in week 3.
 Models of mosquito development can be very complex, e.g. \cite{Magori2009}, but our model could be extended to account for these lags through a compartment for the aquatic phase (as in \cite{Burattini2008, Pinho2010}), though at the cost of introducing several new parameters.
@@ -494,16 +494,15 @@ These subsets can be difficult to identify in practice.
 One possible strategy is through the use of contact-tracing, which can identify and target specific premises that have been directly implicated in transmission \cite{Vazquez-Prokopec2017}.
 Though effective, this strategy is extremely labor-intensive and would be difficult to implement in endemic areas.
 
-This highlights again the role that can be played by coupled mechanistic-statistical models like the one developed here that can make use of currently available surveillance data.
-Though aggregated here, MosquiTRAP surveillance data are available at the level of the individual trap, and case reports for the city of Vitoria are available for each of the city's 75 neighborhoods.
-Spatial structure and human movement can be incorporated into models of dengue transmission, e.g. through the methods outlined in \cite{Cosner2015}, but at the cost of substantial statistical and computational burden.
+Due to these difficulties, new methods are needed that can make use of currently available surveillance data to more effectively guide spatial prioritization of control.
+Though aggregated for our model, MosquiTRAP surveillance data are available at the level of the individual trap, and case reports for the city of Vitoria are available for each of the city's 75 neighborhoods.
+To interface with these data, spatial structure and human movement could be incorporated into models of dengue transmission, e.g. through the methods outlined in \cite{Cosner2015}, but at the cost of substantial statistical and computational burden.
 For instance, embedding the model presented here into a metapopulation framework based on the city's neighborhoods leads to a very large, unwieldy mechanistic model.
-Moreover, without external data on human movement \cite{Stoddard2009}, it would be very difficult to identify its role in disease dynamics.
+Moreover, without external data on human movement (e.g. as discussed in \cite{Stoddard2009}), it would be very difficult to identify its role in disease dynamics.
 These dimensionality and identifiability issues would likely exacerbate existing difficulties inherent in fitting ODE models to data \cite{Girolami2008, Calderhead2011}.
-These problems could be somewhat ameliorated through the use of high-dimensional filtering techniques (Citations) or gradient matching methods.
-Intermediate methods that combine city-scale mechanistic modeling with lower-level statistical approaches may be the most promising route, e.g. use models like the one presented here to develop temporal targeting of control, while using more traditional methods to target control spatially within the recommended temporal window.
-
 Developing such spatial models and the methods necessary to deal with them is a promising area of future research.
+In the absence of such methods, spatial targeting of control based on more traditional methods (e.g. local entomological thresholds) could be combined with temporal targeting based on city-scale mechanistic modeling.
+This would allow mosquito control efforts to exploit the critical timing identified by the mechanistic modeling, while also taking advantage of the spatial richness of the surveillance data to allocate limited resources. 
 
 \subsection*{Conclusions}
 
