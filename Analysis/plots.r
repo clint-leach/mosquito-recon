@@ -187,7 +187,7 @@ grid.arrange(fig4.a, fig4.b, ncol = 2)
 
 dev.off()
 
-# Figure 5: timing of control ==================================================
+# Figure 5: Timing of control ==================================================
 
 post <- mutate(post, 
                ymu = system[, , 8] %>% 
@@ -201,9 +201,9 @@ post <- mutate(post,
                  apply(1, function(x){rov / (rov + x)}) %>% 
                  apply(1, median))
 
-stacked <- melt(post, id.vars = c("week", "year"), measure.vars = c("ymu", "qmu", "dvmed", "risk"))
+stacked <- melt(post, id.vars = c("week", "year"), measure.vars = c("ymu", "qmu", "dvmed"))
 
-levels(stacked$variable) <- c("cases", "mosquitoes", "death rate", "transmission risk")
+levels(stacked$variable) <- c("cases", "mosquitoes", "death rate")
 
 postscript("Manuscript/figures/fig5.eps",
            width = 4, height = 6,
