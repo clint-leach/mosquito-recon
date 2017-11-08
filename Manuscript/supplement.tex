@@ -59,11 +59,13 @@ T_{\delta} & \sim \text{Gamma}(10, 10)\\
 \delta & = (97 T_{\delta})^{-1}\\
 \gamma' & \sim \text{Gamma}(100, 100)\\
 \gamma & = 3.5\gamma'\\
-S_0' & \sim \text{Normal}(-0.4, 0.2)\\
-E_0' & \sim \text{Normal}(-9, 0.6)\\
-I_0' & \sim \text{Normal}(-9, 0.6)\\
-R_0' & = 0\\
-S_0 & = \frac{\exp(S_0)}{\exp(S_0' + E_0' + I_0' + R_0')} \\
+S_0' & \sim \text{Beta}(4, 6)\\
+E_0' & \sim \text{Gamma}(10, 0.1)\\
+I_0' & \sim \text{Gamma}(6, 0.1)\\
+E_0 & = E_0' / N \\
+I_0 & = I_0' / N \\ 
+S_0 & = S_0'(1 - E_0 - I_0) \\
+R_0 & = 1 - S_0 - E_0 - I_0
 \end{align}
 
 \subsection*{Details of prior specification}
@@ -95,15 +97,14 @@ Again we specify the prior on the multiplicative scale to have a mean of one and
 where $\gamma = 3.5\gamma'$.
 \\
 \item \textbf{Initial conditions} ($S_0, E_0, I_0, R_0$): The SEIRS model assumes a constant population size and is scaled so that $S_0+E_0+I_0+R_0 = 1$.
-We specify our prior on an unconstrained scale and transform to the simplex with the softmax transformation.
-To maintain identifiability of this transformation, we fix $R_0' = 0$.
-We choose the prior for $S_0'$  so that $S_0$ has a mean of roughly  0.4, with the mass concentrated between 0.2 and 0.6.
+We place priors on the initial number of exposed and infectious individuals, rather than the initial proportion, as it provides a more intuitive scale.
+We set the prior mean for $E_0'$ and $I_0'$ at 100 and 60 individuals respectively, to account for the fact that the annual epidemic should be just beginning, with infectious individuals lagging behind exposed.
+These means were chosen large enough to ensure sustained multi-annual transmission, but with a relatively large variance.
+We choose the prior for $S_0'$, the proportion of remaining individuals initially susceptible, to have a mean of roughly  0.4, with the mass concentrated between 0.2 and 0.6.
 This range produces dynamics with recurring annual outbreaks and avoids the extremes where the disease either does not spread or spreads far too quickly and then dies out.
 This is also roughly consistent with \cite{Cardoso2011a} who report notified cases for Vitoria from 1995 to 2008. 
-They report that the 2008 outbreak (where our data begins) was driven by serotypes 2 and 3, and 2009 by serotype 2 only, with 13590 reported cases in previous serotype 2 years.
-Assuming 12 unreported cases for every reported case, 163,080 total cases, or about 50\% of the population immune to serotype 2 at the start of 2008.
-We choose the priors for $E_0'$ and $I_0'$ so that the initial sizes of these compartments were less than 100 individuals, but with a mode slightly off from zero.
-This was again chosen primarily to ensure sustained multi-annual transmission.
+They report that the 2008 outbreak (where our data begins) was driven by serotypes 2 and 3, and 2009 by serotype 2 only, with 13590 reported serotype 2 cases in previous years.
+Assuming 12 unreported cases for every reported case, there should be 163,080 total cases, or about 50\% of the population, immune to serotype 2 at the start of 2008.
 \\
 \item \textbf{Mosquito population size and capture probability} ($\log(V_{N0}), \phi_q$): Wearing and Rohani \cite{Wearing2006} assume 2 mosquitoes per person in their model of dengue transmission, so we use that to inform our prior on $\log(V_{N0})$.
 Since $V_{N}$ has been scaled by the human population size, we center the prior for $\log(V_{N0})$ at $\log(2) = 0.7$ and set the variance to concentrate mass between 0.5 and 5 mosquitoes per person.
@@ -145,13 +146,12 @@ There are relatively few reliable estimates of the transmission probability of D
 \item \textbf{Reporting probability} ($\phi_y$): Silva \textit{et al.} \cite{Silva2016} estimate that there are 12 cases of dengue for every case reported to Brazil's Notifiable Diseases Information System (SINAN, the source of our data), so we fix $\phi_y = 1/12$.
 \\
 \item \textbf{Extrinsic incubation period} ($1/\rho_{vt}$): Temperature is thought to play an important role in the seasonality of dengue, in particular through its influence on the extrinsic incubation period of the virus in the mosquito  (the amount of time until a mosquito becomes infectious after taking an infectious blood meal).
-To account for this, we make $1/\rho_v$ a function of temperature, and force it with weekly mean temperature records for Vitoria downloaded from Weather Underground (URL/citation).
+To account for this, we make $1/\rho_v$ a function of temperature, and force it with weekly mean temperature records for Vitoria downloaded from Weather Underground.
 We use the temperature relationship from the recent meta-analysis of \cite{Chan2012}, which incorporates a large number of records and accounts for the interval-censored nature of the data usually available from mosquito transmission studies.
-We use a slightly more conservative fitted relationship from a log-normal model that excludes right-censored data and produces a less extreme temperature dependence:
-\begin{align}
-\frac{1}{\rho_v} &= \exp \left(\mu + \frac{1}{14}\right)\\
-\mu & = \exp(1.9 - 0.04 T)
-\end{align}
+To correspond with the assumptions of the differential equation model, we use the relationship obtained under the assumption that the incubation period at any given temperature is exponentially-distributed:
+\begin{equation}
+\rho_v = 7\exp \left(0.2T - 8\right)\\
+\end{equation}
 This relationship is similar to those reported in \cite{Focks1995} and \cite{Tjaden2013}, though there is uncertainty about the exact shape of this relationship.
 \end{itemize}
 
