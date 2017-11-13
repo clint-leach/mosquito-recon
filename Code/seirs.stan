@@ -76,6 +76,7 @@ functions {
 data {
   int<lower=1> T;
   int<lower=0> T_pred;
+  int<lower=1> steps;
   int y[T];
   int q[T];
   vector[T] tau;
@@ -149,7 +150,7 @@ transformed parameters {
 model {
   vector[T] y_hat;
   vector[T] q_hat;
-  vector[12] state[T * 7 + 1];
+  vector[12] state[T * steps + 1];
   int idx = 1;
   
   // Priors
@@ -191,9 +192,9 @@ model {
   state[1] = y0;
 
   for (t in 1:T){
-    for(j in 1:7){
+    for(j in 1:steps){
       
-      state[idx + 1] = state[idx] + 1.0 / 7.0 * derivs(t, 
+      state[idx + 1] = state[idx] + 1.0 / steps * derivs(t, 
                                                        state[idx], 
                                                        mu_rv[t], 
                                                        rov[t], 
@@ -210,8 +211,8 @@ model {
       idx = idx + 1;
     }
     
-    q_hat[t] = state[idx, 7] - state[idx - 7, 7];
-    y_hat[t] = state[idx, 8] - state[idx - 7, 8];
+    q_hat[t] = state[idx, 7] - state[idx - steps, 7];
+    y_hat[t] = state[idx, 8] - state[idx - steps, 8];
 
   }
   
@@ -230,9 +231,9 @@ generated quantities {
   
   // Estimated trajectories
   for (t in 1:T){
-    for(j in 1:7){
+    for(j in 1:steps){
       
-      state = state + 1.0 / 7.0 * derivs(t, 
+      state = state + 1.0 / steps * derivs(t, 
                                          state, 
                                          mu_rv[t],
                                          rov[t], 
@@ -259,9 +260,9 @@ generated quantities {
   // Predicted trajectory
   for (k in 1:T_pred){
 
-    for(j in 1:7){
+    for(j in 1:steps){
       
-      state = state + 1.0 / 7.0 * derivs(T + k, 
+      state = state + 1.0 / steps * derivs(T + k, 
                                          state, 
                                          normal_rng(0, sigmarv),
                                          rov[T + k], 

@@ -39,6 +39,7 @@ rov <- 7 * exp(0.2 * covars$temp - 8)
 
 dat.stan <- list(T = 243,
                  T_pred = 0,
+                 steps = 56,
                  y =data$obs,
                  q = data$q,
                  tau = data$tau,
@@ -98,7 +99,7 @@ inits = list(list(S0 = 0.4,
 fit <- stan(file = "Code/seirs.stan", 
             data = dat.stan, 
             init = inits, 
-            iter = 10000, 
+            iter = 200, 
             chains = 3,
             control = list(adapt_delta = 0.99,
                            max_treedepth = 15))

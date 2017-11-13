@@ -69,6 +69,7 @@ reduction <- foreach(k = 1:nmcmc, .combine = "cbind", .packages = c("rstan", "ma
     
     dat.stan <- list(T = 243,
                      T_pred = 0,
+                     steps = 7,
                      y = data$obs,
                      q = data$q,
                      tau = data$tau,
@@ -113,6 +114,7 @@ week3 <- foreach(k = 1:nmcmc, .packages = c("rstan", "magrittr")) %dopar% {
   
   dat.stan <- list(T = 243,
                    T_pred = 0,
+                   steps = 7,
                    y = data$obs,
                    q = data$q,
                    tau = data$tau,
@@ -155,6 +157,7 @@ week12 <- foreach(k = 1:nmcmc, .packages = c("rstan", "magrittr")) %dopar% {
   
   dat.stan <- list(T = 243,
                    T_pred = 0,
+                   steps = 7,
                    y = data$obs,
                    q = data$q,
                    tau = data$tau,
