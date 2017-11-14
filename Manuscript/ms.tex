@@ -193,7 +193,7 @@ Jennifer Hoeting\textsuperscript{4}
 \bigskip
 \textbf{1} Affiliation Dept/Program/Center, Institution Name, City, State, Country
 \\
-\textbf{2} Affiliation Dept/Program/Center, Institution Name, City, State, Country
+\textbf{2} National Wildlife Research Center, United States Department of Agriculture, Wildlife Services, Fort Collins, CO, USA
 \\
 \textbf{3} Affiliation Dept/Program/Center, Institution Name, City, State, Country
 \\
@@ -233,18 +233,18 @@ Grounding this modeling famework in the actual mechanisms of transmission will h
 Dengue fever is a massive global public health burden, with millions of cases per year in Brazil alone \cite{Bhatt2013}.  
 Because the dengue virus (DENV) is vectored by the mosquito \textit{Aedes aegypti}, dengue fever is prevented primarily through mosquito control programs \cite{Achee2015}.
 There is limited direct evidence of the success of existing control programs \cite{Esu2010}, possibly due to very low mosquito abundance thresholds for sustaining transmission \cite{Scott2010a}.
-Because of this, there is a growing recognition that effective control needs to be guided by high quality vector surveillance, together with quantitative tools that synthesize that surveillance with clinical surveillance, account for local epidemiology, and connect easily to decision making \cite{Morrison2008}.
+Because of this, there is a growing recognition that effective control needs to be guided by high quality vector surveillance, together with quantitative tools that synthesize vector surveillance with clinical surveillance, account for local epidemiology, and connect easily to decision making \cite{Morrison2008}.
 Moreover, mosquito control needs to be guided by an understanding of the link between mosquito surveillance indices and disease risk so that the mosquitoes most responsible for transmission can be targeted.
 
 Many of the attempts to establish this link have found a weak relationship \cite{Bowman2014, Pepin2015, Cromwell2017}.
 However, these attempts often fail to account for the complex, non-linear interactions that mediate the relationship between mosquito abundance and human disease.
 In particular, the ability of mosquitoes to contribute to DENV transmission depends critically on the level of prior immunity in the human population \cite{Scott2010a} and on mosquito demographic processes themselves.
-The cycle of transmission between humans and mosquitoes is controlled not just by mosquito abundance, but also by mosquito survival relative to the virus' incubation period \cite{Achee2015}.
+The cycle of transmission between humans and mosquitoes is influenced not just by mosquito abundance, but also by mosquito survival relative to the virus' incubation period in mosquitoes \cite{Achee2015}.
 In fact, whether or not an exposed mosquito will survive long enough to become infectious represents a critical bottleneck in the transmission process.
 
-The importance of these processes in governing human disease risk highlight the need to integrate mechanistic modeling into the quantitative tools used to target control efforts.
-Such mechanistic models can often perform better than complex autoregressive statistical models in describing and predicting population dynamics \cite{Reilly2005}.
-Moreover, mechanistic models can provide scenario-based tools that can be used to predict the effect of management actions \cite{Buckland2007}.
+The importance of mosquito demographic processes in governing human disease risk highlight the need to integrate mechanistic modeling into the quantitative tools used to target control efforts.
+Such mechanistic models can often perform better than complex autoregressive statistical models in describing and forecasting population dynamics \cite{Reilly2005}.
+Moreover, mechanistic models can provide scenario-based tools that can be used to predict the effect of management actions \cite{Buckland2007}, which cannot be done without explicit representation of mechanistic processes or data from case-control studies.
 Differential equation models provide a natural way to encode the relevant biological mechanisms and to link human epidemiology to mosquito demographic processes.
 As noted above, mosquito mortality is a critical component of this link, but cannot be estimated from mosquito surveillance alone.
 Given its role in mediating transmission, however, mosquito mortality can be informed by a combination of mosquito and clinical surveillance, borrowing from the field of integrated population modeling \cite{Schaub2010}.
@@ -393,9 +393,9 @@ We also only simulated the effect of control in the middle three years, because 
 
 \section*{Results}
 
-The model is able to capture the observed dynamics of both case reports and mosquito trap counts (Figure \ref{timeseries}).
-The estimated posterior median case reports explain 91\% of the variation in the observed time series, while the posterior median mosquito trap counts explain 45\% of the variation in the observed time series. 
-In addition, posterior predictive checks show that the model reproduces the total number of cases reported and mosquitoes captured as well as the autocorrelation structure of both time series (with the exception of slightly underestimating the autocorrelation for short lags, Supplemental Figures 5 - 7).
+The model captured the observed dynamics of both case reports and mosquito trap counts (Figure \ref{timeseries}).
+The estimated posterior median case reports explained 91\% of the variation in the observed time series, while the posterior median mosquito trap counts explained 45\% of the variation in the observed time series. 
+In addition, posterior predictive checks showed that the model reproduced the total number of cases reported and mosquitoes captured as well as the autocorrelation structure of both time series (with the exception of slightly underestimating the autocorrelation for short lags, Supplemental Figures 5 - 7).
 The posterior distributions of the three epidemiological parameters ($\rho, \gamma, \delta$) differ from their priors, though they do still cover the literature values used to set their prior means (Supplemental Figure 3).
 The estimated latent period in a human host ($1/\rho$) is influenced most strongly by the data, with a posterior mean of 1.4 weeks compared to a prior mean of 0.87 weeks.
 
@@ -403,7 +403,7 @@ The estimated latent mosquito demographic rates are smooth and strongly seasonal
 Mosquito mortality rates fluctuate within the range estimated by \cite{Brady2013} and generally increase with temperature (Figure \ref{temp}).
 The underlying posterior process standard deviations are small ($E(\sigma_{\nu}|\mathbf{y}) = 0.01$, $E(\sigma_r|\mathbf{y}) = 0.0005$, Supplemental Figure 2), and there is little residual structure in the process noise series, though there is a weak periodic signal in the $\epsilon_{\nu}$ (Supplemental Figure 1).
 
-Modifying these estimated demographic rates to simulate targeted control efforts, we found that control applied in the third week of the year is the most effective at preventing cases of dengue fever (though weeks 2 and 4 are also very close, Figure \ref{control}A).
+Modifying these estimated demographic rates to simulate targeted control efforts, we found that control applied in the third week of the year (in January) is the most effective at preventing cases of dengue fever (though weeks 2 and 4 are also very close, Figure \ref{control}A).
 In fact, increasing the mosquito mortality rate by just 5\% in the third week of 2009, 2010, and 2011 would prevent 13,988 (reported) cases of dengue fever (with 80\% credible interval of 11,130 to 15,811).
 Most of these gains come by way of substantially reducing the size of the large 2011 outbreak, while also further damping the smaller 2010 and 2012 outbreaks (Figure \ref{control}B).
 Targeting larvae instead of adults (simulated by reducing the birth rate ($b_t = r_t + d_t$) by 5\%) produces nearly identical results (Supplemental Figure 8).
@@ -423,7 +423,7 @@ Weekly observations from 2008 to week 34 of 2012 (points), with corresponding me
 
 \begin{figure}[!h]
 \includegraphics[angle = 270, scale = 1]{figures/fig2.eps}
-\caption{{\bf Estimated latent mosquito growth and death rates.}
+\caption{{\bf Estimated latent mosquito population growth and death rates.}
 Median posterior estimate (line) and 80\% credible interval (gray band).  A: weekly mosquito population growth rate ($r_t$). B: weekly mosquito death rate ($d_t$).
 }
 \label{latent}
@@ -459,7 +459,7 @@ Targeted mosquito control can be an effective tool in reducing the disease burde
 When faced with limited resources with which to deploy that control, these results suggest that focusing efforts early in the year, specifically in the second to fourth weeks, will lead to the largest reductions in disease.
 Because adult control (increasing the mortality rate) and larval control (decreasing the birth rate) produce nearly identical reductions in disease, the effect of control is likely driven by reducing the standing population of adult mosquitoes, rather than by limiting the transmission potential of exposed or infectious mosquitoes.
 The lag between optimal control and both mosquito population dynamics and human disease highlights the importance of early intervention and the need to account for the nonlinear processes governing transmission.
-Targeting the mosquito population early in the year as dengue just begins to spread can disrupt the transmission cycle and prevent further amplification and feedback.
+Targeting the mosquito population early in the year as dengue just begins to spread can disrupt the transmission cycle and prevent further amplification and feedback later in the year.
 
 Discussion of the effectiveness of adult control often focuses on the fact that it produces only a brief decline in mosquito abundance \cite{Newton1992, Esu2010}.
 When applied at the peak of an epidemic, this reduction in abundance is likely to have a relatively small effect, because the population rebounds while there are still a large number of infectious human hosts available \cite{Newton1992, Burattini2008}. 
@@ -473,7 +473,7 @@ In fact, modeling studies that assume exponential wait times suggest that adult 
 
 Thus, our model may underestimate the effect of adult mosquito control applied later in the year when infectious mosquitoes are prevalent.
 However, our model nonetheless shows that reducing mosquito abundance early in the year can be highly effective at preventing dengue cases later in the year.
-This effectiveness is driven primarily by the timing and could be achieved by either adult or larval control strategies.
+This effectiveness is driven primarily by the timing of the reduction in mosquito abundance and could be achieved by either adult or larval control strategies.
 Although the mechanisms above might suggest further advantages for adult control, a mixed strategy of adult and larval control may be most effective in the long-term \cite{Burattini2008, Pinho2010}.
 Fully exploring such combined strategies requires a more complete model of mosquito life history and the lags in population dynamics induced by the mosquito's aquatic stage.
 These lags likely mean larval control should be applied prior to week 3 to achieve the desired reduction in the adult population in week 3.
@@ -497,13 +497,13 @@ This heterogeneity can have substantial consequences for disease dynamics.
 In fact, \cite{Dye1986, Hasibeder1988} found that introducing heterogeneous mixing to models of vector-borne disease spread always increases $R_0$ relative to models with homogeneous mixing.
 
 This suggests that our model may overestimate the efficacy of mosquito control, but it also points a way toward more efficient and effective control methods.
-Our results suggest that applying control early in the year is critical to disrupting city-wide disease spread, but targeting the city's entire mosquito population is likely infeasible and spatial prioritization of control is also necessary.
+Our results suggest that applying control early in the year is critical to disrupting city-wide disease spread, but targeting the city's entire mosquito population is likely infeasible and spatial prioritization of control is also necessary \cite{Pepin2015}.
 If disease risk is driven by high levels of contact with a relatively small proportion of the mosquito population \cite{Yoon2012}, control policies that preferentially target these subsets of the mosquito population are likely to be very effective.
 However, these subsets can be difficult to identify in practice.
 One possible strategy is to employ contact-tracing, which can identify and target specific premises that have been directly implicated in transmission \cite{Vazquez-Prokopec2017}.
 Though effective, this strategy is extremely labor-intensive and would be difficult to implement in endemic areas.
 
-Due to these difficulties, new methods are needed that can make use of currently available surveillance data to more effectively guide spatial prioritization of control.
+Due to these difficulties, new methods are needed that can make use of currently available surveillance data to more effectively guide spatial prioritization of control \cite{Pepin2015}.
 MosquiTRAP surveillance data are available at the level of the individual trap, and case reports for the city of Vitoria are available for each of the city's 75 neighborhoods.
 To interface with these data, spatial structure and human movement could be incorporated into models of dengue transmission  (e.g., through the methods outlined in \cite{Cosner2015}) but at the cost of substantial statistical and computational burden.
 For instance, embedding the model presented here into a metapopulation framework based on the city's neighborhoods leads to a very large, unwieldy mechanistic model.
@@ -516,7 +516,7 @@ This would allow mosquito control efforts to exploit the critical timing identif
 \subsection*{Conclusions}
 
 Mosquito surveillance is a valuable tool in managing dengue fever, but is most powerful when integrated into a larger modeling framework.
-We have developed a simple yet realistic mechanistic model of dengue fever spread that allows us to combine mosquito and clinical surveillance to estimate the latent mosquito demographic rates that connect mosquito abundance and human disease.
+We have developed a simple yet realistic mechanistic model of dengue fever spread that allows us to combine mosquito and clinical surveillance data to estimate the latent mosquito demographic rates that connect mosquito abundance and human disease.
 The mechanistic framework allows us to capture important lags and feedbacks in the transmission process and to identify critical intervention points that would not be apparent otherwise.
 The fully hierarchical Bayesian framework in which we embedded the mechanistic model allows for a thorough accounting of uncertainty that is carried through to the evaluation of different control strategies.
 This combination of model features helps to meet the need for more effective, biologically grounded, and data-driven dengue control policies and offers a building block on which these tools can be further developed in the future.
