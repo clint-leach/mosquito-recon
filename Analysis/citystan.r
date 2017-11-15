@@ -44,6 +44,7 @@ dat.stan <- list(T = 243,
                  q = data$q,
                  tau = matrix(data$tau, nrow = 243, ncol = 1),
                  rov = matrix(rov, nrow = 243, ncol = 1),
+                 control = matrix(1, nrow = T, ncol = 2),
                  pop = pop)
 
 inits = list(list(S0 = 0.4,

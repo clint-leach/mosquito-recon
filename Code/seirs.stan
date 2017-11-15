@@ -31,12 +31,13 @@ functions {
     real eps_rv = theta[6];
     
     real rov = x_r[1];
+    real ac = x_r[2];
+    real lc = x_r[3];
     
     // Assigning data
     b = 7.0 / (76 * 365);
     lambda = 4.87;
     omega = (pi() / 26);
-
 
     // Computing mosquito population size
     Sv = y[6] - y[5] - y[4];
@@ -63,9 +64,9 @@ functions {
     /*E*/ dydt[2] = foi_vh - infectious - b * y[2];
     /*I*/ dydt[3] = infectious - (gamma + b) * y[3];
     
-    /*VE*/ dydt[4] = foi_hv - infect_mosq - (dv + cap) * y[4];
-    /*VI*/ dydt[5] = infect_mosq - (dv + cap) * y[5];
-    /*VN*/ dydt[6] = y[11] * y[6] - cap * y[6];
+    /*VE*/ dydt[4] = foi_hv - infect_mosq - (ac * dv + cap) * y[4];
+    /*VI*/ dydt[5] = infect_mosq - (ac * dv + cap) * y[5];
+    /*VN*/ dydt[6] = lc * (y[11] + dv) * y[6] - (ac * dv + cap) * y[6];
     
     /*VC*/ dydt[7] = cap * y[6];
     /*cases*/ dydt[8] = infectious;
@@ -87,10 +88,16 @@ data {
   int q[T];
   int tau[T, 1];
   real rov[T, 1];
+  real control[T, 2];
   int pop;
 }
 transformed data {
+  real data_real[T, 3];
   real phi_y = 1.0 / 12.0;
+  
+  data_real[, 1] = rov[, 1];
+  data_real[, 2] = control[, 1];
+  data_real[, 3] = control[, 2];
 }
 parameters {
   real<lower=0,upper=1> S0;            // untransformed initial conditions
@@ -208,7 +215,7 @@ model {
                                       ts[i, 1],
                                       ts[i + 1],
                                       theta,
-                                      rov[i],
+                                      data_real[i],
                                       tau[i],
                                       1e-3,
                                       1e-3,
@@ -249,7 +256,7 @@ generated quantities {
                                       ts[i, 1], 
                                       ts[i + 1], 
                                       theta, 
-                                      rov[i], 
+                                      data_real[i], 
                                       tau[i], 
                                       1e-3, 
                                       1e-3, 
