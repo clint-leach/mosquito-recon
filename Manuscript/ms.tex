@@ -324,13 +324,13 @@ We then model the number of new cases reported in week $t$ ($y_t$) as:
 \begin{equation}
 y_t  \sim \text{NegBin}(\phi_y (C(t) - C(t-1)), \eta_y),
 \end{equation}
-where $\phi_y$ is the reporting probability, $C_t - C_{t-1}$ is the number of new infectious humans in week $t$, and $\eta_y$ controls the overdispersion relative to the Poisson distribution.
+where $\phi_y$ is the reporting probability, $C(t) - C(t-1)$ is the number of new infectious humans in week $t$, and $\eta_y$ controls the overdispersion relative to the Poisson distribution.
 
 We similarly model the number of mosquitoes trapped in week $t$ ($q_t$) as:
 \begin{equation}
 q_t \sim \text{NegBin}(V_{C}(t) - V_{C}(t-1), \eta_q),
 \end{equation}
-where $V_{Ct} - V_{Ct-1}$ is the number of new mosquitoes captured in week $t$, and $\eta_q$ controls overdispersion relative to the Poisson distribution.
+where $V_{C}(t) - V_{C}(t-1)$ is the number of new mosquitoes captured in week $t$, and $\eta_q$ controls overdispersion relative to the Poisson distribution.
 
 \subsection*{Parameterization and priors}
 
