@@ -297,10 +297,10 @@ The differential equations governing the human population are then given as:
 \end{align}
 while the equations governing the mosquito (vector) population are:
 \begin{align}
-\frac{dV_N}{dt} & = r V_N - \phi_q \tau_t V_N \\
-\frac{dV_E}{dt} &= \lambda \frac{I}{N} V_S - (\rho_{vt} + d + \phi_q \tau_t)V_E\\
-\frac{dV_I}{dt} &= \rho_{vt} V_E - (d + \phi_q \tau_t) V_I\\
-\frac{dV_C}{dt} & = \phi_q \tau_t V_N\\
+\frac{dV_N}{dt} & = r(t) V_N - \phi_q \tau(t) V_N \\
+\frac{dV_E}{dt} &= \lambda \frac{I}{N} V_S - (\rho_{v}(t) + d(t) + \phi_q \tau(t))V_E\\
+\frac{dV_I}{dt} &= \rho_{v}(t) V_E - (d(t) + \phi_q \tau(t)) V_I\\
+\frac{dV_C}{dt} & = \phi_q \tau(t) V_N\\
 V_S &= V_N - V_E - V_I.
 \end{align}
 
@@ -322,13 +322,13 @@ These stochastically-forced harmonic oscillators provide a flexible framework fo
 To connect the differential equation model to the observed case reports, we add an extra state, $C$, that collects the cumulative number of transitions from the exposed to infectious class (assuming that case reporting coincides with the onset of symptoms).
 We then model the number of new cases reported in week $t$ ($y_t$) as:
 \begin{equation}
-y_t  \sim \text{NegBin}(\phi_y (C_t - C_{t-1}), \eta_y),
+y_t  \sim \text{NegBin}(\phi_y (C(t) - C(t-1)), \eta_y),
 \end{equation}
 where $\phi_y$ is the reporting probability, $C_t - C_{t-1}$ is the number of new infectious humans in week $t$, and $\eta_y$ controls the overdispersion relative to the Poisson distribution.
 
 We similarly model the number of mosquitoes trapped in week $t$ ($q_t$) as:
 \begin{equation}
-q_t \sim \text{NegBin}(V_{Ct} - V_{Ct-1}, \eta_q),
+q_t \sim \text{NegBin}(V_{C}(t) - V_{C}(t-1), \eta_q),
 \end{equation}
 where $V_{Ct} - V_{Ct-1}$ is the number of new mosquitoes captured in week $t$, and $\eta_q$ controls overdispersion relative to the Poisson distribution.
 
