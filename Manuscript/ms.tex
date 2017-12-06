@@ -231,30 +231,31 @@ Grounding this modeling famework in the actual mechanisms of transmission will h
 % Use "Eq" instead of "Equation" for equation citations.
 \section*{Introduction}
 
-Dengue fever is a massive global public health burden, with millions of cases per year in Brazil alone \cite{Bhatt2013}.  
+Dengue fever is a massive global public health burden, with millions of cases per year \cite{Bhatt2013}.  
 Because the dengue virus (DENV) is vectored by the mosquito \textit{Aedes aegypti}, dengue fever is prevented primarily through mosquito control programs \cite{Achee2015}.
-There is limited direct evidence of the success of existing control programs \cite{Esu2010}, possibly due to very low mosquito abundance thresholds for sustaining transmission \cite{Scott2010a}.
-Because of this, there is a growing recognition that effective control needs to be guided by high quality vector surveillance, together with quantitative tools that synthesize vector surveillance with clinical surveillance, account for local epidemiology, and connect easily to decision making \cite{Morrison2008}.
-Moreover, mosquito control needs to be guided by an understanding of the link between mosquito surveillance indices and disease risk so that the mosquitoes most responsible for transmission can be targeted.
+Though there have been documented successes, there is limited evidence for the long-term sustainability and effectiveness of these control programs \cite{Morrison2008}.
+Because of this, there is a growing recognition that effective control needs to be guided by high quality vector surveillance, together with quantitative tools that synthesize vector surveillance with clinical surveillance, account for local epidemiology, and connect easily to local decision making \cite{Morrison2008, Scott2010b}.
+Moreover, mosquito control needs to be guided by an understanding of the link between mosquito surveillance abundance and disease risk so that the mosquitoes most responsible for transmission can be targeted \cite{Scott2010a, Scott2010b}.
 
-Many of the attempts to establish this link have found a weak relationship \cite{Bowman2014, Pepin2015, Cromwell2017}.
-However, these attempts often fail to account for the complex, non-linear interactions that mediate the relationship between mosquito abundance and human disease.
-In particular, the ability of mosquitoes to contribute to DENV transmission depends critically on the level of prior immunity in the human population \cite{Scott2010a} and on mosquito demographic processes themselves.
-The cycle of transmission between humans and mosquitoes is influenced not just by mosquito abundance, but also by mosquito survival relative to the virus' incubation period in mosquitoes \cite{Achee2015}.
-In fact, whether or not an exposed mosquito will survive long enough to become infectious represents a critical bottleneck in the transmission process.
+Many of the attempts to establish this link have found a weak relationship between mosquito surveillance and incidence of dengue fever\cite{Bowman2014, Pepin2015, Cromwell2017}.
+However, these attempts often do not account for the complex, non-linear interactions that mediate the relationship between mosquito abundance and human disease.
+In particular, host immunity is a key intrinsic driver of infectious disease dynamics, and conditions favorable for transmission can only lead to an outbreak of disease when there is a sufficiently large population of susceptible hosts \cite{Koelle2004, Koelle2005}.
+As such, the ability of mosquitoes to contribute to DENV transmission depends critically on the level of prior immunity in the human population \cite{Scott2010a}.
+Further, the cycle of transmission between humans and mosquitoes is influenced not just by mosquito abundance, but also by mosquito survival relative to the virus' incubation period in mosquitoes \cite{Smith2012}.
+In fact, whether or not an exposed mosquito will survive long enough to become infectious represents a critical bottleneck in the transmission process and leads to nonlinear dependence of transmission on mosquito survival \cite{Smith2012}.
 
-The importance of mosquito demographic processes in governing human disease risk highlight the need to integrate mechanistic modeling into the quantitative tools used to target control efforts.
+If the goal of modern dengue control is to deploy limited mosquito control resources when and where they will be most effective at preventing disease \cite{Scott2010a, Scott2010b}, then the quantitative tools used to guide that deployment need to account for the influence of the critical processes governing transmission.
+This includes the intrinsic human epidemiological and mosquito demographic processes above, but infectious disease dynamics are often further influenced by seasonality and stochastic forcing \cite{Ellner1998,Koelle2004, Grenfell2002}.
+In fact, the interplay of these factors is one of the unique features of ecological dynamics and is often responsible for generating the complex inter-annual cycles observed therein \cite{Bjornstad2001}.
 Such mechanistic models can often perform better than complex autoregressive statistical models in describing and forecasting population dynamics \cite{Reilly2005}.
-Moreover, mechanistic models can provide scenario-based tools that can be used to predict the effect of management actions \cite{Buckland2007}, which cannot be done without explicit representation of mechanistic processes or data from case-control studies.
-Differential equation models provide a natural way to encode the relevant biological mechanisms and to link human epidemiology to mosquito demographic processes.
-As noted above, mosquito mortality is a critical component of this link, but cannot be estimated from mosquito surveillance alone.
-Given its role in mediating transmission, however, mosquito mortality can be informed by a combination of mosquito and clinical surveillance, borrowing from the field of integrated population modeling \cite{Schaub2010}.
+Moreover, in the absence of case-control studies, mechanistic models can provide scenario-based tools that can be used to predict the effect of management actions \cite{Buckland2007}.
 
-Many cities in Brazil generate the necessary vector surveillance data through the use of the MI-Dengue system, implemented by the company Ecovec.
-This system deploys a city-wide grid of mosquito sticky traps (MosquiTRAPs) that can be used to target control in highly infested areas \cite{Eiras2009}.
-This system has been shown to be effective, preventing an estimated 27,191 cases of dengue fever from 2007 - 2011 across the cities in which it was deployed \cite{Pepin2013}.
-Despite this, the mosquito indices and thresholds used to prioritize control efforts remain somewhat \emph{ad-hoc}.
-
+In order to meet the needs of mosquito control programs, however, these mechanistic models need to be embedded in a framework that can learn from commonly available surveillance data, while also accounting for multiple sources of uncertainty.
+Mosquito and clinical surveillance provide information about the underlying processes, but are observed with noise (CITATIONS).
+Differential equation models provide a natural way to encode the relevant biological mechanisms, though it is important to also account for sources of uncertainty and stochasticity in those models \cite{Hotelling1927, Wikle2010}.
+Moreover, the values of parameters are also often uncertain, which can lead to large uncertainty about the effects of management actions (CITATIONS).
+Bayesian hierarchical modeling provides a coherent framework to account for and integrate this uncertainty across the three levels of the model (data, process, and parameters \cite{Berliner1996, Cressie2009}).
+ 
 In this paper, we develop a modeling framework to integrate MI-Dengue and clinical surveillance from the city of Vitoria, Brazil to provide data-driven and mechanistically-grounded guidance for targeted mosquito control.
 Specifically, we develop a mechanistic differential equation model of dengue transmission that we embed in a hierarchical Bayesian statistical framework.
 This allows us to estimate latent time series of mosquito demographic parameters from available time series of mosquito trap counts and reported cases of dengue fever.
@@ -264,10 +265,17 @@ We then use the fitted model to explore the optimal timing of adult mosquito con
 
 \subsection*{Study system and data}
 
-Vitoria is a coastal city and the capital of the state of Espirito Santo, Brazil, with a population of 327,801.
-Since 2008, the Ecovec has monitored mosquito abundance for the city using approximately 1327 sticky traps (MosquiTRAP, \cite{Eiras2009}) arranged in a grid across the city.
+Vitoria is a coastal city and the capital of the state of Espirito Santo, Brazil, with a population of 327,801 \cite{vitpop}.
+Since 2008, the company Ecovec has monitored mosquito abundance for the city using approximately 1327 sticky traps (MosquiTRAP, \cite{Eiras2009}) arranged in a grid across the city.
 Each trap is checked weekly and the mosquitoes inside counted and identified, providing us with 243 weeks (2008 through week 34 of 2012) of counts of gravid female \emph{Aedes aegypti}.
 Dengue is a mandatory notifiable disease, and thus the city's Ministry of Health Secretary maintains a database of weekly notified probable dengue cases (i.e., medical care sought for dengue-like symptoms) for this same time period.
+
+
+To try to prevent these regular outbreaks, Vitoria and many similar cities routinely conduct mosquito control activities, often guided by mosquito surveillance data.
+One source for such surveillance data is the MI-Dengue system, implemented by the company Ecovec.
+This system deploys a city-wide grid of mosquito sticky traps (MosquiTRAPs) that can be used to target control in highly infested areas \cite{Eiras2009}.
+This system has been shown to be effective, preventing an estimated 27,191 cases of dengue fever from 2007 - 2011 across the cities in which it was deployed \cite{Pepin2013}.
+Despite this, the mosquito indices and thresholds used to prioritize control efforts remain somewhat \emph{ad-hoc}.
 
 \subsection*{Process Model}
 
@@ -368,6 +376,7 @@ $S_0$ & Proportion initially susceptible & 0.4 & \cite{Cardoso2011a} \\
 $E_0$ & Proportion initially exposed & $8\times 10 ^ {-5}$ & \\
 $I_0$ & Proportion initially infectious & $8\times 10 ^ {-5}$ & \\
 $r_0$ & Initial mosquito population growth rate & 0 & \\
+$V_{N0}$ & Initial mosquito population size & $2N$ & \\
 $\nu_0$ & Initial unconstrained mosquito mortality rate & 0 & \\
 $\phi_q$ & Per-trap mosquito capture rate & $2 \times 10^{-6}$ week$^{-1}$ & \\
 $\eta_y$ & Overdispersion of case reports & $0^*$ & \\
