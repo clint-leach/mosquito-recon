@@ -138,9 +138,9 @@ transformed parameters {
   y0[7] = 0.0;
   y0[8] = 0.0;
   y0[9] = dv0;
-  y0[10] = 0;
+  y0[10] = 0.0;
   y0[11] = rv0;
-  y0[12] = 0;
+  y0[12] = 0.0;
   
   // measurement parameters
   eta_y = 1 / eta_inv_y;
@@ -210,16 +210,16 @@ model {
     theta[5] = mu_dv[i];
     theta[6] = mu_rv[i];
 
-    state[i + 1] = integrate_ode_rk45(derivs,
+    state[i + 1] = integrate_ode_bdf(derivs,
                                       state[i],
                                       ts[i, 1],
                                       ts[i + 1],
                                       theta,
                                       data_real[i],
                                       tau[i],
-                                      1e-3,
-                                      1e-3,
-                                      20)[1];
+                                      1e-6,
+                                      1e-6,
+                                      200)[1];
 
     q_hat[i] = state[i + 1, 7] - state[i, 7];
     y_hat[i] = state[i + 1, 8] - state[i, 8];
@@ -258,9 +258,9 @@ generated quantities {
                                       theta, 
                                       data_real[i], 
                                       tau[i], 
-                                      1e-3, 
-                                      1e-3, 
-                                      20)[1];
+                                      1e-6, 
+                                      1e-6, 
+                                      200)[1];
     
     q_hat[i] = neg_binomial_2_rng(pop * (state[i + 1, 7] - state[i, 7]), eta_q);
     y_hat[i] = neg_binomial_2_rng(phi_y * pop * (state[i + 1, 8] - state[i, 8]), eta_y);
