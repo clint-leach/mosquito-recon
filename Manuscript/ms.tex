@@ -270,19 +270,19 @@ Since 2008, the company Ecovec has monitored mosquito abundance for the city usi
 Each trap is checked weekly and the mosquitoes inside counted and identified, with the results sent to a central database that city managers then use to map mosquito infestations and target control.
 These data provide us with 243 weeks (2008 through week 34 of 2012) of total city-wide counts of trapped gravid female \emph{Aedes aegypti}.
 It is important to note that this time series reflects both natural fluctuations in mosquito density and fluctuations driven by the city's existing mosquito control program.
-In addition, dengue fever is a mandatory notifiable disease, and thus the city's Ministry of Health Secretary maintains a database of weekly notified probable dengue cases (i.e., medical care sought for dengue-like symptoms) for this same time period.
+In addition, dengue fever is a mandatory notifiable disease, and thus the city's Ministry of Health Secretary maintains a database of weekly notified probable dengue cases (i.e., medical care sought for dengue-like symptoms) for the same time period.
 
 \subsection*{Process Model}
 
-Dengue epidemiology is complicated considerably by the presence of four simultaneously circulating serotypes (referred to as DENV-1, DENV-2, DENV-3, DENV-4).
-Infection with one serotype confers life-long immunity to that serotype, along with temporary immunity to other serotypes.  
-As this cross-immunity wanes, antibodies from the previous infection can result in antibody-dependent enhancement (ADE), wherein human hosts are more susceptible to infection with the other serotypes and more likely to develop severe symptoms (i.e., dengue haemorrhagic fever or dengue shock syndrome).
+Dengue epidemiology is complicated considerably by the presence of four simultaneously circulating serotypes.
+Infection with one serotype confers life-long immunity to that serotype, along with temporary immunity to other serotypes \cite{Wearing2006}.  
+As this cross-immunity wanes, antibodies from the previous infection can result in antibody-dependent enhancement (ADE), wherein human hosts are more susceptible to infection with the other serotypes and more likely to develop severe symptoms (i.e., dengue haemorrhagic fever or dengue shock syndrome)\cite{Wearing2006}.
 The strength and duration of these different inter-serotype interactions are not well understood, though different models suggest that temporary cross-immunity alone (without ADE) is sufficient to reproduce observed multi-annual dynamics in Thailand \cite{Wearing2006,Reich2013}.
 Similarly, Aguiar \emph{et al.} \cite{Aguiar2013} found that capturing primary and secondary infections and the period of cross-immunity is critical, but that explicitly including all four serotypes (at great cost to model complexity) does not perform better than a two serotype model.
 
 Explicitly accounting for interactions between serotypes, even only two of the four, leads to a large and complex mechanistic model.
 Moreover, because dengue case reports do not include information on serotype, we do not have enough information to inform the dynamics of individual serotypes.
-As such, we simplify the model of \cite{Wearing2006} to an SEIRS framework, which drops serotype-specific dynamics but preserves the period of cross-immunity and the possibility of reinfection.
+As such, we develop an SEIRS compartment model, similar to \cite{Newton1992, Burattini2008, Pinho2010} which drops serotype-specific dynamics but preserves the period of cross-immunity and the possibility of reinfection.
 In this framework, susceptible humans ($S$) become exposed ($E$) through contact with infectious mosquitoes ($V_I$).
 Following a latent period ($\frac{1}{\rho}$), exposed humans become infectious ($I$) at which point they can infect susceptible mosquitoes ($V_S$).
 Infectious humans recover at rate $\gamma$ and subsequently remain immune for a period ($\frac{1}{\delta}$) after which they re-enter the susceptible class.
@@ -384,7 +384,18 @@ $^*$ indicates prior mode, rather than mean.
 
 \subsection*{Implementation}
 
-Sampling from the posterior distribution in non-linear differential equation models is often very difficult due to multimodality, variable parameter sensitivities (e.g., small changes in one parameter may lead to large changes in output, while similar changes in another parameter may have little effect), and potentially strong posterior correlations among parameters \cite{Reilly2005, Girolami2008, Calderhead2011}.
+Combining the data, process, and parameter models \cite{Berliner1996}, we can summarize the full hierarchical model as:
+\begin{align}
+y_t | \cdot & \sim \text{NegBin}(\phi_y (C(t) - C(t-1)), \eta_y),
+\\
+q_t | \cdot &\sim \text{NegBin}(V_{C}(t) - V_{C}(t-1), \eta_q)\\
+(\mathbf{C}, \mathbf{V_C}) & = \mathcal{M}(\boldsymbol{\epsilon_r}, \boldsymbol{\epsilon_{\nu}},\boldsymbol{\theta})\\
+\epsilon_{rt} & \sim \text{Normal}(0, \sigma^2_r)\\
+\epsilon_{\nu t} & \sim \text{Normal}(0, \sigma^2_{\nu})\\
+\boldsymbol{\theta} & \sim [\boldsymbol{\theta}]
+\end{align}
+where $\boldsymbol{\theta}$ is a vector of all the model parameters and initial conditions, and $\mathcal{M}(\boldsymbol{\epsilon_r}, \boldsymbol{\epsilon_{\nu}},\boldsymbol{\theta})$ represents the (numeric) solution to the differential equation as a function of $\boldsymbol{\theta}$ and the weekly stochastic forcing terms ($\boldsymbol{\epsilon_{r}}, \boldsymbol{\epsilon_{\nu}}$).
+Sampling from the posterior distribution of the parameters and forcing terms in this model is difficult due to multimodality, variable parameter sensitivities (e.g., small changes in one parameter may lead to large changes in output, while similar changes in another parameter may have little effect), and potentially strong posterior correlations induced by the nonlinearity of the the differential equation model \cite{Reilly2005, Girolami2008, Calderhead2011}.
 In addition, the computational burden of numerically solving the differential equation model at each iteration means that sampling efficiency is crucial.
 These problems can be mitigated somewhat by introducing stochasticity through the $\epsilon_t$ in the mosquito demographic processes.
 This allows the data to pull the latent states closer even when the parameters are far from optimal values \cite{Leander2014}.
