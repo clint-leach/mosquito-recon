@@ -98,6 +98,120 @@ reduction <- sum(data$obs) - reduction
 saveRDS(reduction, "Results/control.rds")
 
 #===============================================================================
+# At what case threshold is control most effective?
+
+thresholds <- seq(20, 200, by = 10)
+
+# Setting up parallel
+cl <- makeCluster(3, type = "SOCK")
+registerDoParallel(cl)
+
+# Parallel for-loop over mcmc iterations
+reduction <- foreach(k = 1:nmcmc, .combine = "cbind", .packages = c("rstan", "magrittr", "plyr")) %dopar% {
+  
+  init <- list(lapply(samples, extract_sample, k))
+  
+  cases <- matrix(NA, nrow = length(thresholds), ncol = 1)
+  
+  for(i in 1:length(thresholds)){
+    
+    data$above <- data$obs > thresholds[i]
+    
+    weeks <- ddply(subset(data, year > 2008 & year < 2012), .(year), summarise, 
+                   week = tot.week[which(above)[1]])
+    
+    control <- matrix(1, nrow = 243, ncol = 3)
+    control[weeks$week, 1] <- 1.05
+    
+    dat.stan <- list(T = 243,
+                     T_pred = 0,
+                     steps = 56,
+                     y =data$obs,
+                     q = data$q,
+                     tau = data$tau,
+                     rov = rov,
+                     control = control,
+                     pop = pop)
+    
+    sim <- sampling(model,
+                    data = dat.stan, 
+                    init = init, 
+                    iter = 1, 
+                    chains = 1,
+                    warmup = 0,
+                    algorithm = "Fixed_param")
+    
+    cases[i] <- rstan::extract(sim, "y_hat", permute = F)[, 1, ] %>% sum()
+  }
+  
+  return(cases)
+}
+
+stopCluster(cl)
+
+reduction <- sum(data$obs) - reduction
+
+saveRDS(reduction, "Results/case_control.rds")
+
+#===============================================================================
+# At what mosquito/trap threshold is control most effective?
+
+thresholds <- seq(0.25, 1, by = 0.04)
+
+data <- mutate(data, qt = q/tau)
+
+# Setting up parallel
+cl <- makeCluster(2, type = "SOCK")
+registerDoParallel(cl)
+
+# Parallel for-loop over mcmc iterations
+reduction <- foreach(k = 1:nmcmc, .combine = "cbind", .packages = c("rstan", "magrittr", "plyr")) %dopar% {
+  
+  init <- list(lapply(samples, extract_sample, k))
+  
+  cases <- matrix(NA, nrow = length(thresholds), ncol = 1)
+  
+  for(i in 1:length(thresholds)){
+    
+    data$above <- data$qt > thresholds[i]
+    
+    weeks <- ddply(subset(data, year > 2008 & year < 2012), .(year), summarise, 
+                   week = tot.week[which(above)[1]])
+    
+    control <- matrix(1, nrow = 243, ncol = 3)
+    control[weeks$week, 1] <- 1.05
+    
+    dat.stan <- list(T = 243,
+                     T_pred = 0,
+                     steps = 56,
+                     y =data$obs,
+                     q = data$q,
+                     tau = data$tau,
+                     rov = rov,
+                     control = control,
+                     pop = pop)
+    
+    sim <- sampling(model,
+                    data = dat.stan, 
+                    init = init, 
+                    iter = 1, 
+                    chains = 1,
+                    warmup = 0,
+                    algorithm = "Fixed_param")
+    
+    cases[i] <- rstan::extract(sim, "y_hat", permute = F)[, 1, ] %>% sum()
+  }
+  
+  return(cases)
+}
+
+stopCluster(cl)
+
+reduction <- sum(data$obs) - reduction
+
+saveRDS(reduction, "Results/mosq_control.rds")
+
+#===============================================================================
 # Dynamics when control deployed in week 3
 
 # Setting up parallel
