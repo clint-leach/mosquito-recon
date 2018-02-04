@@ -478,11 +478,30 @@ The vertical black line indicates week 3, during which mosquito control produces
 
 \section*{Discussion}
 
+\subsection*{Summary}
+
 Targeted mosquito control can be an effective tool in reducing the disease burden within a city.
 When faced with limited resources with which to deploy that control, these results suggest that focusing efforts early in the year, specifically in the second to fourth weeks, will lead to the largest reductions in disease.
 Because adult control (increasing the mortality rate) and larval control (decreasing the birth rate) produce nearly identical reductions in disease, the effect of control is likely driven by reducing the standing population of adult mosquitoes, rather than by limiting the transmission potential of exposed or infectious mosquitoes.
 The lag between optimal control and both mosquito population dynamics and human disease highlights the importance of early intervention and the need to account for the nonlinear processes governing transmission.
 Targeting the mosquito population early in the year as dengue just begins to spread can disrupt the transmission cycle and prevent further amplification and feedback later in the year.
+
+\subsection*{Model validation and interpretation of $d_v$}
+
+The dynamics of infectious diseases, and ecological systems more broadly, are often driven by the combined efforts of intrinsic non-linearities, seasonality, and stochasticity.
+We capture the interplay of these factors primarily through our specification of the mosquito mortality process.
+As implemented, mosquito mortality is the only source of uncertainty/stochasticity in the transmission process.
+As a result, the estimated mosquito mortality could be soaking up other sources of stochasticity or model misspecification.
+Our implementation of the mortality process is conceptually similar to the empirical forcing functions developed by Hooker and Ellner \cite{Hooker2015}.
+In that framework, Hooker and Ellner \cite{Hooker2015} estimated nonparametric functions in time that modify either the differential equations or specific model parameters to provide a good fit to the data.
+These forcing functions serve as residuals on the time derivatives, and can be more readily interpreted as indicators of lack-of-fit than residuals on the state variables.
+We do not employ the same explicit testing framework as \cite{Hooker2015}, but we treat the estimated mosquito mortality time series in the same spirit.
+In particular, the weak periodic structure in the estimated $\epsilon_{dt}$ suggests that there may be some unmodeled, higher frequency process influencing transmission, either through the death rate itself or through another process.
+Despite this, our estimated mosquito mortalities generally fell within the reasonable range from the literature \cite{Maciel-de-Freitas2008, Brady2013}.
+The fact that our estimated mortality rate varied seasonally and increases with temperature above 20 degrees also agrees with the empirical literature on mosquito survival \cite{Yang2009}, though our estimated relationship is perhaps more extreme than estimated in most laboratory studies.
+These observations suggest that our estimated mosquito mortality rates may actually be capturing the patterns of mosquito mortality in this system and are not obviously influenced by other sources of uncertainty or misspecification.
+
+\subsection*{Implications for control policy}
 
 Discussion of the effectiveness of adult control often focuses on the fact that it produces only a brief decline in mosquito abundance \cite{Newton1992, Esu2010}.
 When applied at the peak of an epidemic, this reduction in abundance is likely to have a relatively small effect, because the population rebounds while there are still a large number of infectious human hosts available \cite{Newton1992, Burattini2008}. 
@@ -502,16 +521,7 @@ Fully exploring such combined strategies requires a more complete model of mosqu
 These lags likely mean larval control should be applied prior to week 3 to achieve the desired reduction in the adult population in week 3.
 Models of mosquito development can be very complex (e.g. \cite{Magori2009}) but our model could be extended to account for these lags through a compartment for the aquatic phase (as in \cite{Burattini2008, Pinho2010}), though at the cost of introducing several new parameters.
 
-As implemented, mosquito mortality is the only source of uncertainty/stochasticity in the transmission process.
-As a result, the estimated mosquito mortality could be soaking up other sources of stochasticity or model misspecification.
-Our implementation of the mortality process is conceptually similar to the empirical forcing functions developed by Hooker and Ellner \cite{Hooker2015}.
-In that framework, Hooker and Ellner \cite{Hooker2015} estimated nonparametric functions in time that modify either the differential equations or specific model parameters to provide a good fit to the data.
-These forcing functions serve as residuals on the time derivatives, and can be more readily interpreted as indicators of lack-of-fit than residuals on the state variables.
-We do not employ the same explicit testing framework as \cite{Hooker2015}, but we treat the estimated mosquito mortality time series in the same spirit.
-In particular, the weak periodic structure in the estimated $\epsilon_{dt}$ suggests that there may be some unmodeled, higher frequency process influencing transmission, either through the death rate itself or through another process.
-Despite this, our estimated mosquito mortalities generally fell within the reasonable range from the literature \cite{Maciel-de-Freitas2008, Brady2013}.
-The fact that our estimated mortality rate varied seasonally and increases with temperature above 20 degrees also agrees with the empirical literature on mosquito survival \cite{Yang2009}, though our estimated relationship is perhaps more extreme than estimated in most laboratory studies.
-These observations suggest that our estimated mosquito mortality rates may actually be capturing the patterns of mosquito mortality in this system and are not obviously influenced by other sources of uncertainty or misspecification.
+\subsection*{Caveats and extensions}
 
 Even though the estimated mosquito mortality process seems biologically reasonable, we are still employing it to link mosquito abundance and human disease at a relatively large spatial scale, assuming homogeneous mixing between mosquitoes and humans throughout the city.
 However, structured human movement within the city is likely to induce heterogeneous human-mosquito mixing \cite{Adams2009, Cosner2009a, Stoddard2009}.
@@ -519,22 +529,6 @@ In addition, spatial variability in socioeconomic factors within the city may al
 This heterogeneity can have substantial consequences for disease dynamics.
 In fact, \cite{Dye1986, Hasibeder1988} found that introducing heterogeneous mixing to models of vector-borne disease spread always increases $R_0$ relative to models with homogeneous mixing.
 
-This suggests that our model may overestimate the efficacy of mosquito control, but it also points a way toward more efficient and effective control methods.
-Our results suggest that applying control early in the year is critical to disrupting city-wide disease spread, but targeting the city's entire mosquito population is likely infeasible and spatial prioritization of control is also necessary \cite{Pepin2015}.
-If disease risk is driven by high levels of contact with a relatively small proportion of the mosquito population \cite{Yoon2012}, control policies that preferentially target these subsets of the mosquito population are likely to be very effective.
-However, these subsets can be difficult to identify in practice.
-One possible strategy is to employ contact-tracing, which can identify and target specific premises that have been directly implicated in transmission \cite{Vazquez-Prokopec2017}.
-Though effective, this strategy is extremely labor-intensive and would be difficult to implement in endemic areas.
-
-Due to these difficulties, new methods are needed that can make use of currently available surveillance data to more effectively guide spatial prioritization of control \cite{Pepin2015}.
-MosquiTRAP surveillance data are available at the level of the individual trap, and case reports for the city of Vitoria are available for each of the city's 75 neighborhoods.
-To interface with these data, spatial structure and human movement could be incorporated into models of dengue transmission  (e.g., through the methods outlined in \cite{Cosner2015}) but at the cost of substantial statistical and computational burden.
-For instance, embedding the model presented here into a metapopulation framework based on the city's neighborhoods leads to a very large, unwieldy mechanistic model.
-Moreover, without external data on human movement (possible sources of which are discussed in \cite{Stoddard2009}), it would be very difficult to identify its role in disease dynamics.
-These dimensionality and identifiability issues would likely exacerbate existing difficulties inherent in fitting ODE models to data \cite{Girolami2008, Calderhead2011}.
-Developing such spatial models and the methods necessary to deal with them is a promising area of future research.
-In the absence of such methods, spatial targeting of control based on more traditional methods (e.g., local entomological thresholds) could be combined with temporal targeting based on city-scale mechanistic modeling.
-This would allow mosquito control efforts to exploit the critical timing identified by the mechanistic modeling, while also taking advantage of the spatial richness of the surveillance data to allocate limited resources within that window.
 
 \subsection*{Conclusions}
 
