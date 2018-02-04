@@ -481,30 +481,27 @@ The vertical black line indicates week 3, during which mosquito control produces
 \subsection*{Summary}
 
 Targeted mosquito control can be an effective tool in reducing the disease burden within a city.
-When faced with limited resources with which to deploy that control, these results suggest that focusing efforts early in the year, specifically in the second to fourth weeks, will lead to the largest reductions in disease.
+When faced with limited resources with which to deploy that control, our results suggest that focusing efforts early in the year, specifically in the second to fourth weeks, will lead to the largest reductions in disease.
 The lag between optimal control and both mosquito population dynamics and human disease highlights the importance of early intervention and the need to account for the nonlinear processes governing transmission.
 Targeting the mosquito population early in the year as dengue just begins to spread can disrupt the transmission cycle and prevent further amplification and feedback later in the year.
 
 \subsection*{Model validation and interpretation of $d_v$}
 
-The dynamics of infectious diseases, and ecological systems more broadly, are often driven by the combined efforts of intrinsic non-linearities, seasonality, and stochasticity \cite{Ellner1998,Koelle2004,Bjornstad2001}.
-We capture the interplay of these factors largely through our specification of the mosquito mortality process.
-As discussed above, the race between mosquito mortality and incubation period introduces a critical bottleneck and non-linearity into the transmission process and the influence of mosquito abundance on human disease.
-Moreover, both the incubation period and mosquito lifespan vary seasonally as a result of environmental forcing.
-The mechanistic modeling framework allows us to incorporate these critical processes.
+As discussed above, the race between mosquito mortality and incubation period introduces a critical bottleneck and non-linearity into the transmission process and the effect of mosquito abundance on human disease.
+Given the central role that this process plays in driving dengue dynamics, we model fluctuations in the mosquito mortality rate using a flexible, stochastically forced harmonic oscillator.
+The fact that this is the only source of stochasticity in the transmission process, however,  means that the estimated mosquito mortality time series could be soaking up other sources of stochasticity or model misspecification.
 
-As implemented, mosquito mortality is the only source of uncertainty/stochasticity in the transmission process.
-This reflects the central role that mosquito mortality likely plays in driving dengue dynamics, but it also means that the estimated mosquito mortality time series could be soaking up other sources of stochasticity or model misspecification.
-Our implementation of the mortality process is conceptually similar to the empirical forcing functions developed by Hooker and Ellner \cite{Hooker2015}.
+Our implementation of the mosquito mortality process is conceptually similar to the empirical forcing functions developed by Hooker and Ellner \cite{Hooker2015}.
 In that framework, Hooker and Ellner \cite{Hooker2015} estimated nonparametric functions in time that modify either the differential equations or specific model parameters to provide a good fit to the data.
 These forcing functions serve as residuals on the time derivatives, and can be more readily interpreted as indicators of lack-of-fit than residuals on the state variables.
-
 We do not employ the same explicit goodness-of-fit testing framework as \cite{Hooker2015}, but we can inspect the estimated mosquito mortality time series in the same spirit.
 In particular, the weak periodic structure in the estimated $\epsilon_{dt}$ suggests that there may be some unmodeled, higher frequency process influencing transmission, either through the death rate itself or through another process.
 Despite this, our estimated mosquito mortalities generally fell within the reasonable range from the literature \cite{Maciel-de-Freitas2008, Brady2013}.
-The fact that our estimated mortality rate varies seasonally and increases with temperature above 20 degrees also agrees with the empirical literature on mosquito survival \cite{Yang2009}, though our estimated relationship is generally more extreme than estimated in laboratory studies.
+The fact that our estimated mortality rate increases with temperature above 20 degrees also agrees with the empirical literature on mosquito survival \cite{Yang2009}, though our estimated relationship is generally more extreme than estimated in laboratory studies.
+
 These observations suggest that our estimated mosquito mortality rates may actually be capturing the patterns of mosquito mortality in this system and are not obviously influenced by other sources of uncertainty or misspecification.
-Something about the idea that stochastic fluctuations around a seasonally varying mortality rate conspire to drive disease dynamics.
+Further, this emphasizes that the dynamics of dengue fever, like many other infectious diseases \cite{Ellner1998,Koelle2004} and ecological systems \cite{Bjornstad2001}, are driven by the combined efforts of intrinsic non-linearities, seasonality, and stochasticity. 
+Indeed, the driving force of these interacting processes is channelled largely through mosquito mortality.
 
 \subsection*{Implications for control policy}
 
