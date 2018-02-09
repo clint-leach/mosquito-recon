@@ -31,7 +31,7 @@ functions {
     
     // Assigning data
     b = 7.0 / (76 * 365);
-
+    
     // Computing mosquito population size
     Sv = y[6] - y[5] - y[4];
     R = 1 - y[1] - y[2] - y[3];
@@ -40,10 +40,10 @@ functions {
     
     // Compute transition rates
     // Mosquito to human foi
-    foi_vh = control[3] * lambda * y[5] * y[1];
+    foi_vh = lambda * y[5] * y[1];
 
     // Human to mosquito foi
-    foi_hv = control[3] * lambda * y[3] * Sv;
+    foi_hv = lambda * y[3] * Sv;
 
     // Infectious humans
     infectious = ro * y[2];
@@ -231,6 +231,12 @@ generated quantities {
   
   // Estimated trajectories
   for (t in 1:T){
+    
+    state[4] = state[4] * control[t, 3];
+    state[5] = state[5] * control[t, 3];
+    state[6] = state[6] * control[t, 3];
+
+    
     for(j in 1:steps){
       
       state = state + 1.0 / steps * derivs(t, 
