@@ -65,7 +65,9 @@ reduction <- foreach(k = 1:nmcmc, .combine = "cbind", .packages = c("rstan", "ma
   for(i in 1:52){
     
     control <- matrix(1, nrow = 243, ncol = 3)
-    control[(data$week == i & data$year > 2008 & data$year < 2012), 1] <- 1.05
+    control[(data$week == i & data$year > 2008 & data$year < 2012), 3] <- 0.95
+    
+    first <- which(rowSums(control) != 3)[1]
     
     dat.stan <- list(T = 243,
                      T_pred = 0,
@@ -85,7 +87,10 @@ reduction <- foreach(k = 1:nmcmc, .combine = "cbind", .packages = c("rstan", "ma
                     warmup = 0,
                     algorithm = "Fixed_param")
     
-    cases[i] <- rstan::extract(sim, "y_hat", permute = F)[, 1, ] %>% sum()
+    cases[i] <- rstan::extract(sim, "y_hat", permute = F)[, 1, ] %>%
+      extract(first:243) %>% 
+      sum() %>% 
+      divide_by(sum(data$obs[first:243]))
   }
   
   return(cases)
@@ -93,10 +98,59 @@ reduction <- foreach(k = 1:nmcmc, .combine = "cbind", .packages = c("rstan", "ma
 
 stopCluster(cl)
 
-reduction <- sum(data$obs) - reduction
+saveRDS(reduction, "Results/adult_control.rds")
 
-saveRDS(reduction, "Results/control.rds")
+#===============================================================================
+# In which week is larval control most effective?
 
+# Setting up parallel
+cl <- makeCluster(2, type = "SOCK")
+registerDoParallel(cl)
+
+# Parallel for-loop over mcmc iterations
+reduction <- foreach(k = 1:nmcmc, .combine = "cbind", .packages = c("rstan", "magrittr")) %dopar% {
+  
+  init <- list(lapply(samples, extract_sample, k))
+  
+  cases <- matrix(NA, nrow = 52, ncol = 1)
+  
+  for(i in 1:52){
+    
+    control <- matrix(1, nrow = 243, ncol = 3)
+    control[(data$week == i & data$year > 2008 & data$year < 2012), 1] <- 0.95
+    
+    first <- which(rowSums(control) != 3)[1]
+    
+    dat.stan <- list(T = 243,
+                     T_pred = 0,
+                     steps = 7,
+                     y = data$obs,
+                     q = data$q,
+                     tau = data$tau,
+                     rov = rov,
+                     control = control,
+                     pop = pop)
+    
+    sim <- sampling(model,
+                    data = dat.stan, 
+                    init = init, 
+                    iter = 1, 
+                    chains = 1,
+                    warmup = 0,
+                    algorithm = "Fixed_param")
+    
+    cases[i] <- rstan::extract(sim, "y_hat", permute = F)[, 1, ] %>%
+      extract(first:243) %>% 
+      sum() %>% 
+      divide_by(sum(data$obs[first:243]))
+  }
+  
+  return(cases)
+}
+
+stopCluster(cl)
+
+saveRDS(reduction, "Results/larval_control.rds")
 #===============================================================================
 # At what case threshold is control most effective?
 
@@ -141,15 +195,15 @@ reduction <- foreach(k = 1:nmcmc, .combine = "cbind", .packages = c("rstan", "ma
                     warmup = 0,
                     algorithm = "Fixed_param")
     
-    cases[i] <- rstan::extract(sim, "y_hat", permute = F)[, 1, ] %>% sum()
-  }
+    cases[i] <- rstan::extract(sim, "y_hat", permute = F)[, 1, ] %>%
+      extract(first:243) %>% 
+      sum() %>% 
+      divide_by(sum(data$obs[first:243]))  }
   
   return(cases)
 }
 
 stopCluster(cl)
-
-reduction <- sum(data$obs) - reduction
 
 saveRDS(reduction, "Results/case_control.rds")
 
@@ -199,15 +253,15 @@ reduction <- foreach(k = 1:nmcmc, .combine = "cbind", .packages = c("rstan", "ma
                     warmup = 0,
                     algorithm = "Fixed_param")
     
-    cases[i] <- rstan::extract(sim, "y_hat", permute = F)[, 1, ] %>% sum()
-  }
+    cases[i] <- rstan::extract(sim, "y_hat", permute = F)[, 1, ] %>%
+      extract(first:243) %>% 
+      sum() %>% 
+      divide_by(sum(data$obs[first:243]))  }
   
   return(cases)
 }
 
 stopCluster(cl)
-
-reduction <- sum(data$obs) - reduction
 
 saveRDS(reduction, "Results/mosq_control.rds")
 
@@ -252,47 +306,4 @@ week3 <- foreach(k = 1:nmcmc, .packages = c("rstan", "magrittr")) %dopar% {
 stopCluster(cl)
 
 saveRDS(week3, "Results/optimal.rds")
-
-#===============================================================================
-
-peak_cases <- ddply(data, .(year), summarise, max = which.max(obs))
-
-# Setting up parallel
-cl <- makeCluster(3, type = "SOCK")
-registerDoParallel(cl)
-
-# Parallel for-loop over mcmc iterations
-week12 <- foreach(k = 1:nmcmc, .packages = c("rstan", "magrittr")) %dopar% {
-  
-  init <- list(lapply(samples, extract_sample, k))
-  
-  control <- matrix(1.0, nrow = 243, ncol = 3)
-  control[(data$week == 12 & data$year > 2008 & data$year < 2012), 1] <- 1.05
-  
-  dat.stan <- list(T = 243,
-                   T_pred = 0,
-                   steps = 7,
-                   y = data$obs,
-                   q = data$q,
-                   tau = data$tau,
-                   rov = rov,
-                   control = control,
-                   pop = pop)
-  
-  sim <- sampling(model,
-                  data = dat.stan, 
-                  init = init, 
-                  iter = 1, 
-                  chains = 1,
-                  warmup = 0,
-                  algorithm = "Fixed_param")
-  
-  system <- rstan::extract(sim, "system", permute = T)[[1]][1, , ]
-  
-  return(system)
-}
-
-stopCluster(cl)
-
-saveRDS(week12, "Results/peak.rds")
 
