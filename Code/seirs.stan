@@ -75,13 +75,12 @@ functions {
 }
 data {
   int<lower=1> T;
-  int<lower=0> T_pred;
   int<lower=1> steps;
   int y[T];
   int q[T];
   vector[T] tau;
-  vector[T + T_pred] rov;
-  vector[3] control[T + T_pred];
+  vector[T] rov;
+  vector[3] control[T];
   int pop;
 }
 transformed data {
@@ -109,29 +108,29 @@ parameters {
   vector[T] eps_rv;
 }
 transformed parameters {
-  vector[12] y0;
   real<lower=0> ro;
   real<lower=0> gamma;
   real<lower=0> delta;
   real<lower=0> eta_y;
   real<lower=0> eta_q;
   real<lower=0> phi_q;
-  vector[T] mu_rv;
-  vector[T] mu_dv;
-
+  vector[T] y_hat;
+  vector[T] q_hat;
+  vector[12] state[T + 1];
+  
   // initial conditions
-  y0[1] = S0 * (pop - E0 - I0) / pop;
-  y0[2] = E0 / pop;
-  y0[3] = I0 / pop;
-  y0[4] = 0.0;
-  y0[5] = 0.0;
-  y0[6] = exp(logNv);
-  y0[7] = 0.0;
-  y0[8] = 0.0;
-  y0[9] = dv0;
-  y0[10] = 0;
-  y0[11] = rv0;
-  y0[12] = 0;
+  state[1, 1] = S0 * (pop - E0 - I0) / pop;
+  state[1, 2] = E0 / pop;
+  state[1, 3] = I0 / pop;
+  state[1, 4] = 0.0;
+  state[1, 5] = 0.0;
+  state[1, 6] = exp(logNv);
+  state[1, 7] = 0.0;
+  state[1, 8] = 0.0;
+  state[1, 9] = dv0;
+  state[1, 10] = 0;
+  state[1, 11] = rv0;
+  state[1, 12] = 0;
   
   // measurement parameters
   eta_y = 1 / eta_inv_y;
@@ -143,16 +142,39 @@ transformed parameters {
   gamma = 3.5 * gamma_c;
   delta = 1 / (97 * delta_c);
   
-  // Mosquito process
-  mu_rv = sigmarv * eps_rv;
-  mu_dv = sigmadv * eps_dv;
+  // Process model
+  for (t in 2:(T + 1)){
+    
+    state[t] = state[t - 1];
+    
+    state[t, 4] = state[t, 4] * control[t - 1, 3];
+    state[t, 5] = state[t, 5] * control[t - 1, 3];
+    state[t, 6] = state[t, 6] * control[t - 1, 3];
+    
+    for(j in 1:steps){
+      
+      state[t] = state[t] + 1.0 / steps * derivs(t, 
+                                                 state[t], 
+                                                 sigmarv * eps_rv[t - 1], 
+                                                 rov[t - 1], 
+                                                 lambda, 
+                                                 ro, 
+                                                 gamma, 
+                                                 sigmadv * eps_dv[t - 1], 
+                                                 delta, 
+                                                 phi_q * tau[t - 1], 
+                                                 omega, 
+                                                 damp, 
+                                                 control[t - 1]);
+    }
+                                                      
+    q_hat[t - 1] = state[t, 7] - state[t - 1, 7];
+    y_hat[t - 1] = state[t, 8] - state[t - 1, 8];
+
+  }
 }
 model {
-  vector[T] y_hat;
-  vector[T] q_hat;
-  vector[12] state[T * steps + 1];
-  int idx = 1;
-  
+
   // Priors
   
   // Initial conditions
@@ -187,108 +209,20 @@ model {
   sigmadv ~ normal(0, 0.2);
   sigmarv ~ normal(0, 0.2);
 
-  // Process model
-  
-  state[1] = y0;
-
-  for (t in 1:T){
-    for(j in 1:steps){
-      
-      state[idx + 1] = state[idx] + 1.0 / steps * derivs(t, 
-                                                       state[idx], 
-                                                       mu_rv[t], 
-                                                       rov[t], 
-                                                       lambda, 
-                                                       ro, 
-                                                       gamma, 
-                                                       mu_dv[t], 
-                                                       delta, 
-                                                       phi_q * tau[t],
-                                                       omega,
-                                                       damp,
-                                                       control[t]);
-        
-      idx = idx + 1;
-    }
-    
-    q_hat[t] = state[idx, 7] - state[idx - steps, 7];
-    y_hat[t] = state[idx, 8] - state[idx - steps, 8];
-
-  }
   
   // Measurement models
   y ~ neg_binomial_2(phi_y * y_hat * pop, eta_y);
   q ~ neg_binomial_2(q_hat * pop, eta_q);
 }
 generated quantities {
+  vector[T] y_meas;
+  vector[T] q_meas;
 
-  vector[T + T_pred] y_hat;
-  vector[T + T_pred] q_hat;
-  vector[12] system[T + T_pred];
-  vector[12] state;
-  
-  state = y0;
-  
   // Estimated trajectories
   for (t in 1:T){
     
-    state[4] = state[4] * control[t, 3];
-    state[5] = state[5] * control[t, 3];
-    state[6] = state[6] * control[t, 3];
-
+    q_meas[t] = neg_binomial_2_rng(q_hat[t] * pop, eta_q);
+    y_meas[t] = neg_binomial_2_rng(phi_y * y_hat[t] * pop, eta_y);
     
-    for(j in 1:steps){
-      
-      state = state + 1.0 / steps * derivs(t, 
-                                         state, 
-                                         mu_rv[t],
-                                         rov[t], 
-                                         lambda, 
-                                         ro, 
-                                         gamma, 
-                                         mu_dv[t], 
-                                         delta, 
-                                         phi_q * tau[t],
-                                         omega,
-                                         damp,
-                                         control[t]);
-    }
-    
-    system[t] = state;
-
-    q_hat[t] = neg_binomial_2_rng(state[7] * pop, eta_q);
-    y_hat[t] = neg_binomial_2_rng(phi_y * pop * state[8], eta_y);
-
-    state[7] = 0;
-    state[8] = 0;
-  }
-  
-  // Predicted trajectory
-  for (k in 1:T_pred){
-
-    for(j in 1:steps){
-      
-      state = state + 1.0 / steps * derivs(T + k, 
-                                         state, 
-                                         normal_rng(0, sigmarv),
-                                         rov[T + k], 
-                                         lambda, 
-                                         ro, 
-                                         gamma, 
-                                         normal_rng(0, sigmadv), 
-                                         delta, 
-                                         phi_q * tau[T],
-                                         omega,
-                                         damp,
-                                         control[T + k]);
-    }
-
-    system[T + k] = state;
-    
-    q_hat[T + k] = neg_binomial_2_rng(state[7] * pop, eta_q);
-    y_hat[T + k] = neg_binomial_2_rng(phi_y * pop * state[8], eta_y);
-    
-    state[7] = 0;
-    state[8] = 0;
   }
 }
