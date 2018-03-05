@@ -34,7 +34,7 @@ rov <- 7 * exp(0.2 * covars$temp - 8)
 #===============================================================================
 # Loading mcmc samples
 
-fit <- readRDS("Results/oscillator.rds")
+fit <- readRDS("Results/euler7.rds")
 samples <- rstan::extract(fit)[1:16]
 
 nmcmc <- length(samples[[1]])
@@ -50,7 +50,7 @@ model <- stan_model(file = "Code/seirs.stan")
 # In which week is adult control most effective?
 
 # Setting up parallel
-cl <- makeCluster(4, type = "SOCK")
+cl <- makeCluster(10, type = "SOCK")
 registerDoParallel(cl)
 
 # Parallel for-loop over mcmc iterations
@@ -84,9 +84,6 @@ reduction <- foreach(k = 1:nmcmc, .combine = "cbind", .packages = c("rstan", "ma
                     warmup = 0,
                     algorithm = "Fixed_param")
     
-    sys <- rstan::extract(sim, "state", permute = T)[[1]]
-    lines(sys[1, , 6])
-    
     cases[i] <- rstan::extract(sim, "y_meas", permute = F)[, 1, ] %>%
       extract(first:243) %>% 
       sum() %>% 
@@ -104,7 +101,7 @@ saveRDS(reduction, "Results/adult_control.rds")
 # In which week is larval control most effective?
 
 # Setting up parallel
-cl <- makeCluster(4, type = "SOCK")
+cl <- makeCluster(10, type = "SOCK")
 registerDoParallel(cl)
 
 # Parallel for-loop over mcmc iterations
@@ -155,7 +152,7 @@ saveRDS(reduction, "Results/larval_control.rds")
 # Dynamics when control deployed at optimum for adult control
 
 # Setting up parallel
-cl <- makeCluster(3, type = "SOCK")
+cl <- makeCluster(10, type = "SOCK")
 registerDoParallel(cl)
 
 # Parallel for-loop over mcmc iterations
@@ -164,7 +161,7 @@ aopt <- foreach(k = 1:nmcmc, .packages = c("rstan", "magrittr")) %dopar% {
   init <- list(lapply(samples, extract_sample, k))
   
   control <- matrix(1.0, nrow = 243, ncol = 3)
-  control[(data$week == 3 & data$year > 2008 & data$year < 2012), 3] <- 0.905
+  control[(data$week == 27 & data$year > 2008 & data$year < 2012), 3] <- 0.905
   
   dat.stan <- list(T = 243,
                    steps = 7,
@@ -183,7 +180,7 @@ aopt <- foreach(k = 1:nmcmc, .packages = c("rstan", "magrittr")) %dopar% {
                   warmup = 0,
                   algorithm = "Fixed_param")
   
-  system <- rstan::extract(sim, "system", permute = T)[[1]][1, , ]
+  system <- rstan::extract(sim, "state", permute = T)[[1]][1, , ]
   
   return(system)
 }
@@ -196,7 +193,7 @@ saveRDS(aopt, "Results/adult_optimal.rds")
 # Dynamics when control deployed at optimum for larval control
 
 # Setting up parallel
-cl <- makeCluster(3, type = "SOCK")
+cl <- makeCluster(10, type = "SOCK")
 registerDoParallel(cl)
 
 # Parallel for-loop over mcmc iterations
@@ -205,7 +202,7 @@ lopt <- foreach(k = 1:nmcmc, .packages = c("rstan", "magrittr")) %dopar% {
   init <- list(lapply(samples, extract_sample, k))
   
   control <- matrix(1.0, nrow = 243, ncol = 3)
-  control[(data$week == 3 & data$year > 2008 & data$year < 2012), 2] <- 0.95
+  control[(data$week == 4 & data$year > 2008 & data$year < 2012), 2] <- 0.95
   
   dat.stan <- list(T = 243,
                    steps = 7,
@@ -224,7 +221,7 @@ lopt <- foreach(k = 1:nmcmc, .packages = c("rstan", "magrittr")) %dopar% {
                   warmup = 0,
                   algorithm = "Fixed_param")
   
-  system <- rstan::extract(sim, "system", permute = T)[[1]][1, , ]
+  system <- rstan::extract(sim, "state", permute = T)[[1]][1, , ]
   
   return(system)
 }
@@ -239,7 +236,7 @@ saveRDS(lopt, "Results/larval_optimal.rds")
 thresholds <- seq(20, 200, by = 10)
 
 # Setting up parallel
-cl <- makeCluster(3, type = "SOCK")
+cl <- makeCluster(10, type = "SOCK")
 registerDoParallel(cl)
 
 # Parallel for-loop over mcmc iterations
@@ -296,7 +293,7 @@ thresholds <- seq(0.25, 1, by = 0.04)
 data <- mutate(data, qt = q/tau)
 
 # Setting up parallel
-cl <- makeCluster(2, type = "SOCK")
+cl <- makeCluster(10, type = "SOCK")
 registerDoParallel(cl)
 
 # Parallel for-loop over mcmc iterations
