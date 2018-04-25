@@ -34,7 +34,7 @@ post$temp <- temp$temp
 post$rov <- 7 * exp(0.2 * temp$temp - 8)
 
 # Loading MCMC results
-sim <- readRDS("Results/oscillator.rds")
+sim <- readRDS("Results/euler7.rds")
 
 # Figure 1: Observed and estimated time series =================================
 
@@ -81,7 +81,7 @@ grid.arrange(fig1.a, fig1.b, ncol = 2)
 
 dev.off()
 
-# Figure 2: Estimates of latent mosquito demographic rates =====================
+# Figure 2: Estimates of latent mosquito mortality rate ========================
 
 system <- rstan::extract(sim, "system", permute = T)[[1]]
 
@@ -89,30 +89,27 @@ dv <- system[, , 9] %>% + 0.39 %>% exp() %>%
   adply(2, quantile, c(0.1, 0.5, 0.9), .id = NULL)
 names(dv) <- c("dvmin", "dvmed", "dvmax")
 
-rv <- system[, , 11] %>% adply(2, quantile, c(0.1, 0.5, 0.9), .id = NULL)
-names(rv) <- c("rvmin", "rvmed", "rvmax")
-
-post <- cbind(post, dv, rv)
+post <- cbind(post, dv)
 
 # Plotting
-ggplot(post, aes(tot.week, rvmed)) + 
-  geom_ribbon(aes(ymin = rvmin, ymax = rvmax), fill = "grey70") +
-  geom_line() + 
-  theme_classic() +
-  scale_y_continuous(expand = c(0, 0)) + 
-  scale_x_continuous(expand = c(0, 1)) +
-  ylab("mosquito growth rate") + 
-  xlab("week") +
-  ggtitle("A") -> fig2.a
 
 ggplot(post, aes(tot.week, dvmed)) + 
   geom_ribbon(aes(ymin = dvmin, ymax = dvmax), fill = "grey70") +
   geom_line() + 
   theme_classic() +
-  scale_y_continuous(expand = c(0.05, 0)) + 
+  scale_y_continuous(expand = c(0.05, 0), limits = c(0.6, 2.5)) + 
   scale_x_continuous(expand = c(0, 1)) +
-  ylab("mosquito death rate") +
+  ylab("mosquito mortality rate") +
   xlab("week") +
+  ggtitle("A") -> fig2.a
+
+ggplot(post, aes(temp, dvmed)) +
+  geom_point() + 
+  theme_classic() + 
+  scale_y_continuous(expand = c(0.05, 0), limits = c(0.6, 2.5)) + 
+  scale_x_continuous(expand = c(0, 1)) +
+  ylab("mosquito mortality rate") +
+  xlab("weekly mean temperature") + 
   ggtitle("B") -> fig2.b
 
 postscript("Manuscript/figures/fig2.eps",
@@ -123,69 +120,87 @@ grid.arrange(fig2.a, fig2.b, ncol = 2)
 
 dev.off()
 
-# Figure 3: Mosquito death rate as a function of temperature ===================
 
-postscript("Manuscript/figures/fig3.eps",
-           width = 3, height = 3,
+# Figure 3: Effect of control implemented in different weeks ===================
+
+adult_reduction <- readRDS("Results/adult_control.rds") %>% 
+  subtract(1) %>% multiply_by(-1) %>% 
+  adply(1, quantile, probs = c(0.1, 0.5, 0.9)) %>% 
+  mutate(week = as.numeric(X1), yweek = c(16:52, 1:15), control = "adult")
+
+larval_reduction <- readRDS("Results/larval_control.rds") %>% 
+  subtract(1) %>% multiply_by(-1) %>% 
+  adply(1, quantile, probs = c(0.1, 0.5, 0.9)) %>% 
+  mutate(week = as.numeric(X1), yweek = c(16:52, 1:15), control = "larval")
+
+names(adult_reduction) <- c("X1", "min", "med", "max", "week", "yweek", "control")
+names(larval_reduction) <- c("X1", "min", "med", "max", "week", "yweek", "control")
+
+reduction <- rbind(adult_reduction, larval_reduction)
+
+yweek <- c(16:52, 1:15)
+breaks <- c(8, 18, 28, 38, 48)
+
+# Plotting
+
+pdf("Manuscript/figures/fig3.pdf",
+           width = 4 , height = 3,
            family = "ArialMT")
 
-ggplot(post, aes(temp, dvmed)) +
-  geom_point() + 
+ggplot(reduction, aes(week, med)) + 
+  geom_ribbon(aes(ymin = min, ymax = max, fill = control), alpha = 0.7) + 
+  geom_line(aes(group = control), size = 0.5) +
   theme_classic() + 
-  scale_y_continuous(expand = c(0.05, 0)) + 
-  scale_x_continuous(expand = c(0, 1)) +
-  ylab("mosquito death rate") +
-  xlab("weekly mean temperature")
+  scale_fill_grey(guide = F) +
+  scale_x_continuous(expand = c(0, 1), breaks = breaks, labels = yweek[breaks]) +
+  xlab("week of control") +
+  ylab("proportion of cases prevented")
 
 dev.off()
 
-# Figure 4: Effect of adult control implemented in different weeks =============
+# Figure 4: Dynamics under optimal control =====================================
 
-# Processing adult control experiment
-adult_reduction <- readRDS("Results/adult_control.rds") %>% 
-  adply(1, quantile, probs = c(0.1, 0.5, 0.9)) %>% 
-  mutate(week = as.numeric(X1))
+# Dynamics resulting from optimal adult control
 
-names(adult_reduction) <- c("X1", "min", "med", "max", "week")
+adult_opt<- readRDS("Results/adult_optimal.rds")
 
-# Dynamics resulting from control in week 3
-week3 <- readRDS("Results/optimal.rds")
-
-ycontrol <- 1/12 * pop * sapply(week3, function(x) x[, 8]) %>% 
+y_adult <- 1/12 * pop * sapply(adult_opt, function(x) diff(x[, 8])) %>% 
   adply(1, quantile, c(0.1, 0.5, 0.9), .id = NULL)
-names(ycontrol) <- c("ycmin", "ycmed", "ycmax")
+names(y_adult) <- c("y_ac_min", "y_ac_med", "y_ac_max")
 
-post <- cbind(post, ycontrol)
+larval_opt<- readRDS("Results/larval_optimal.rds")
 
-# Plotting
-postscript("Manuscript/figures/fig4.eps",
-           width = 5.2, height = 3,
-           family = "ArialMT")
+y_larval <- 1/12 * pop * sapply(larval_opt, function(x) diff(x[, 8])) %>% 
+  adply(1, quantile, c(0.1, 0.5, 0.9), .id = NULL)
+names(y_larval) <- c("y_lc_min", "y_lc_med", "y_lc_max")
 
-ggplot(adult_reduction, aes(week, med)) + 
-  geom_ribbon(aes(ymin = min, ymax = max), fill = "grey70") + 
-  geom_line() +
-  theme_classic() + 
-  scale_x_continuous(expand = c(0, 1)) +
-  xlab("week of control") +
-  ylab("cases prevented") +
-  ggtitle("A") -> fig4.a
+post <- cbind(post, y_adult, y_larval)
 
-ggplot(post, aes(tot.week, ycmed)) + 
-  geom_ribbon(aes(ymin = ycmin, ymax = ycmax), fill = "grey70") + 
+ggplot(post, aes(tot.week, y_ac_med)) + 
+  geom_ribbon(aes(ymin = y_ac_min, ymax = y_ac_max), fill = "grey70") + 
   geom_line() + 
   geom_line(aes(tot.week, yhat), linetype = 2) +
-  geom_vline(xintercept = c(56, 108, 160), color = "tomato3") + 
+  geom_vline(xintercept = post$tot.week[post$week == 27 & post$year > 2008 & post$year < 2012], color = "tomato3") + 
   theme_classic() +
-  scale_y_continuous(expand = c(0, 0)) + 
+  scale_y_continuous(expand = c(0, 0), limits = c(0, 600)) + 
   scale_x_continuous(expand = c(0, 1)) +
   ylab("case reports") +
   xlab("week") +
-  ggtitle("B") -> fig4.b
+  ggtitle("B") -> fig5.a
 
-grid.arrange(fig4.a, fig4.b, ncol = 2)
+ggplot(post, aes(tot.week, y_lc_med)) + 
+  geom_ribbon(aes(ymin = y_lc_min, ymax = y_lc_max), fill = "grey70") + 
+  geom_line() + 
+  geom_line(aes(tot.week, yhat), linetype = 2) +
+  geom_vline(xintercept = post$tot.week[post$week == 4 & post$year > 2008 & post$year < 2012], color = "tomato3") + 
+  theme_classic() +
+  scale_y_continuous(expand = c(0, 0), limits = c(0, 600)) + 
+  scale_x_continuous(expand = c(0, 1)) +
+  ylab("case reports") +
+  xlab("week") +
+  ggtitle("B") -> fig5.b
 
-dev.off()
+grid.arrange(fig5.a, fig5.b, nrow = 1)
 
 # Figure 5: Timing of control ==================================================
 
@@ -195,15 +210,12 @@ post <- mutate(post,
                  apply(2, median),
                qmu = system[, , 6] %>% 
                  apply(2, median),
-               risk = system[, , 9] %>% 
-                 add(0.39) %>% 
-                 exp() %>% 
-                 apply(1, function(x){rov / (rov + x)}) %>% 
-                 apply(1, median))
+               Smu = system[, , 1] %>% 
+                 apply(2, median))
 
-stacked <- melt(post, id.vars = c("week", "year"), measure.vars = c("ymu", "qmu", "dvmed"))
+stacked <- melt(post, id.vars = c("week", "year"), measure.vars = c("ymu", "qmu", "dvmed", "Smu"))
 
-levels(stacked$variable) <- c("cases", "mosquitoes", "death rate")
+levels(stacked$variable) <- c("cases", "mosquitoes", "death rate", "susceptibles")
 
 postscript("Manuscript/figures/fig5.eps",
            width = 4, height = 6,
@@ -212,7 +224,8 @@ postscript("Manuscript/figures/fig5.eps",
 ggplot(stacked, aes(week, value, color = factor(year))) +
   geom_line() +
   facet_grid(variable~., scales = "free_y", switch = "y") + 
-  geom_vline(xintercept = 3) +
+  geom_vline(xintercept = 5) +
+  geom_vline(xintercept = 24) +
   theme_classic() +
   scale_color_brewer(palette = "Dark2", type = "qual", guide = F) + 
   scale_x_continuous(expand = c(0, 1)) +
@@ -432,3 +445,14 @@ ggplot(larval_reduction, aes(week, med)) +
 
 dev.off()
 
+
+#===============================================================================
+ggplot(post, aes(tot.week, rvmed)) + 
+  geom_ribbon(aes(ymin = rvmin, ymax = rvmax), fill = "grey70") +
+  geom_line() + 
+  theme_classic() +
+  scale_y_continuous(expand = c(0, 0)) + 
+  scale_x_continuous(expand = c(0, 1)) +
+  ylab("mosquito growth rate") + 
+  xlab("week") +
+  ggtitle("A") -> fig2.a
