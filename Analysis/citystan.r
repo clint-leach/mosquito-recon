@@ -41,7 +41,7 @@ dat.stan <- list(T = 243,
                  T_pred = 0,
                  steps = 7,
                  y =data$obs,
-                 #q = data$q,
+                 q = data$q,
                  tau = data$tau,
                  rov = rov,
                  control = matrix(1, nrow = 243, ncol = 3),
@@ -96,7 +96,7 @@ inits = list(list(S0 = 0.4,
                   eps_dv = rep(0, 243),
                   eps_rv = rep(0, 243)))
 
-fit <- stan(file = "Code/nomosq.stan", 
+fit <- stan(file = "Code/gammaeip.stan", 
             data = dat.stan, 
             init = inits, 
             iter = 2000, 
@@ -104,4 +104,4 @@ fit <- stan(file = "Code/nomosq.stan",
             control = list(adapt_delta = 0.99,
                            max_treedepth = 15))
 
-saveRDS(fit, "Results/oscillator.rds")
+saveRDS(fit, "Results/gamma_eip.rds")
