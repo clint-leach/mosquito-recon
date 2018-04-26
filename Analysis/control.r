@@ -13,8 +13,17 @@ data <- ddply(tseries, .(tot.week), summarise,
               q = sum(Mosquitoes, na.rm = T),
               tau = sum(Trap, na.rm = T),
               year = unique(Year),
-              week = unique(Week)
+              week = unique(Week),
+              epiweek = 0,
+              epiyear = 0
               )
+
+# Generating epidemic weeks/years that count from peak to peak (week 16)
+data$epiweek[16:243] <- c(1:52)
+data$epiyear <- cumsum(data$epiweek == 1)
+
+# Specifying the year windows over which we evaluate control
+control_years = c(2009, 2010, 2011)
 
 # Population size
 pop <- 327801
@@ -36,6 +45,7 @@ rov <- 7 * exp(0.2 * covars$temp - 8)
 
 fit <- readRDS("Results/euler7.rds")
 samples <- rstan::extract(fit)[1:16]
+fitcases <- rstan::extract(fit, "system", permute = T)[[1]] %>% extract(, ,  8)
 
 nmcmc <- length(samples[[1]])
 
@@ -54,40 +64,41 @@ cl <- makeCluster(10, type = "SOCK")
 registerDoParallel(cl)
 
 # Parallel for-loop over mcmc iterations
-reduction <- foreach(k = 1:nmcmc, .combine = "cbind", .packages = c("rstan", "magrittr")) %dopar% {
+reduction <- foreach(k = 1:nmcmc, .combine = "rbind", .packages = c("rstan", "magrittr")) %dopar% {
   
   init <- list(lapply(samples, extract_sample, k))
   
-  cases <- matrix(NA, nrow = 52, ncol = 1)
+  cases <- data.frame(rep = k, control = rep(1:52, each = 3), year = rep(control_years, 52), reduction = 0)
   
   for(i in 1:52){
-    
-    control <- matrix(1, nrow = 243, ncol = 3)
-    control[(data$week == i & data$year > 2008 & data$year < 2012), 3] <- 0.905
-    
-    first <- which(rowSums(control) != 3)[1]
-    
-    dat.stan <- list(T = 243,
-                     steps = 7,
-                     y = data$obs,
-                     q = data$q,
-                     tau = data$tau,
-                     rov = rov,
-                     control = control,
-                     pop = pop)
-    
-    sim <- sampling(model,
-                    data = dat.stan, 
-                    init = init, 
-                    iter = 1, 
-                    chains = 1,
-                    warmup = 0,
-                    algorithm = "Fixed_param")
-    
-    cases[i] <- rstan::extract(sim, "y_meas", permute = F)[, 1, ] %>%
-      extract(first:243) %>% 
-      sum() %>% 
-      divide_by(sum(data$obs[first:243]))
+    for(j in 1:3){
+      
+      control <- matrix(1, nrow = 243, ncol = 3)
+      control[(data$epiweek == i & data$epiyear == j), 3] <- 0.95
+      
+      dat.stan <- list(T = 243,
+                       steps = 7,
+                       y = data$obs,
+                       q = data$q,
+                       tau = data$tau,
+                       rov = rov,
+                       control = control,
+                       pop = pop)
+      
+      sim <- sampling(model,
+                      data = dat.stan, 
+                      init = init, 
+                      iter = 1, 
+                      chains = 1,
+                      warmup = 0,
+                      algorithm = "Fixed_param")
+      
+      cases$reduction[(i - 1) * 3 + j] <- rstan::extract(sim, "state", permute = T)[[1]][1, , 8] %>% 
+        diff() %>% 
+        extract(data$year == control_years[j]) %>% 
+        subtract(fitcases[k, data$year == control_years[j]]) %>% 
+        sum()
+    }
   }
   
   return(cases)
@@ -105,40 +116,41 @@ cl <- makeCluster(10, type = "SOCK")
 registerDoParallel(cl)
 
 # Parallel for-loop over mcmc iterations
-reduction <- foreach(k = 1:nmcmc, .combine = "cbind", .packages = c("rstan", "magrittr")) %dopar% {
+reduction <- foreach(k = 1:nmcmc, .combine = "rbind", .packages = c("rstan", "magrittr")) %dopar% {
   
   init <- list(lapply(samples, extract_sample, k))
   
-  cases <- matrix(NA, nrow = 52, ncol = 1)
+  cases <- data.frame(rep = k, control = rep(1:52, each = 3), year = rep(control_years, 52), reduction = 0)
   
   for(i in 1:52){
-    
-    control <- matrix(1, nrow = 243, ncol = 3)
-    control[(data$week == i & data$year > 2008 & data$year < 2012), 2] <- 0.95
-    
-    first <- which(rowSums(control) != 3)[1]
-    
-    dat.stan <- list(T = 243,
-                     steps = 7,
-                     y = data$obs,
-                     q = data$q,
-                     tau = data$tau,
-                     rov = rov,
-                     control = control,
-                     pop = pop)
-    
-    sim <- sampling(model,
-                    data = dat.stan, 
-                    init = init, 
-                    iter = 1, 
-                    chains = 1,
-                    warmup = 0,
-                    algorithm = "Fixed_param")
-    
-    cases[i] <- rstan::extract(sim, "y_meas", permute = F)[, 1, ] %>%
-      extract(first:243) %>% 
-      sum() %>% 
-      divide_by(sum(data$obs[first:243]))
+    for(j in 1:3){
+      
+      control <- matrix(1, nrow = 243, ncol = 3)
+      control[(data$epiweek == i & data$epiyear == j), 2] <- 0.95
+      
+      dat.stan <- list(T = 243,
+                       steps = 7,
+                       y = data$obs,
+                       q = data$q,
+                       tau = data$tau,
+                       rov = rov,
+                       control = control,
+                       pop = pop)
+      
+      sim <- sampling(model,
+                      data = dat.stan, 
+                      init = init, 
+                      iter = 1, 
+                      chains = 1,
+                      warmup = 0,
+                      algorithm = "Fixed_param")
+      
+      cases$reduction[(i - 1) * 3 + j] <- rstan::extract(sim, "state", permute = T)[[1]][1, , 8] %>% 
+        diff() %>% 
+        extract(data$year == control_years[j]) %>% 
+        subtract(fitcases[k, data$year == control_years[j]]) %>% 
+        sum()
+    }
   }
   
   return(cases)
@@ -161,7 +173,7 @@ aopt <- foreach(k = 1:nmcmc, .packages = c("rstan", "magrittr")) %dopar% {
   init <- list(lapply(samples, extract_sample, k))
   
   control <- matrix(1.0, nrow = 243, ncol = 3)
-  control[(data$week == 27 & data$year > 2008 & data$year < 2012), 3] <- 0.905
+  control[(data$week == 23 & data$year > 2008 & data$year < 2012), 3] <- 0.905
   
   dat.stan <- list(T = 243,
                    steps = 7,
@@ -229,116 +241,3 @@ lopt <- foreach(k = 1:nmcmc, .packages = c("rstan", "magrittr")) %dopar% {
 stopCluster(cl)
 
 saveRDS(lopt, "Results/larval_optimal.rds")
-
-#===============================================================================
-# At what case threshold is control most effective?
-
-thresholds <- seq(20, 200, by = 10)
-
-# Setting up parallel
-cl <- makeCluster(10, type = "SOCK")
-registerDoParallel(cl)
-
-# Parallel for-loop over mcmc iterations
-reduction <- foreach(k = 1:nmcmc, .combine = "cbind", .packages = c("rstan", "magrittr", "plyr")) %dopar% {
-  
-  init <- list(lapply(samples, extract_sample, k))
-  
-  cases <- matrix(NA, nrow = length(thresholds), ncol = 1)
-  
-  for(i in 1:length(thresholds)){
-    
-    data$above <- data$obs > thresholds[i]
-    
-    weeks <- ddply(subset(data, year > 2008 & year < 2012), .(year), summarise, 
-                   week = tot.week[which(above)[1]])
-    
-    control <- matrix(1, nrow = 243, ncol = 3)
-    control[weeks$week, 1] <- 1.05
-    
-    dat.stan <- list(T = 243,
-                     steps = 7,
-                     y =data$obs,
-                     q = data$q,
-                     tau = data$tau,
-                     rov = rov,
-                     control = control,
-                     pop = pop)
-    
-    sim <- sampling(model,
-                    data = dat.stan, 
-                    init = init, 
-                    iter = 1, 
-                    chains = 1,
-                    warmup = 0,
-                    algorithm = "Fixed_param")
-    
-    cases[i] <- rstan::extract(sim, "y_meas", permute = F)[, 1, ] %>%
-      extract(first:243) %>% 
-      sum() %>% 
-      divide_by(sum(data$obs[first:243]))  }
-  
-  return(cases)
-}
-
-stopCluster(cl)
-
-saveRDS(reduction, "Results/case_control.rds")
-
-#===============================================================================
-# At what mosquito/trap threshold is control most effective?
-
-thresholds <- seq(0.25, 1, by = 0.04)
-
-data <- mutate(data, qt = q/tau)
-
-# Setting up parallel
-cl <- makeCluster(10, type = "SOCK")
-registerDoParallel(cl)
-
-# Parallel for-loop over mcmc iterations
-reduction <- foreach(k = 1:nmcmc, .combine = "cbind", .packages = c("rstan", "magrittr", "plyr")) %dopar% {
-  
-  init <- list(lapply(samples, extract_sample, k))
-  
-  cases <- matrix(NA, nrow = length(thresholds), ncol = 1)
-  
-  for(i in 1:length(thresholds)){
-    
-    data$above <- data$qt > thresholds[i]
-    
-    weeks <- ddply(subset(data, year > 2008 & year < 2012), .(year), summarise, 
-                   week = tot.week[which(above)[1]])
-    
-    control <- matrix(1, nrow = 243, ncol = 3)
-    control[weeks$week, 1] <- 1.05
-    
-    dat.stan <- list(T = 243,
-                     steps = 7,
-                     y =data$obs,
-                     q = data$q,
-                     tau = data$tau,
-                     rov = rov,
-                     control = control,
-                     pop = pop)
-    
-    sim <- sampling(model,
-                    data = dat.stan, 
-                    init = init, 
-                    iter = 1, 
-                    chains = 1,
-                    warmup = 0,
-                    algorithm = "Fixed_param")
-    
-    cases[i] <- rstan::extract(sim, "y_meas", permute = F)[, 1, ] %>%
-      extract(first:243) %>% 
-      sum() %>% 
-      divide_by(sum(data$obs[first:243]))  }
-  
-  return(cases)
-}
-
-stopCluster(cl)
-
-saveRDS(reduction, "Results/mosq_control.rds")
-
