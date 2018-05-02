@@ -96,8 +96,8 @@ reduction <- foreach(k = 1:nmcmc, .combine = "rbind", .packages = c("rstan", "ma
       cases$reduction[(i - 1) * 3 + j] <- rstan::extract(sim, "state", permute = T)[[1]][1, , 8] %>% 
         diff() %>% 
         extract(data$year == control_years[j]) %>% 
-        subtract(fitcases[k, data$year == control_years[j]]) %>% 
-        sum()
+        sum() %>% 
+        divide_by(sum(fitcases[k, data$year == control_years[j]]))
     }
   }
   
@@ -148,8 +148,8 @@ reduction <- foreach(k = 1:nmcmc, .combine = "rbind", .packages = c("rstan", "ma
       cases$reduction[(i - 1) * 3 + j] <- rstan::extract(sim, "state", permute = T)[[1]][1, , 8] %>% 
         diff() %>% 
         extract(data$year == control_years[j]) %>% 
-        subtract(fitcases[k, data$year == control_years[j]]) %>% 
-        sum()
+        sum() %>% 
+        divide_by(sum(fitcases[k, data$year == control_years[j]]))
     }
   }
   
