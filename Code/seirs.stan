@@ -57,9 +57,9 @@ functions {
     /*E*/ dydt[2] = foi_vh - infectious - b * y[2];
     /*I*/ dydt[3] = infectious - (gamma + b) * y[3];
     
-    /*VE*/ dydt[4] = foi_hv - infect_mosq - (control[1] * dv + cap) * y[4];
-    /*VI*/ dydt[5] = infect_mosq - (control[1] * dv + cap) * y[5];
-    /*VN*/ dydt[6] = control[2] * (y[11] + dv) * y[6] - (control[1] * dv + cap) * y[6];
+    /*VE*/ dydt[4] = foi_hv - infect_mosq - (dv + cap) * y[4];
+    /*VI*/ dydt[5] = infect_mosq - (dv + cap) * y[5];
+    /*VN*/ dydt[6] = control[2] * (y[11] + dv) * y[6] - (dv + cap) * y[6];
     
     /*VC*/ dydt[7] = cap * y[6];
     /*cases*/ dydt[8] = infectious;
@@ -149,7 +149,7 @@ transformed parameters {
     
     state[t, 4] = state[t, 4] * control[t - 1, 3];
     state[t, 5] = state[t, 5] * control[t - 1, 3];
-    state[t, 6] = state[t, 6] * control[t - 1, 3];
+    state[t, 6] = state[t, 6] * control[t - 1, 3] * control[t - 1, 1];
     
     for(j in 1:steps){
       
