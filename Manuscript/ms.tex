@@ -406,13 +406,16 @@ Within stan, the solution to the differential equation model was approximated wi
 
 \subsection*{Control simulations}
 
-Given samples from the posterior distribution as obtained above, we can simulate the efficacy of different control strategies.
-In particular, we investigated the optimal timing of a single pulse of control within the year (e.g., if the city only has enough resource to fog for adult mosquitoes once a year, in what week is that control going to prevent the most cases?).
-To obtain the posterior distribution of the number of cases prevented by implementing control in week $i$ each year, for each posterior sample $k$, we simulate an increase in the latent mosquito death rate during each week $i$ (e.g.,
-$\hat{d}^{(k)}_{ji} = (1 + \Delta) d^{(k)}_{ji}$ where $j$ indexes the year, and $i$ indexes the week of the year).
-Then we summed the total number of cases reported in this scenario and compare to the data to get an estimate of the number of cases prevented.
-To keep our simulations conservative relative to field estimates of the mortality induced by spraying \cite{Esu2010}, and to avoid pushing the model into the unrealistic range of dengue eradication, we set $\Delta = 0.05$.
-We also only simulated the effect of control in the middle three years, because the effectiveness of control in the first year is strongly affected by initial conditions, and we lack complete data for the last year.
+Given samples from the posterior distribution as obtained above, we simulated the efficacy of different control interventions.
+To do so, we broke our time series into epidemiological years that roughly cover the span between outbreak peaks, from week 16 of one year to week 15 of the next.
+We then asked, in which week of a given epidemiological year is a single pulse of control most effective in preventing cases in the following (and slightly overlapping) calendar year?
+Structuring the simulations this way standardized the comparison of the effectiveness of control implemented at different times, as we evaluated the number of cases prevented in a fixed window (avoiding artifacts introduced when the window used to evaluate a given control intervention moves with the timing of that control).
+This set-up also roughly aligns with the timeline of decisions faced by actual city managers, e.g., the window within which a city might plan for the 2009 dengue season extends from roughly peak incidence in 2008 through to peak incidence in 2009 (any earlier and the 2008 outbreak is still the primary focus; any later and the 2009 outbreak is already winding down).
+Further, by investigating each year separately (omitting 2008 and 2012 due to edge effects and incomplete data, respectively), we also avoid the possibly overly optimistic predictions of sequential control.
+ 
+To obtain the posterior distribution of the proportion of cases prevented in calendar year $j$ by implementing control in week $i$ of the preceeding epidemiological year, for each posterior sample $k$, we simulated the dynamics resulting from a $5\%$ reduction of the mosquito population (affecting susceptible, exposed, and infectious mosquitoes equally).
+We then compared the number of cases produced during year $j$ in the control scenario to the same number in the uncontrolled scenario.
+A $5\%$ reduction in mosquito abundance was chosen to keep our simulations conservative relative to field estimates of the mortality induced by spraying \cite{Esu2010}, and to avoid pushing the model into the unrealistic range of dengue eradication.
 
 \section*{Results}
 
