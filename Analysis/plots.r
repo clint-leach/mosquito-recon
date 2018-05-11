@@ -16,7 +16,13 @@ post <- ddply(tseries, .(tot.week), summarise,
               yobs = sum(Cases, na.rm = T),
               tau = sum(Trap, na.rm = T),
               week = unique(Week),
-              year = unique(Year))
+              year = unique(Year),
+              epiweek = 0,
+              epiyear = 0)
+
+# Generating epidemic weeks/years that count from peak to peak (week 16)
+post$epiweek[16:243] <- c(1:52)
+post$epiyear <- cumsum(post$epiweek == 1)
 
 # Population size
 pop <- 327801
@@ -121,88 +127,55 @@ grid.arrange(fig2.a, fig2.b, ncol = 2)
 dev.off()
 
 
-# Figure 3: Effect of control implemented in different weeks ===================
+# Figure 3: Effect of adult control implemented in different weeks ===================
 
-adult_reduction <- readRDS("Results/adult_control.rds") %>% 
-  subtract(1) %>% multiply_by(-1) %>% 
-  adply(1, quantile, probs = c(0.1, 0.5, 0.9)) %>% 
-  mutate(week = as.numeric(X1), yweek = c(16:52, 1:15), control = "adult")
+adult <- readRDS("Results/adult_control.rds")
 
-larval_reduction <- readRDS("Results/larval_control.rds") %>% 
-  subtract(1) %>% multiply_by(-1) %>% 
-  adply(1, quantile, probs = c(0.1, 0.5, 0.9)) %>% 
-  mutate(week = as.numeric(X1), yweek = c(16:52, 1:15), control = "larval")
+adult_best <- adult %>% 
+  ddply(.(rep, year), summarise, 
+        best = which.min(reduction),
+        prevented =  1 - min(reduction))
 
-names(adult_reduction) <- c("X1", "min", "med", "max", "week", "yweek", "control")
-names(larval_reduction) <- c("X1", "min", "med", "max", "week", "yweek", "control")
+delta <- 97 * rstan::extract(sim, "delta_c", permute = T)[[1]][1:1000]
+adult_best$delta <- rep(delta, each = 3)
 
-reduction <- rbind(adult_reduction, larval_reduction)
+adult_best %>% 
+  ggplot(aes(delta, prevented)) + 
+  geom_point(size = 0.5) + 
+  facet_grid(.~year) + 
+  theme_classic() + 
+  theme(strip.background = element_blank(), strip.text = element_blank()) +
+  xlab("") +
+  ylab("proportion of cases prevented") -> fig3.a
 
-yweek <- c(16:52, 1:15)
-breaks <- c(8, 18, 28, 38, 48)
+adult_best %>% 
+  ggplot(aes(delta, best)) + 
+  geom_point(size = 0.5) + 
+  facet_grid(.~year) + 
+  theme_classic() + 
+  theme(strip.background = element_blank(), strip.text = element_blank()) +
+  xlab("period of cross immunity (weeks)") +
+  ylab("week of most effective control") -> fig3.b
 
 # Plotting
 
-pdf("Manuscript/figures/fig3.pdf",
-           width = 4 , height = 3,
+postscript("Manuscript/figures/fig3.eps",
+           width = 8 , height = 6,
            family = "ArialMT")
 
-ggplot(reduction, aes(week, med)) + 
-  geom_ribbon(aes(ymin = min, ymax = max, fill = control), alpha = 0.7) + 
-  geom_line(aes(group = control), size = 0.5) +
-  theme_classic() + 
-  scale_fill_grey(guide = F) +
-  scale_x_continuous(expand = c(0, 1), breaks = breaks, labels = yweek[breaks]) +
-  xlab("week of control") +
-  ylab("proportion of cases prevented")
+fig3.a + fig3.b + plot_layout(ncol = 1)
 
 dev.off()
 
-# Figure 4: Dynamics under optimal control =====================================
+# Figure 4: Timing of control ==================================================
 
-# Dynamics resulting from optimal adult control
+adult_bests <- ddply(adult_best, .(year), summarise, best = median(best))
+adult_bests$epiyear <- c(1, 2, 3)
+adult_bests$week <- 0
 
-adult_opt<- readRDS("Results/adult_optimal.rds")
-
-y_adult <- 1/12 * pop * sapply(adult_opt, function(x) diff(x[, 8])) %>% 
-  adply(1, quantile, c(0.1, 0.5, 0.9), .id = NULL)
-names(y_adult) <- c("y_ac_min", "y_ac_med", "y_ac_max")
-
-larval_opt<- readRDS("Results/larval_optimal.rds")
-
-y_larval <- 1/12 * pop * sapply(larval_opt, function(x) diff(x[, 8])) %>% 
-  adply(1, quantile, c(0.1, 0.5, 0.9), .id = NULL)
-names(y_larval) <- c("y_lc_min", "y_lc_med", "y_lc_max")
-
-post <- cbind(post, y_adult, y_larval)
-
-ggplot(post, aes(tot.week, y_ac_med)) + 
-  geom_ribbon(aes(ymin = y_ac_min, ymax = y_ac_max), fill = "grey70") + 
-  geom_line() + 
-  geom_line(aes(tot.week, yhat), linetype = 2) +
-  geom_vline(xintercept = post$tot.week[post$week == 27 & post$year > 2008 & post$year < 2012], color = "tomato3") + 
-  theme_classic() +
-  scale_y_continuous(expand = c(0, 0), limits = c(0, 600)) + 
-  scale_x_continuous(expand = c(0, 1)) +
-  ylab("case reports") +
-  xlab("week") +
-  ggtitle("B") -> fig5.a
-
-ggplot(post, aes(tot.week, y_lc_med)) + 
-  geom_ribbon(aes(ymin = y_lc_min, ymax = y_lc_max), fill = "grey70") + 
-  geom_line() + 
-  geom_line(aes(tot.week, yhat), linetype = 2) +
-  geom_vline(xintercept = post$tot.week[post$week == 4 & post$year > 2008 & post$year < 2012], color = "tomato3") + 
-  theme_classic() +
-  scale_y_continuous(expand = c(0, 0), limits = c(0, 600)) + 
-  scale_x_continuous(expand = c(0, 1)) +
-  ylab("case reports") +
-  xlab("week") +
-  ggtitle("B") -> fig5.b
-
-grid.arrange(fig5.a, fig5.b, nrow = 1)
-
-# Figure 5: Timing of control ==================================================
+for(i in 1:3){
+  adult_bests$week[i] <- post$tot.week[post$epiyear == adult_bests$epiyear[i] & post$epiweek == adult_bests$best[i]]
+}
 
 post <- mutate(post, 
                ymu = system[, , 8] %>% 
@@ -213,24 +186,25 @@ post <- mutate(post,
                Smu = system[, , 1] %>% 
                  apply(2, median))
 
-stacked <- melt(post, id.vars = c("week", "year"), measure.vars = c("ymu", "qmu", "dvmed", "Smu"))
+stacked <- melt(post, id.vars = c("tot.week", "epiweek", "year"), measure.vars = c("ymu", "qmu", "Smu"))
 
-levels(stacked$variable) <- c("cases", "mosquitoes", "death rate", "susceptibles")
+levels(stacked$variable) <- c("cases", "mosquitoes", "susceptibles")
 
-postscript("Manuscript/figures/fig5.eps",
+postscript("Manuscript/figures/fig4.eps",
            width = 4, height = 6,
            family = "ArialMT")
 
-ggplot(stacked, aes(week, value, color = factor(year))) +
-  geom_line() +
-  facet_grid(variable~., scales = "free_y", switch = "y") + 
-  geom_vline(xintercept = 5) +
-  geom_vline(xintercept = 24) +
+subset(stacked, year < 2012) %>% 
+  ggplot(aes(tot.week, value)) + 
+  geom_line() + 
+  geom_vline(xintercept = adult_bests$week, color = "grey50") +
+  facet_grid(variable ~ ., scales = "free_y", switch = "y") + 
   theme_classic() +
   scale_color_brewer(palette = "Dark2", type = "qual", guide = F) + 
-  scale_x_continuous(expand = c(0, 1)) +
+  scale_x_continuous(expand = c(0, 1), breaks = c(54, 106, 158), labels = c(2009, 2010, 2011)) +
   theme(strip.placement = "outside", strip.background = element_blank()) +
-  ylab("")
+  ylab("") + 
+  xlab("year")
 
 dev.off()  
 
