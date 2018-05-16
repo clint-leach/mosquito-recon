@@ -1,7 +1,8 @@
 # Presentations
 Manuscript/presentations
 
-# Generated results files
+# Generated results files and data
+*.csv
 *.rds
 
 # History files
