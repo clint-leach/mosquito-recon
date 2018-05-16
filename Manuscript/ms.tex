@@ -449,32 +449,24 @@ Weekly observations from 2008 to week 34 of 2012 (points), with corresponding me
 
 \begin{figure}[!h]
 \includegraphics[angle = 270, scale = 1]{figures/fig2.eps}
-\caption{{\bf Estimated latent mosquito population growth and death rates.}
-Median posterior estimate (line) and 80\% credible interval (gray band).  A: weekly mosquito population growth rate ($r_t$). B: weekly mosquito death rate ($d_t$).
+\caption{{\bf Estimated latent mosquito mortality rate.}
+A: Time series of mortality rate, showing median posterior estimate (line) and 80\% credible interval (gray band). B: weekly mosquito mortality rate as a function of weekly mean temperature..
 }
-\label{latent}
+\label{mortality}
 \end{figure}
 
 \begin{figure}[!h]
 \includegraphics[angle = 270, scale = 1]{figures/fig3.eps}
-\caption{{\bf Estimated mosquito death rate as a function of temperature.}
-Weekly median posterior death rate ($d_t$) plotted against weekly mean temperature (Celsius) in Vitoria, Brazil.
+\caption{{\bf The effect of cross-immunity on effect and timing of control.}
+Each point represents a sample from the posterior and the results of the corresponding control simulation, in which we evaluated the effects of a $5\%$ reduction in mosquito abundance at each of the 52 weeks from week 16 of the previous year to week 15 of the target year. A, B, C: the maximum proportion of cases prevented target years 2009, 2010, and 2011, respectively.  D, E, F: the epidemiological week in which control achieved the maximum reduction in cases in 2009, 2010, and 2011, respectively.
 }
-\label{temp}
+\label{immunity}
 \end{figure}
 
 \begin{figure}[!h]
 \includegraphics[angle = 270, scale = 1]{figures/fig4.eps}
-\caption{{\bf Cases prevented by mosquito control.}
-A: Number of reported cases of dengue fever prevented by increasing the mosquito death rate by 5\% during a given week each year in 2009, 2010, and 2011. Median posterior prediction (line) and 80\% credible interval. B: Weekly predicted case reports resulting from implementing control in week 3 of each year (timing indicated by vertical red lines).  Median posterior case reports from the model without (dashed line) and with control (solid line) and 80\% credible interval of controlled dynamics (gray band).
-}
-\label{control}
-\end{figure}
-
-\begin{figure}[!h]
-\includegraphics[angle = 270, scale = 1]{figures/fig5.eps}
 \caption{{\bf Timing of optimal control relative to disease and mosquito dynamics.}
-The vertical black line indicates week 3, during which mosquito control produces the largest decline in predicted dengue case reports. Each colored line represents a different year: dark green = 2008, orange = 2009, purple = 2010, pink = 2011, light green = 2012. A: posterior median estimate of new dengue cases per week. B: posterior median estimate of number of mosquitoes per person each week. C: posterior median estimate of weekly mosquito death rate.
+The vertical gray lines indicate the median week at which control was most effective in preventing cases in the following calendar year. A: posterior median estimate of new dengue cases per week. B: posterior median estimate of number of mosquitoes per person each week. C: posterior median estimate of the proportion of susceptible individuals.
 }
 \label{timing}
 \end{figure}
