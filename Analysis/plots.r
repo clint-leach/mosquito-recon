@@ -7,6 +7,7 @@ library(magrittr)
 library(lubridate)
 library(ggplot2)
 library(gridExtra)
+library(patchwork)
 
 # Loading and processing mosquito and case data
 tseries <- read.csv("Data/Vitoria.data.csv")
@@ -40,13 +41,13 @@ post$temp <- temp$temp
 post$rov <- 7 * exp(0.2 * temp$temp - 8)
 
 # Loading MCMC results
-sim <- readRDS("Results/euler7.rds")
+sim <- readRDS("Results/gamma_eip.rds")
 
 # Figure 1: Observed and estimated time series =================================
 
 # Computing posterior median and 80% credible interval
-yhat <- rstan::extract(sim, c("y_hat"), permute = F) %>% apply(3, quantile, c(0.1, 0.5, 0.9))
-qhat <- rstan::extract(sim, c("q_hat"), permute = F) %>% apply(3, quantile, c(0.1, 0.5, 0.9))
+yhat <- rstan::extract(sim, c("y_meas"), permute = F) %>% apply(3, quantile, c(0.1, 0.5, 0.9))
+qhat <- rstan::extract(sim, c("q_meas"), permute = F) %>% apply(3, quantile, c(0.1, 0.5, 0.9))
 
 # Assembling data frame for ggplot
 post$yhat <- yhat[2, ]
@@ -89,9 +90,9 @@ dev.off()
 
 # Figure 2: Estimates of latent mosquito mortality rate ========================
 
-system <- rstan::extract(sim, "system", permute = T)[[1]]
+system <- rstan::extract(sim, "state", permute = T)[[1]]
 
-dv <- system[, , 9] %>% + 0.39 %>% exp() %>% 
+dv <- system[, 2:244, 12] %>% + 0.39 %>% exp() %>% 
   adply(2, quantile, c(0.1, 0.5, 0.9), .id = NULL)
 names(dv) <- c("dvmin", "dvmed", "dvmax")
 
@@ -129,20 +130,24 @@ dev.off()
 
 # Figure 3: Effect of adult control implemented in different weeks ===================
 
-adult <- readRDS("Results/adult_control.rds")
+adult <- readRDS("Results/gamma_control.rds")
 
 adult_best <- adult %>% 
   ddply(.(rep, year), summarise, 
         best = which.min(reduction),
-        prevented =  1 - min(reduction))
+        prevented =  1 - min(reduction),
+        range = max(reduction) - min(reduction))
 
-delta <- 97 * rstan::extract(sim, "delta_c", permute = T)[[1]][1:1000]
+delta <- 97 * rstan::extract(sim, "delta_c", permute = T)[[1]]
 adult_best$delta <- rep(delta, each = 3)
+
+s <- system[, 2:244, 1]
+adult_best$s <- c(t(s[, c(16, 68, 120)]))
 
 adult_best %>% 
   ggplot(aes(delta, prevented)) + 
-  geom_point(size = 0.5) + 
-  facet_grid(.~year) + 
+  geom_bin2d(binwidth = c(5, 0.01)) +
+  scale_fill_gradient(low = "#E6E6E6", high = "#000000", guide = FALSE) +  facet_grid(.~year) + 
   theme_classic() + 
   theme(strip.background = element_blank(), strip.text = element_blank()) +
   xlab("") +
@@ -150,7 +155,8 @@ adult_best %>%
 
 adult_best %>% 
   ggplot(aes(delta, best)) + 
-  geom_point(size = 0.5) + 
+  geom_bin2d(binwidth = c(5, 1)) +
+  scale_fill_gradient(low = "#E6E6E6", high = "#000000", guide = FALSE) +
   facet_grid(.~year) + 
   theme_classic() + 
   theme(strip.background = element_blank(), strip.text = element_blank()) +
@@ -160,7 +166,7 @@ adult_best %>%
 # Plotting
 
 postscript("Manuscript/figures/fig3.eps",
-           width = 8 , height = 6,
+           width = 5.5, height = 5,
            family = "ArialMT")
 
 fig3.a + fig3.b + plot_layout(ncol = 1)
