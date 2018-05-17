@@ -39,7 +39,7 @@ functions {
     
     // Compute transition rates
     // Mosquito to human foi
-    foi_vh = lambda * y[5] * y[1];
+    foi_vh = lambda * y[8] * y[1];
 
     // Human to mosquito foi
     foi_hv = lambda * y[3] * Sv;
