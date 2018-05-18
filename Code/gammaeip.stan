@@ -6,6 +6,7 @@ functions {
                real lambda,
                real ro,
                real gamma,
+               real dvmu,
                real eps_dv,
                real delta,
                real cap,
@@ -35,7 +36,7 @@ functions {
     Sv = y[9]- y[8] - y[7] - y[6] - y[5] - y[4];
     R = 1 - y[1] - y[2] - y[3];
 
-    dv = exp(y[12] + 0.39);
+    dv = dvmu * exp(y[12]);
     
     // Compute transition rates
     // Mosquito to human foi
@@ -98,7 +99,8 @@ parameters {
   real<lower=0> ro_c;                  // human latenet period
   real<lower=0> gamma_c;               // human infectious period
   real<lower=0> delta_c;               // cross-immune period
-  real logNv;                         // initial mosquito population size
+  real<lower=0> dvmu_c;                  // mean mosquito mortality rate
+  real logNv;                          // initial mosquito population size
   real dv0;
   real rv0;
   real<lower=0> sigmadv;
@@ -110,6 +112,7 @@ transformed parameters {
   real<lower=0> ro;
   real<lower=0> gamma;
   real<lower=0> delta;
+  real<lower=0> dvmu;
   real<lower=0> eta_y;
   real<lower=0> eta_q;
   real<lower=0> phi_q;
@@ -143,6 +146,7 @@ transformed parameters {
   ro = 1 / (0.87 * ro_c);
   gamma = 3.5 * gamma_c;
   delta = 1 / (97 * delta_c);
+  dvmu = 1.47 * dvmu_c;
   
   // Process model
   for (t in 2:(T + 1)){
@@ -165,6 +169,7 @@ transformed parameters {
                                                  lambda, 
                                                  ro, 
                                                  gamma, 
+                                                 dvmu,
                                                  sigmadv * eps_dv[t - 1], 
                                                  delta, 
                                                  phi_q * tau[t - 1], 
@@ -203,6 +208,7 @@ model {
   // Mosquito demographic series
   
   // Mean and initial values
+  dvmu_c ~ gamma(10, 10);
   dv0 ~ normal(0, 0.5);
   rv0 ~ normal(0, 0.5);
   

@@ -44,7 +44,7 @@ rov <- 7 * exp(0.2 * covars$temp - 8)
 # Loading mcmc samples
 
 fit <- readRDS("Results/gamma_eip.rds")
-samples <- rstan::extract(fit)[1:16]
+samples <- rstan::extract(fit)[1:17]
 fitcases <- rstan::extract(fit, "state", permute = T)[[1]] %>% extract(, ,  11)
 
 nmcmc <- length(samples[[1]])
@@ -66,7 +66,7 @@ registerDoParallel(cl)
 # Parallel for-loop over mcmc iterations
 reduction <- foreach(k = 1:nmcmc, .combine = "rbind", .packages = c("rstan", "magrittr")) %dopar% {
   
-  init <- list(lapply(samples, extract_sample, iters[k]))
+  init <- list(lapply(samples, extract_sample, k))
   
   cases <- data.frame(rep = k, 
                       control = rep(1:52, each = 3), 
@@ -105,7 +105,7 @@ reduction <- foreach(k = 1:nmcmc, .combine = "rbind", .packages = c("rstan", "ma
       cases$I[(i - 1) * 3 + j] <- state[1, 3]
       cases$reduction[(i - 1) * 3 + j] <- state[, 11] %>% 
         diff() %>% 
-        divide_by(sum(fitcases[iters[k], data$year == control_years[j]]))
+        divide_by(sum(fitcases[k, data$year == control_years[j]]))
     }
   }
   
