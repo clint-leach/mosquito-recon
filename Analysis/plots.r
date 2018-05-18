@@ -104,7 +104,7 @@ ggplot(post, aes(tot.week, dvmed)) +
   geom_ribbon(aes(ymin = dvmin, ymax = dvmax), fill = "grey70") +
   geom_line() + 
   theme_classic() +
-  scale_y_continuous(expand = c(0.05, 0), limits = c(0.6, 2.5)) + 
+  scale_y_continuous(expand = c(0.05, 0), limits = c(0.3, 2.2)) + 
   scale_x_continuous(expand = c(0, 1)) +
   ylab("mosquito mortality rate") +
   xlab("week") +
@@ -113,7 +113,7 @@ ggplot(post, aes(tot.week, dvmed)) +
 ggplot(post, aes(temp, dvmed)) +
   geom_point() + 
   theme_classic() + 
-  scale_y_continuous(expand = c(0.05, 0), limits = c(0.6, 2.5)) + 
+  scale_y_continuous(expand = c(0.05, 0), limits = c(0.3, 2.2)) + 
   scale_x_continuous(expand = c(0, 1)) +
   ylab("mosquito mortality rate") +
   xlab("weekly mean temperature") + 
@@ -237,6 +237,7 @@ postscript("Manuscript/figures/figS1.eps",
 ggplot(eps_dv, aes(week, med)) + 
   geom_ribbon(aes(ymin = min, ymax = max), fill = "grey70") +
   geom_line() + 
+  geom_hline(yintercept = 0) + 
   theme_classic() + 
   scale_x_continuous(expand = c(0, 1)) +
   ylab(expression(epsilon[d])) +
@@ -268,7 +269,7 @@ dev.off()
 
 # Figure S3: epidemiological parameters ===================================================
 
-epiparams <- rstan::extract(sim, c("ro_c", "gamma", "delta_c"), permute = T)
+epiparams <- rstan::extract(sim, c("ro_c", "gamma_c", "delta_c"), permute = T)
 
 postscript("Manuscript/figures/figS3.eps",
            width = 6, height = 3,
@@ -276,40 +277,72 @@ postscript("Manuscript/figures/figS3.eps",
 
 par(mfrow = c(1, 3))
 
-hist(0.87 * epiparams[[1]], main = "", xlab = "latent period", freq = F)
-abline(v = 0.87, lwd = 2)
+hist(epiparams[[1]], main = "", xlab = "scaled latent period", freq = F)
+curve(dgamma(x, 8.3, 8.3), add = T, lwd = 2)
 
-hist(epiparams[[2]], main = "", xlab = "rate of infectious decay", freq = F)
-abline(v = 3.5, lwd = 2)
+hist(epiparams[[2]], main = "", xlab = "scaled rate of infectious decay", freq = F)
+curve(dgamma(x, 100, 100), add = T, lwd = 2)
 
-hist(97 * epiparams[[3]], main = "", xlab = "period of cross-immunity", freq = F)
-abline(v = 97, lwd = 2)
+hist(epiparams[[3]], main = "", xlab = "scaled period of cross-immunity", freq = F)
+curve(dgamma(x, 10, 10), add = T, lwd = 2)
 
 dev.off()
 
 # Figure S4: initial conditions ===========================================================
 
-ics <- rstan::extract(sim, c("S0", "E0","I0"), permute = T)
+ics <- rstan::extract(sim, c("S0", "E0","I0", "logNv", "dv0", "rv0"), permute = T)
 
 postscript("Manuscript/figures/figS4.eps",
+           width = 6, height = 5,
+           family = "ArialMT")
+
+par(mfrow = c(2, 3))
+
+hist(ics$S0, freq = F, main = "", xlab = expression(S[0]))
+curve(dbeta(x, 4, 6), add = T, lwd = 2)
+
+hist(ics$E0, freq = F, main = "", xlab = expression(E[0]))
+curve(dgamma(x, 10, 0.1), add = T, lwd = 2)
+
+hist(ics$I0, freq = F, main = "", xlab = expression(I[0]))
+curve(dgamma(x, 6, 0.1), add = T, lwd = 2)
+
+hist(ics$logNv, freq = F, main = "", xlab = expression(log(V[N0])))
+curve(dnorm(x, 0.7, 0.3), add = T, lwd = 2)
+
+hist(ics$dv0, freq = F, main = "", xlab = expression(nu[0]))
+curve(dnorm(x, 0, 0.5), add = T, lwd = 2)
+
+hist(ics$rv0, freq = F, main = "", xlab = expression(r[0]))
+curve(dnorm(x, 0, 0.5), add = T, lwd = 2)
+
+dev.off()
+
+# Figure S5: Measurement parameters ============================================
+
+meas <- rstan::extract(sim, c("log_phi_q", "eta_inv_q", "eta_inv_y"), permute = T)
+
+postscript("Manuscript/figures/figS5.eps",
            width = 6, height = 3,
            family = "ArialMT")
 
 par(mfrow = c(1, 3))
 
-hist(ics$S0, freq = F, main = "", xlab = expression(S[0]))
-hist(ics$E0, freq = F, main = "", xlab = expression(E[0]))
-hist(ics$I0, freq = F, main = "", xlab = expression(I[0]))
+hist(meas$log_phi_q, freq = F, main = "", xlab = expression(log(phi[q])))
+curve(dnorm(x, -13, 0.5), add = T, lwd = 2)
+
+hist(meas$eta_inv_q, freq = F, main = "", xlab = expression(eta[q]))
+
+hist(meas$eta_inv_y, freq = F, main = "", xlab = expression(eta[y]))
 
 dev.off()
 
-
 # Model checking ===============================================================
 
-yrep <- rstan::extract(sim, "y_hat", permute = T)[[1]]
-qrep <- rstan::extract(sim, "q_hat", permute = T)[[1]]
+yrep <- rstan::extract(sim, "y_meas", permute = T)[[1]]
+qrep <- rstan::extract(sim, "q_meas", permute = T)[[1]]
 
-# Figure S5: ACF plots =========================================================
+# Figure S6: ACF plots =========================================================
 
 # Calculating the observed autocorrelation function
 yacf <- acf(post$yobs, lag.max = 55, plot = F)$acf
@@ -355,7 +388,7 @@ ggplot(acfdf, aes(lag, qobs)) +
   scale_x_continuous(expand = c(0, 0.1)) + 
   ggtitle("B") -> figs5.b
 
-postscript("Manuscript/figures/figS5.eps",
+postscript("Manuscript/figures/figS6.eps",
            width = 5.2, height = 3,
            family = "ArialMT")
 
@@ -363,9 +396,9 @@ grid.arrange(figs5.a, figs5.b, nrow = 1)
 
 dev.off()
 
-# Figure S6: Totals ============================================================
+# Figure S7: Totals ============================================================
 
-postscript("Manuscript/figures/figS6.eps",
+postscript("Manuscript/figures/figS7.eps",
            width = 6, height = 4,
            family = "ArialMT")
 
@@ -379,9 +412,9 @@ abline(v = sum(post$qobs), lwd = 2)
 
 dev.off()
 
-# Figure S7: Min and max ===========================================================
+# Figure S8: Min and max ===========================================================
 
-postscript("Manuscript/figures/figS7.eps",
+postscript("Manuscript/figures/figS8.eps",
            width = 6, height = 6,
            family = "ArialMT")
 
@@ -400,39 +433,3 @@ hist(apply(qrep, 1, min), main = "", xlab = "minimum weekly trap count", freq = 
 abline(v = min(post$qobs), lwd = 2)
 
 dev.off()
-
-# Figure S8: Larval control ====================================================
-
-# Processing adult control experiment
-larval_reduction <- readRDS("Results/larval_control.rds") %>% 
-  adply(1, quantile, probs = c(0.1, 0.5, 0.9)) %>% 
-  mutate(week = as.numeric(X1))
-
-names(larval_reduction) <- c("X1", "min", "med", "max", "week")
-
-postscript("Manuscript/figures/figS8.eps",
-           width = 5.2, height = 3,
-           family = "ArialMT")
-
-ggplot(larval_reduction, aes(week, med)) + 
-  geom_ribbon(aes(ymin = min, ymax = max), fill = "grey70") + 
-  geom_line() +
-  geom_abline(slope = 0, color = "grey20") + 
-  theme_classic() + 
-  scale_x_continuous(expand = c(0, 1)) +
-  xlab("week of control") +
-  ylab("cases prevented")
-
-dev.off()
-
-
-#===============================================================================
-ggplot(post, aes(tot.week, rvmed)) + 
-  geom_ribbon(aes(ymin = rvmin, ymax = rvmax), fill = "grey70") +
-  geom_line() + 
-  theme_classic() +
-  scale_y_continuous(expand = c(0, 0)) + 
-  scale_x_continuous(expand = c(0, 1)) +
-  ylab("mosquito growth rate") + 
-  xlab("week") +
-  ggtitle("A") -> fig2.a
