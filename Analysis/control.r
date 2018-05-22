@@ -13,17 +13,10 @@ data <- ddply(tseries, .(tot.week), summarise,
               q = sum(Mosquitoes, na.rm = T),
               tau = sum(Trap, na.rm = T),
               year = unique(Year),
-              week = unique(Week),
-              epiweek = 0,
-              epiyear = 0
+              week = unique(Week)
               )
 
-# Generating epidemic weeks/years that count from peak to peak (week 16)
-data$epiweek[16:243] <- c(1:52)
-data$epiyear <- cumsum(data$epiweek == 1)
-
-# Specifying the year windows over which we evaluate control
-control_years = c(2009, 2010, 2011)
+windows <- ddply(data, .(year), summarise, first = min(tot.week), last = max(tot.week))[2:4, ]
 
 # Population size
 pop <- 327801
@@ -64,22 +57,15 @@ cl <- makeCluster(3, type = "SOCK")
 registerDoParallel(cl)
 
 # Parallel for-loop over mcmc iterations
-reduction <- foreach(k = 1:nmcmc, .combine = "rbind", .packages = c("rstan", "magrittr")) %dopar% {
-  
-  init <- list(lapply(samples, extract_sample, k))
-  
-  cases <- data.frame(rep = k, 
-                      control = rep(1:52, each = 3), 
-                      year = rep(control_years, 52), 
-                      reduction = 0, 
-                      S = 0,
-                      I = 0)
-  
-  for(i in 1:52){
-    for(j in 1:3){
+reduction <- foreach(k = 1:nmcmc, .combine = "rbind", .packages = c("rstan", "magrittr")) %:% 
+  foreach(j = iter(windows, by = "row"), .combine = "rbind") %:% 
+    foreach(i = 1:(j$first - 1), .combine = "rbind") %dopar% {
+
+      init <- list(lapply(samples, extract_sample, k))
+      init[[1]]$dvmu_c <- 1
       
       control <- matrix(1, nrow = 243, ncol = 3)
-      control[(data$epiweek == i & data$epiyear == j), 3] <- 0.95
+      control[j$first - i, 3] <- 0.95
       
       dat.stan <- list(T = 243,
                        steps = 7,
@@ -99,17 +85,16 @@ reduction <- foreach(k = 1:nmcmc, .combine = "rbind", .packages = c("rstan", "ma
                       algorithm = "Fixed_param")
       
       state <- rstan::extract(sim, "state", permute = T)[[1]][1, 2:244, ] %>% 
-        extract(range(data$tot.week[data$year == control_years[j]]), )
+        extract(c(j$first, j$last), )
       
-      cases$S[(i - 1) * 3 + j] <- state[1, 1]
-      cases$I[(i - 1) * 3 + j] <- state[1, 3]
-      cases$reduction[(i - 1) * 3 + j] <- state[, 11] %>% 
-        diff() %>% 
-        divide_by(sum(fitcases[k, data$year == control_years[j]]))
-    }
-  }
-  
-  return(cases)
+      data.frame(rep = k,
+                 control = i,
+                 year = j$year,
+                 S = state[1, 1],
+                 I = state[1, 3],
+                 reduction = state[, 11] %>%
+                   diff() %>%
+                   divide_by(diff(fitcases[k, c(j$first, j$last)])))
 }
 
 stopCluster(cl)
