@@ -136,7 +136,9 @@ adult_best <- adult %>%
   ddply(.(rep, year), summarise, 
         best = which.min(reduction),
         prevented =  1 - min(reduction),
-        range = max(reduction) - min(reduction))
+        range = max(reduction) - min(reduction),
+        S = S[best],
+        I = I[best])
 
 delta <- 97 * rstan::extract(sim, "delta_c", permute = T)[[1]]
 adult_best$delta <- rep(delta, each = 3)
@@ -184,12 +186,13 @@ for(i in 1:3){
 }
 
 post <- mutate(post, 
-               ymu = system[, , 8] %>% 
+               ymu = system[, ,11] %>% 
+                 apply(1, diff) %>% 
                  multiply_by(pop) %>% 
+                 apply(1, median),
+               qmu = system[, 2:244, 9] %>% 
                  apply(2, median),
-               qmu = system[, , 6] %>% 
-                 apply(2, median),
-               Smu = system[, , 1] %>% 
+               Smu = system[, 2:244, 1] %>% 
                  apply(2, median))
 
 stacked <- melt(post, id.vars = c("tot.week", "epiweek", "year"), measure.vars = c("ymu", "qmu", "Smu"))
