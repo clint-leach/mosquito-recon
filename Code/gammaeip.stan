@@ -36,7 +36,7 @@ functions {
     Sv = y[9]- y[8] - y[7] - y[6] - y[5] - y[4];
     R = 1 - y[1] - y[2] - y[3];
 
-    dv = dvmu * exp(y[12]);
+    dv = exp(y[12] + dvmu);
     
     // Compute transition rates
     // Mosquito to human foi
@@ -146,7 +146,7 @@ transformed parameters {
   ro = 1 / (0.87 * ro_c);
   gamma = 3.5 * gamma_c;
   delta = 1 / (97 * delta_c);
-  dvmu = 1.47 * dvmu_c;
+  dvmu = 0.39 * dvmu_c;
   
   // Process model
   for (t in 2:(T + 1)){

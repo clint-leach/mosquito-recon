@@ -16,7 +16,7 @@ data <- ddply(tseries, .(tot.week), summarise,
               week = unique(Week)
               )
 
-windows <- ddply(data, .(year), summarise, first = min(tot.week), last = max(tot.week))[2:4, ]
+ends <- daply(data, .(year), function(df) max(df$tot.week))
 
 # Population size
 pop <- 327801
@@ -37,7 +37,7 @@ rov <- 7 * exp(0.2 * covars$temp - 8)
 # Loading mcmc samples
 
 fit <- readRDS("Results/gamma_eip.rds")
-samples <- rstan::extract(fit)[1:17]
+samples <- rstan::extract(fit)[1:16]
 fitcases <- rstan::extract(fit, "state", permute = T)[[1]] %>% extract(, ,  11)
 
 nmcmc <- length(samples[[1]])
@@ -53,48 +53,46 @@ model <- stan_model(file = "Code/gammaeip.stan")
 # In which week is adult control most effective?
 
 # Setting up parallel
-cl <- makeCluster(3, type = "SOCK")
+cl <- makeCluster(10, type = "SOCK")
 registerDoParallel(cl)
 
 # Parallel for-loop over mcmc iterations
 reduction <- foreach(k = 1:nmcmc, .combine = "rbind", .packages = c("rstan", "magrittr")) %:% 
-  foreach(j = iter(windows, by = "row"), .combine = "rbind") %:% 
-    foreach(i = 1:(j$first - 1), .combine = "rbind") %dopar% {
+  foreach(j = 1:210, .combine = "rbind") %dopar% {
 
-      init <- list(lapply(samples, extract_sample, k))
-      init[[1]]$dvmu_c <- 1
-      
-      control <- matrix(1, nrow = 243, ncol = 3)
-      control[j$first - i, 3] <- 0.95
-      
-      dat.stan <- list(T = 243,
-                       steps = 7,
-                       y = data$obs,
-                       q = data$q,
-                       tau = data$tau,
-                       rov = rov,
-                       control = control,
-                       pop = pop)
-      
-      sim <- sampling(model,
-                      data = dat.stan, 
-                      init = init, 
-                      iter = 1, 
-                      chains = 1,
-                      warmup = 0,
-                      algorithm = "Fixed_param")
-      
-      state <- rstan::extract(sim, "state", permute = T)[[1]][1, 2:244, ] %>% 
-        extract(c(j$first, j$last), )
-      
-      data.frame(rep = k,
-                 control = i,
-                 year = j$year,
-                 S = state[1, 1],
-                 I = state[1, 3],
-                 reduction = state[, 11] %>%
-                   diff() %>%
-                   divide_by(diff(fitcases[k, c(j$first, j$last)])))
+    init <- list(lapply(samples, extract_sample, k))
+    init[[1]]$dvmu_c <- 1
+    
+    control <- matrix(1, nrow = 243, ncol = 3)
+    control[j, 3] <- 0.95
+    
+    dat.stan <- list(T = 243,
+                     steps = 7,
+                     y = data$obs,
+                     q = data$q,
+                     tau = data$tau,
+                     rov = rov,
+                     control = control,
+                     pop = pop)
+    
+    sim <- sampling(model,
+                    data = dat.stan, 
+                    init = init, 
+                    iter = 1, 
+                    chains = 1,
+                    warmup = 0,
+                    algorithm = "Fixed_param")
+    
+    state <- rstan::extract(sim, "state", permute = T)[[1]][1, ends + 1, ]
+    
+    data.frame(rep = k,
+               control = j,
+               year = c(2009, 2010, 2011, 2012),
+               S = state[1:4, 1],
+               I = state[1:4, 3],
+               reduction = state[, 11] %>%
+                 diff() %>%
+                 divide_by(diff(fitcases[k, ends + 1])))
 }
 
 stopCluster(cl)
