@@ -59,6 +59,9 @@ T_{\delta} & \sim \text{Gamma}(10, 10)\\
 \delta & = (97 T_{\delta})^{-1}\\
 \gamma' & \sim \text{Gamma}(100, 100)\\
 \gamma & = 3.5\gamma'\\
+\nu_0 & \sim \text{Normal}(0, 0.5)\\
+r_0 & \sim \text{Normal}(0, 0.5)\\
+\log(V_{N0}) & \sim \text{Normal}(0.7, 0.3) \\ 
 S_0' & \sim \text{Beta}(4, 6)\\
 E_0' & \sim \text{Gamma}(10, 0.1)\\
 I_0' & \sim \text{Gamma}(6, 0.1)\\
@@ -105,6 +108,11 @@ This range produces dynamics with recurring annual outbreaks and avoids the extr
 This is also roughly consistent with \cite{Cardoso2011a} who report notified cases for Vitoria from 1995 to 2008. 
 They report that the 2008 outbreak (where our data begins) was driven by serotypes 2 and 3, and 2009 by serotype 2 only, with 13590 reported serotype 2 cases in previous years.
 Assuming 12 unreported cases for every reported case, there should be 163,080 total cases, or about 50\% of the population, immune to serotype 2 at the start of 2008.
+\\
+\item \textbf{Initial conditions} ($\nu_0, r_0$): Since the harmonic oscillators on $\nu$ and $r$ are centered at zero, and we do not have any prior knowledge of where the oscillator should be initially, we center the priors of their initial conditions at zero as well.  
+Further, since $r$ is a population growth rate for a relatively stable (i.e., not explosive) population, it should not be too far from zero.
+Similarly, $\nu$, as an exponential multiplier on the mean per-capita mortality, should not vary too far from zero either.
+As such, we use flexible, but still conservative prior standard deviations of 0.5 for both values.  
 \\
 \item \textbf{Mosquito population size and capture probability} ($\log(V_{N0}), \phi_q$): Wearing and Rohani \cite{Wearing2006} assume 2 mosquitoes per person in their model of dengue transmission, so we use that to inform our prior on $\log(V_{N0})$.
 Since $V_{N}$ has been scaled by the human population size, we center the prior for $\log(V_{N0})$ at $\log(2) = 0.7$ and set the variance to concentrate mass between 0.5 and 5 mosquitoes per person.
@@ -165,57 +173,53 @@ This relationship is similar to those reported in \cite{Focks1995} and \cite{Tja
 \begin{figure}[!h]
 \includegraphics[angle = 270, scale = 1]{figures/figS1.eps}
 \caption{
-Posterior estimates of process noise forcing the harmonic oscillators for mosquito mortality (A) and growth (B) rates.  Median posterior estimate (black line) and 80\% credible interval (gray band).
+Posterior estimates of forcing function on the harmonic oscillators for mosquito mortality (A) and growth (B) rates.  Median posterior estimate (black line) and 80\% credible interval (gray band).
 }
 \end{figure}
 
 \begin{figure}[!h]
 \includegraphics[angle = 270, scale = 1]{figures/figS2.eps}
 \caption{
-Posterior distribution of process noise variances for mosquito mortality (A) and growth (B) rates.
+Posterior distribution of variances on $\epsilon$ forcing terms for mosquito mortality (A) and growth (B) rates.
 }
 \end{figure}
 
 \begin{figure}[!h]
 \includegraphics[angle = 270, scale = 1]{figures/figS3.eps}
 \caption{
-Posterior distribution of epidemiological parameters.  The black line indicates the prior mean, as set from the literature.  A: latent period in human host ($1/\rho$), in weeks. B: rate of infectious decay in human host ($\gamma$) in weeks $^{-1}$. C: period of cross-immunity ($1/\delta$) in weeks.
+Posterior distribution of epidemiological parameters.  The black line indicates the prior density. A: latent period in human host ($1/\rho$), in weeks. B: rate of infectious decay in human host ($\gamma$) in weeks $^{-1}$. C: period of cross-immunity ($1/\delta$) in weeks.
 }
 \end{figure}
 
 \begin{figure}[!h]
 \includegraphics[angle = 270, scale = 1]{figures/figS4.eps}
-\caption{Posterior distribution of initial conditions. A: initial proportion of the human population that is susceptible. B: initial number of exposed individuals. C: initial number of infectious individuals.
+\caption{Posterior distribution of initial conditions. The black line indicates the prior density. A: initial proportion of the human population that is susceptible. B: initial number of exposed individuals. C: initial number of infectious individuals. D: log initial number of mosquitoes-per-person. E: initial value of centered mosquito mortality rate oscillator. F: initial value of mosquito population growth rate oscillator.
 }
 \end{figure}
 
 \begin{figure}[!h]
 \includegraphics[angle = 270, scale = 1]{figures/figS5.eps}
-\caption{Posterior check of autocorrelation structure in the case reports (A) and trapped mosquitoes (B) time series.  Points indicate the observed autocorrelation at the given lag, and vertical lines give the 80\% posterior credible interval of the autocorrelation in the estimated time series.
-}
+\caption{Posterior distribution of measurement paramters.  A: log of the mosquito trap capture rate (which is strongly correlated with initial mosquito abundance). The black line shows the prior density. B: mosquito trap count measurement over-dispersion. C: case report measurement over-dispersion.}
 \end{figure}
 
 \begin{figure}[!h]
 \includegraphics[angle = 270, scale = 1]{figures/figS6.eps}
-\caption{
-Posterior distribution of the total number of cases reported (A) and the total number of mosquitoes captured (B).  Thick line indicates the observed totals.
+\caption{Posterior check of autocorrelation structure in the case reports (A) and trapped mosquitoes (B) time series.  Points indicate the observed autocorrelation at the given lag, and vertical lines give the 80\% posterior credible interval of the autocorrelation in the estimated time series.
 }
 \end{figure}
 
 \begin{figure}[!h]
 \includegraphics[angle = 270, scale = 1]{figures/figS7.eps}
 \caption{
-Posterior distributions of the minimum and maximum weekly reported cases and trapped mosquitoes. Thick line indicates the observed minima and maxima.
+Posterior distribution of the total number of cases reported (A) and the total number of mosquitoes captured (B).  Thick line indicates the observed totals.
 }
 \end{figure}
 
 \begin{figure}[!h]
 \includegraphics[angle = 270, scale = 1]{figures/figS8.eps}
 \caption{
-Estimated number of (reported) cases prevented by larval control (i.e decreasing the birth rate, $b_t = r_t + d_t$, by 5\%) applied in a given week. Posterior median (black line) and 80\% credible interval (gray band). Note that this is almost identical to the results from adult control.
+Posterior distributions of the minimum and maximum weekly reported cases and trapped mosquitoes. Thick line indicates the observed minima and maxima.
 }
 \end{figure}
-
-
 
 \end{document}
