@@ -406,14 +406,9 @@ Within stan, the solution to the differential equation model was approximated wi
 
 \subsection*{Control simulations}
 
-Given samples from the posterior distribution as obtained above, we simulated the efficacy of different control interventions.
-To do so, we broke our time series into epidemiological years that roughly cover the span between outbreak peaks, from week 16 of one year to week 15 of the next.
-We then asked, in which week of a given epidemiological year is a single pulse of control most effective in preventing cases in the following (and slightly overlapping) calendar year?
-Structuring the simulations this way standardized the comparison of the effectiveness of control implemented at different times, as we evaluated the number of cases prevented in a fixed window (avoiding artifacts introduced when the window used to evaluate a given control intervention moves with the timing of that control).
-This set-up also roughly aligns with the timeline of decisions faced by actual city managers, e.g., the window within which a city might plan for the 2009 dengue season extends from roughly peak incidence in 2008 through to peak incidence in 2009 (any earlier and the 2008 outbreak is still the primary focus; any later and the 2009 outbreak is already winding down).
-Further, by investigating each year separately (omitting 2008 and 2012 due to edge effects and incomplete data, respectively), we also avoid the possibly overly optimistic predictions of sequential control.
- 
-To obtain the posterior distribution of the proportion of cases prevented in calendar year $j$ by implementing control in week $i$ of the preceeding epidemiological year, for each posterior sample $k$, we simulated the dynamics resulting from a $5\%$ reduction of the mosquito population (affecting susceptible, exposed, and infectious mosquitoes equally).
+Given samples from the posterior distribution as obtained above, we simulated the effects of a single pulse of control applied in each week of the first three years of the time series.
+Since the city already implements responsive, targeted control with the aim of reducing the disease burden of an existing outbreak, we focused our simulations on exploring the longer-term feedbacks induced by mosquito control and the ability of an intervention to reduce the disease burden in both the current and future years.
+To obtain the posterior distribution of the proportion of cases prevented in calendar year $j$ by implementing control in week $i$, for each posterior sample $k$, we simulated the dynamics resulting from reducing the mosquito population by $5\%$ at the beginning of week $i$ (affecting susceptible, exposed, and infectious mosquitoes equally, and leaving the estimated mosquito birth and mortality rates unchanged) .
 We then compared the number of cases produced during year $j$ in the control scenario to the same number in the uncontrolled scenario.
 A $5\%$ reduction in mosquito abundance was chosen to keep our simulations conservative relative to field estimates of the mortality induced by spraying \cite{Esu2010}, and to avoid pushing the model into the unrealistic range of dengue eradication.
 
@@ -525,17 +520,22 @@ It is also interesting that neither strategy is most effective at the height of 
 
 \subsection*{Caveats and extensions}
 
-It is important to note that the control we simulate is implemented over the top of the control policies already enacted by the city (and on which data are unavailable).
+The case data to which we fit the model represents reports of "dengue-like illness", without laboratory confirmation, and as such could include cases of other diseases with similar symptoms (e.g. chikungunya or Zika).
+However, neither chikungunya nor Zika had emerged as substantial public health threats in Brazil by the end of our time series in late 2012 \cite{PAHO2014, PAHO2015}.
+In addition, given the high underreporting rate expected for dengue fever \cite{Silva2016}, and the uncertainty incorporated into the measurement model, we expect misreported cases to have a small effect on our analyses.
 
-Also, the case data represents reports of "dengue-like illness", and as such could include cases of other diseases with similar symptoms (e.g. chikungunya).
-Given the high underreporting rate expected for dengue fever, we expect unreported cases to far outnumber misreported cases.
-Moreover, many of the pathogens that cause disease that might be mistaken for dengue are also vectored by \emph{Aedes aegypti}, and control policies driven by dengue fever are likely to aid in the control of other pathogens as well.
+In addition, it is important to note that that the data to which we fit our model implicitly reflect the control efforts already enacted by the city.
+These control efforts are guided by the MI-Dengue system, which uses the trap-level mosquito surveillance data to target areas of high mosquito infestation for control (including source reduction, larvacide, and adulticide)\cite{Eiras2009}.
+These local interventions are effective at reducing disease burden in the cities in which they are implemented \cite{Pepin2013}, but long-term epidemiological processes (e.g. fluctuations in human immunity) still seem to be driving disease spread.
+Our control simulations account for these processes and offer a suggestion for how an additional city-wide pulse of control might be deployed to supplement existing efforts to reduce mosquito density throughout the city.
 
-Even though the estimated mosquito mortality process seems biologically reasonable, we are still employing it to link mosquito abundance and human disease at a relatively large spatial scale, assuming homogeneous mixing between mosquitoes and humans throughout the city.
-However, structured human movement within the city is likely to induce heterogeneous human-mosquito mixing \cite{Adams2009, Cosner2009a, Stoddard2009}.
+That said, we do not anticipate that a single, simultaneous, city-wide pulse of control could be feasibly implemented on top of the existing control efforts.
+However, contrary to our assumption of homogeneous mixing between mosquitoes and humans, all mosquitoes may not contribute equally to dengue spread.
+In fact, a relatively small proportion of the mosquito population may be responsible for a large proportion of disease spread \cite{Yoon2012}
+In particular, structured human movement within the city is likely to induce heterogeneous human-mosquito mixing \cite{Adams2009, Cosner2009a, Stoddard2009}.
 In addition, spatial variability in socioeconomic factors within the city may also modulate the extent to which mosquitoes in different parts of the city contribute to disease spread \cite{Mondini2008, Honorio2009, Hu2012, DeMattosAlmeida2007}.
-This heterogeneity can have substantial consequences for disease dynamics.
-In fact, \cite{Dye1986, Hasibeder1988} found that introducing heterogeneous mixing to models of vector-borne disease spread always increases $R_0$ relative to models with homogeneous mixing.
+The mechanistic model presented here may be able to suggest when an intervention is likely to be effective, but in order to make the best use of limited resources, spatial prioritization may still be necessary.
+This should include not just prioritization of areas with high mosquito abundance, but also areas with disproprtionate risk of disease spread, either due to hetereogeneities in the mixing process or in the distribution of human immunity.
 
 \subsection*{Conclusions}
 
