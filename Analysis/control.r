@@ -36,8 +36,8 @@ rov <- 7 * exp(0.2 * covars$temp - 8)
 #===============================================================================
 # Loading mcmc samples
 
-fit <- readRDS("Results/gamma_eip.rds")
-samples <- rstan::extract(fit)[1:16]
+fit <- readRDS("Results/gamma_eip_dv0.rds")
+samples <- rstan::extract(fit)[1:17]
 fitcases <- rstan::extract(fit, "state", permute = T)[[1]] %>% extract(, ,  11)
 
 nmcmc <- length(samples[[1]])
@@ -61,8 +61,7 @@ reduction <- foreach(k = 1:nmcmc, .combine = "rbind", .packages = c("rstan", "ma
   foreach(j = 1:210, .combine = "rbind") %dopar% {
 
     init <- list(lapply(samples, extract_sample, k))
-    init[[1]]$dvmu_c <- 1
-    
+
     control <- matrix(1, nrow = 243, ncol = 3)
     control[j, 3] <- 0.95
     
