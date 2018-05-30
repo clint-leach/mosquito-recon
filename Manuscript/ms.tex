@@ -417,14 +417,14 @@ A $5\%$ reduction in mosquito abundance was chosen to keep our simulations conse
 The model captured the observed dynamics of both case reports and mosquito trap counts (Figure \ref{timeseries}).
 The estimated posterior median case reports explained 90\% of the variation in the observed time series, while the posterior median mosquito trap counts explained 46\% of the variation in the observed time series. 
 In addition, posterior predictive checks showed that the model reproduced the total number of cases reported and mosquitoes captured as well as the autocorrelation structure of both time series (with the exception of slightly underestimating the autocorrelation for short lags, Supplemental Figures 6 -8).
-The posterior distributions of the rate of infectious decay ($\gamma$) and the period of cross-immunity ($1/\delta$) do not differ substantially from their priors(Supplemental Figure 3).
+The posterior distributions of the rate of infectious decay ($\gamma$) and the period of cross-immunity ($1/\delta$) did not differ substantially from their priors, suggesting that these data contain little additional information about these parameters (Supplemental Figure 3).
 The estimated latent period in a human host ($1/\rho$, the expected time it takes for an exposed human to become infectious to biting mosquitoes) is influenced more strongly by the data, with a posterior mean of 1.53 weeks compared to a prior mean of 0.87 weeks.
 
 The estimated weekly mosquito mortality rate varied seasonally, and was positively correlated with temperature \ref{mortality}.
-The oscillations were more complex than purely sinusoidal, with variations in shape from year to year.
+The estimated oscillations in mosquito mortality were more complex than purely sinusoidal, with variations in shape from year to year.
 The posterior mean of the baseline mortality rate, around which the time series oscillated, was 0.7/week, roughly half the prior mean of 1.47/week.
-The posterior means of the $\epsilon_{nu t}$ forcing the mosquito mortality process exhibited a higher-frequency periodic oscillation (Supplementary Figure 1), though the full posterior of each $\epsilon_{nu t}$ overlapped zero.
-In addition, the standard deviation of the mortality forcing terms was small ($E(\sigma_{\nu}|\mathbf{y}) = 0.01$, Supplemental Figure 2) relative to the weak prior.
+The posterior means of the $\epsilon_{\nu t}$ forcing the mosquito mortality process exhibited a higher-frequency periodic oscillation (Supplementary Figure 1), though the full posterior distribution of each $\epsilon_{\nu t}$ overlapped zero.
+In addition, the standard deviation of the mortality forcing terms was small relative to the weak prior ($E(\sigma_{\nu}|\mathbf{y}) = 0.01$, Supplemental Figure 2).
 
 \begin{figure}[!h]
 \includegraphics[angle = 270, scale = 1]{figures/fig1.eps}
@@ -443,7 +443,7 @@ A: Time series of mortality rate, showing median posterior estimate (line) and 8
 \end{figure}
 
 \begin{figure}[!h]
-\includegraphics[angle = 270, scale = 1]{figures/fig3.eps}
+%\includegraphics[angle = 270, scale = 1]{figures/fig3.eps}
 \caption{{\bf The effect of cross-immunity on effect and timing of control.}
 Each point represents a sample from the posterior and the results of the corresponding control simulation, in which we evaluated the effects of a $5\%$ reduction in mosquito abundance at each of the 52 weeks from week 16 of the previous year to week 15 of the target year. A, B, C: the maximum proportion of cases prevented target years 2009, 2010, and 2011, respectively.  D, E, F: the epidemiological week in which control achieved the maximum reduction in cases in 2009, 2010, and 2011, respectively.
 }
@@ -451,7 +451,7 @@ Each point represents a sample from the posterior and the results of the corresp
 \end{figure}
 
 \begin{figure}[!h]
-\includegraphics[angle = 270, scale = 1]{figures/fig4.eps}
+%\includegraphics[angle = 270, scale = 1]{figures/fig4.eps}
 \caption{{\bf Timing of optimal control relative to disease and mosquito dynamics.}
 The vertical gray lines indicate the median week at which control was most effective in preventing cases in the following calendar year. A: posterior median estimate of new dengue cases per week. B: posterior median estimate of number of mosquitoes per person each week. C: posterior median estimate of the proportion of susceptible individuals.
 }
@@ -470,19 +470,26 @@ Targeting the mosquito population early in the year as dengue just begins to spr
 
 \subsection*{Model validation and interpretation of $d_v$}
 
-Given the central role that mosquito lifespan plays in driving dengue dynamics, we model fluctuations in the mosquito mortality rate using a flexible, stochastically forced harmonic oscillator.
-The fact that this is the only source of stochasticity in the transmission process, however,  means that the estimated mosquito mortality time series could be soaking up other sources of stochasticity or model misspecification.
-Our implementation of the mosquito mortality process is conceptually similar to the empirical forcing functions developed by Hooker and Ellner \cite{Hooker2015}.
-In that framework, Hooker and Ellner \cite{Hooker2015} estimated nonparametric functions in time that modify either the differential equations or specific model parameters to provide a good fit to the data.
-These forcing functions serve as residuals on the time derivatives, and can be more readily interpreted as indicators of lack-of-fit than residuals on the state variables.
-We do not employ the same explicit goodness-of-fit testing framework as \cite{Hooker2015}, but we can inspect the estimated mosquito mortality time series in the same spirit.
-In particular, the weak periodic structure in the estimated $\epsilon_{dt}$ suggests that there may be some unmodeled, higher frequency process influencing transmission, either through the mortality rate itself or through another process.
+In addition, there is relatively little uncertainty on our estimates of weekly mosquito mortality (Fig. \ref{mortality}) and the variance of the forcing terms is small, indicating that mosquito mortality is tightly constrained by the case reports.
 
-Despite this, our estimated mosquito mortalities generally fell within the reasonable range from the literature \cite{Maciel-de-Freitas2008, Brady2013}.
-The fact that our estimated mortality rate increases with temperature above 20 degrees also agrees with the empirical literature on mosquito survival \cite{Yang2009}, though our estimated relationship is generally more extreme than estimated in laboratory studies, possibly as a result of assuming exponentially distributed extrinsic incubation period.
-In particular, the assumption that the extrinsic incubation period is exponentially distributed, and thus that many mosquitoes experience a very brief incubation period, may overestimate the probability that a mosquito survives long enough to become infectious.
-More accurate models of the extrinsic incubation period could incorporate explicit delays (i.e., assuming a fixed incubation period \cite{Burattini2008}), or additional chained exposed compartments (i.e., assuming the incubation period is gamma-distributed, \cite{Lloyd2001}).
-These observations suggest that our estimated mosquito mortality rates may actually be capturing the patterns of mosquito mortality in this system and are not obviously influenced by other sources of uncertainty or misspecification.
+Given the central role that mosquito lifespan plays in driving dengue dynamics, we modeled fluctuations in the mosquito mortality rate using a flexible, forced harmonic oscillator.
+This encodes our prior expectation that the mosquito mortality rate should be driven by seasonal environmental forcing (i.e., it should oscillate with a period of one year), while allowing the flexibility to diverge from the simple oscillator and learn from the case reports data.
+The fact that the $\epsilon_{\nu}$ forcing terms are the only source of variability in the transmission process, however, means that the estimated mosquito mortality time series could be soaking up other sources of stochasticity or model misspecification.
+Hooker and Ellner \cite{Hooker2015} provide a framework for diagnosing such model misspecification in differential equation models using forcing functions similar to our implementation of the $\epsilon_{\nu}$.
+In that framework, Hooker and Ellner \cite{Hooker2015} estimate nonparametric forcing functions that modify a fitted differential equation model to provide a good fit to the data.
+These forcing functions serve as residuals on the time derivatives, and can be more readily interpreted as indicators of lack-of-fit than residuals on the state variables.
+We do not employ the same explicit goodness-of-fit testing framework as \cite{Hooker2015}, but we can inspect our estimated $\epsilon_{\nu}$ forcing terms in the same spirit.
+
+In particular, the periodic structure in the posterior means of the $\epsilon_{\nu t}$ suggests that these residuals are accounting for more than just noise, and there may be some unmodeled process influencing fluctuations in mosquito mortality and/or transmission.
+Following Hooker and Ellner, we can explore whether this process results from misspecification of the rates of change of the existing state variables, or from missing state variables altogether. 
+The lack of any apparent relationship between any of the state variables and the forcing function, combined with the dependence of $\epsilon_{\nu t}$ on previous values (as apparent through the periodic structure), suggest that unmodeled state variables may be the more likely driver of model misspecification.
+These unmodeled components could include additional mosquito population dynamic processes (e.g. aquatic stage dynamics, environmental drivers, or control interventions), or epidiemiological processes (e.g. multiple circulationg serotypes of the dengue virus).
+Additional work developing and testing new models would be needed to distinguish among these.
+
+Despite this suggestion of potential model misspecification, our estimated mosquito mortalities nonetheless fell within the reasonable range from the literature \cite{Maciel-de-Freitas2008, Brady2013}.
+Moreover, the fact that our estimated mortality rate increased with temperature also broadly agrees with the empirical literature on mosquito survival \cite{Yang2009, Brady2013}.
+This suggests that whatever structure remains unexplained in the forcing terms, the pattern of case reports is still very well described by realistic fluctuations in the mosquito mortality rate.
+Given the substantial increase in model complexity that, say, resolving serotype dynamics would entail, we suggest that allowing a relatively small amount of phenomenological forcing to persist is a fair price to pay for parsimony.
 
 \subsection*{Processes driving dynamics and implications for control}
 
@@ -499,16 +506,6 @@ Control applied late in the outbreak pushes the system in the direction it is al
 Thus control that interacts with the existing seasonality is more effective.
 In measles, this is also generally when the effect of stochasticity is most limited and the dynamics are pulled most strongly towards the deterministic attractor.
 This is also generally when immunity is highest.
-
-\subsubsection*{Larval controls}
-
-In contrast, larval control is most effective early in the year, right at the beginning of the epidemic.
-Intervention early in the year helps to prevent amplification and feedback.
-Also often corresponds to the local peak in susceptibility.
-This effectiveness is driven primarily by the timing of the reduction in mosquito abundance and could be achieved by either adult or larval control strategies.
-
-The timing of the effectiveness of both of these control strategies is driven largely by the interplay of the intrinsic feedbacks and seasonality of the system, and in particular by the fluctuations in human immunity and mosquito abundance.
-It is also interesting that neither strategy is most effective at the height of the outbreak, which highlights the fact that control strategies need to consider effects beyond the current season.
 
 \subsection*{Caveats and extensions}
 
