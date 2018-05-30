@@ -301,8 +301,11 @@ The differential equations governing the human population are then given as:
 while the equations governing the mosquito (vector) population are:
 \begin{align}
 \frac{dV_N}{dt} & = r(t) V_N - \phi_q \tau(t) V_N \\
-\frac{dV_E}{dt} &= \lambda \frac{I}{N} V_S - (\rho_{v}(t) + d(t) + \phi_q \tau(t))V_E\\
-\frac{dV_I}{dt} &= \rho_{v}(t) V_E - (d(t) + \phi_q \tau(t)) V_I\\
+\frac{dV_{E1}}{dt} &= \lambda \frac{I}{N} V_S - (\rho_{v}(t) + d(t) + \phi_q \tau(t))V_{E1}\\
+\frac{dV_{E2}}{dt} &= \rho_{v}(t) V_{E1} - (\rho_{v}(t) + d(t) + \phi_q \tau(t))V_{E2}\\
+\frac{dV_{E3}}{dt} &= \rho_{v}(t) V_{E2}  - (\rho_{v}(t) + d(t) + \phi_q \tau(t))V_{E3}\\
+\frac{dV_{E4}}{dt} &= \rho_{v}(t) V_{E3}  - (\rho_{v}(t) + d(t) + \phi_q \tau(t))V_{E4}\\
+\frac{dV_I}{dt} &= \rho_{v}(t) V_{E4} - (d(t) + \phi_q \tau(t)) V_I\\
 \frac{dV_C}{dt} & = \phi_q \tau(t) V_N\\
 V_S &= V_N - V_E - V_I.
 \end{align}
@@ -342,7 +345,7 @@ The human population size and average life span (which we use to parameterize th
 To maintain identifiability, the transmission rate ($\lambda$) and case reporting probability ($\phi_y$) are also fixed at literature values.
 Lastly, the extrinsic incubation period in mosquitoes is modeled as a function of weekly mean temperature and forced with weather station data obtained from WeatherUnderground.
 
-The remaining parameters include the epidemiological parameters ($\rho$, $\gamma$, $\delta$), the initial conditions of the model ($S_0$, $E_0$, $I_0$, $R_0$, $V_{N0}, \nu_0, r_0$), the variances of the latent mosquito processes ($\sigma^2_r$, $\sigma^2_{\nu}$), and the remaining measurement parameters ($\phi_q$, $\eta_y$, $\eta_q$).  
+The remaining parameters include the epidemiological parameters ($\rho$, $\gamma$, $\delta$, $d_0$), the initial conditions of the model ($S_0$, $E_0$, $I_0$, $R_0$, $V_{N0}, \nu_0, r_0$), the variances of the latent mosquito processes ($\sigma^2_r$, $\sigma^2_{\nu}$), and the remaining measurement parameters ($\phi_q$, $\eta_y$, $\eta_q$).  
 Where possible, we specified informative priors on these parameters based on existing laboratory and field studies (see Table 1 for means and Supplemental Material for detailed explanations).
 
 \begin{table}[!ht]
@@ -358,10 +361,10 @@ $1/d$ & Human life-span & 76 years & \cite{vitlong} \\
 $\lambda$ & Transmission rate & 4.87 week$^{-1}$ & \cite{Scott2000}\\
 $\phi_y$ & Reporting probability & 0.083 & \cite{Silva2016}\\
 $1/\rho_{vt}$ & Extrinsic incubation period & $7\exp \left( 0.2 T_t - 8 \right)$ & \cite{Chan2012}\\
-$d_0$ & Mean mosquito mortality rate & 1.47 week$^{-1}$ & \cite{Brady2013} \\
 $V_{E0}$ & Initial exposed mosquitoes &  0 & \\
 $V_{I0}$ & Initial infectious mosquitoes & 0 & \\
 \hline
+$d_0$ & Baseline mosquito mortality rate & 1.47 week$^{-1}$ & \cite{Brady2013} \\
 $1/\rho$ & Latent period in host & 0.87 weeks  & \cite{Chan2012}\\
 $\gamma$ & Rate of loss of infectiousness & 3.5 week$^{-1}$ & \cite{Nguyet2013}\\
 $1/\delta$ & Period of cross-immunity & 97 weeks &  \cite{Reich2013}\\
@@ -407,7 +410,7 @@ Within stan, the solution to the differential equation model was approximated wi
 \subsection*{Control simulations}
 
 Given samples from the posterior distribution as obtained above, we simulated the effects of a single pulse of control applied in each week of the first three years of the time series.
-Since the city already implements responsive, targeted control with the aim of reducing the disease burden of an existing outbreak, we focused our simulations on exploring the longer-term feedbacks induced by mosquito control and the ability of an intervention to reduce the disease burden in both the current and future years.
+Since the city already implements responsive, targeted control with the aim of reducing local mosquito density during an existing outbreak, we focused our simulations on exploring the longer-term feedbacks induced by mosquito control and the ability of an intervention to reduce the disease burden in both the current and future years.
 To obtain the posterior distribution of the proportion of cases prevented in calendar year $j$ by implementing control in week $i$, for each posterior sample $k$, we simulated the dynamics resulting from reducing the mosquito population by $5\%$ at the beginning of week $i$ (affecting susceptible, exposed, and infectious mosquitoes equally, and leaving the estimated mosquito birth and mortality rates unchanged) .
 We then compared the number of cases produced during year $j$ in the control scenario to the same number in the uncontrolled scenario.
 A $5\%$ reduction in mosquito abundance was chosen to keep our simulations conservative relative to field estimates of the mortality induced by spraying \cite{Esu2010}, and to avoid pushing the model into the unrealistic range of dengue eradication.

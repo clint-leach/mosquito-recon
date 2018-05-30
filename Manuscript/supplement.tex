@@ -99,6 +99,15 @@ Again we specify the prior on the multiplicative scale to have a mean of one and
 \end{equation}
 where $\gamma = 3.5\gamma'$.
 \\
+\item \textbf{Baselin mosquito mortality rate} ($d_0$): Brady \textit{et al.} \cite{Brady2013} estimated \textit{Aedes aegypti} temperature-dependent field survivorship curves from over 190 laboratory and field experiments.
+They found that increased mortality in the field generally washes out the effect of temperature, so we use their estimates for 25 degrees C to construct our prior for $d_0$.  
+We use nonlinear least squares to fit the exponential cdf with rate $d_0$ to the estimated mortality curve provided by Brady \textit{et al.}, which gives $d_0 = 1.47$.
+We specify a gamma prior on the multiplicative scale, with parameters chosen to keep the prior mass with a factor of 2 of the mean:
+\begin{equation}
+d_0' \sim \text{Gamma}(10, 10)
+\end{equation}
+where $d_0 = 1.47d_0'$.
+\\
 \item \textbf{Initial conditions} ($S_0, E_0, I_0, R_0$): The SEIRS model assumes a constant population size and is scaled so that $S_0+E_0+I_0+R_0 = 1$.
 We place priors on the initial number of exposed and infectious individuals, rather than the initial proportion, as it provides a more intuitive scale.
 We set the prior mean for $E_0'$ and $I_0'$ at 100 and 60 individuals respectively, to account for the fact that the annual epidemic should be just beginning, with infectious individuals lagging behind exposed.
@@ -140,10 +149,6 @@ We put a relatively conservative truncated normal prior on both $\eta_y$ and $\e
 \subsection*{Fixed parameters}
 
 \begin{itemize}
-\item \textbf{Mean mosquito mortality rate} ($d_0$): Brady \textit{et al.} \cite{Brady2013} estimated \textit{Aedes aegypti} temperature-dependent field survivorship curves from over 190 laboratory and field experiments.
-They found that increased mortality in the field generally washes out the effect of temperature, so we use their estimates for 25 degrees C to construct our prior for $d_0$.  
-We use nonlinear least squares to fit the exponential cdf with rate $d_0$ to the estimated mortality curve provided by Brady \textit{et al.}, which gives $d_0 = 1.47$.
-\\
 \item \textbf{Transmission rate} ($\lambda$): The transmission rate only appears multiplied by a term from the mosquito model (either $V_I$ or $V_S$) and is thus effectively non-identifiable when we are also estimating the overall size of the mosquito population.
 Because of this, we fix $\lambda$ at a reasonable value from the literature (though our results should not be sensitive to the exact value used).
 The transmission rate is the product of the mosquito feeding rate and the probability of transmission given feeding.
