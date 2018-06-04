@@ -35,13 +35,14 @@ weather <- read.csv("Data/Vitoria.weather.csv") %>%
 weather <- subset(weather, date < date[1] + weeks(243))
 weather$tot.week <- rep(c(1:243), each = 7)
 
-temp <- ddply(weather, .(tot.week), summarise, temp = mean(Mean.TemperatureC, na.rm = T))
+temp <- ddply(weather, .(tot.week), summarise, temp = mean(Mean.TemperatureC, na.rm = T),
+              humid = mean(Mean.Humidity, na.rm = T))
 
 post$temp <- temp$temp
 post$rov <- 7 * exp(0.2 * temp$temp - 8)
 
 # Loading MCMC results
-sim <- readRDS("Results/gamma_eip.rds")
+sim <- readRDS("Results/gamma_eip_dv0.rds")
 
 # Figure 1: Observed and estimated time series =================================
 
@@ -90,10 +91,11 @@ dev.off()
 
 # Figure 2: Estimates of latent mosquito mortality rate ========================
 
+dvmu <- 1.47 * rstan::extract(sim, "dvmu_c", permute = T)[[1]]
 system <- rstan::extract(sim, "state", permute = T)[[1]]
 
-dv <- system[, 2:244, 12] %>% + 0.39 %>% exp() %>% 
-  adply(2, quantile, c(0.1, 0.5, 0.9), .id = NULL)
+dv <- system[, 2:244, 12] %>% exp() %>% t() %>% multiply_by_matrix(diag(dvmu)) %>% 
+  adply(1, quantile, c(0.1, 0.5, 0.9), .id = NULL)
 names(dv) <- c("dvmin", "dvmed", "dvmax")
 
 post <- cbind(post, dv)
@@ -104,7 +106,7 @@ ggplot(post, aes(tot.week, dvmed)) +
   geom_ribbon(aes(ymin = dvmin, ymax = dvmax), fill = "grey70") +
   geom_line() + 
   theme_classic() +
-  scale_y_continuous(expand = c(0.05, 0), limits = c(0.3, 2.2)) + 
+  scale_y_continuous(expand = c(0.05, 0), limits = c(0.25, 1.35)) + 
   scale_x_continuous(expand = c(0, 1)) +
   ylab("mosquito mortality rate") +
   xlab("week") +
@@ -113,7 +115,7 @@ ggplot(post, aes(tot.week, dvmed)) +
 ggplot(post, aes(temp, dvmed)) +
   geom_point() + 
   theme_classic() + 
-  scale_y_continuous(expand = c(0.05, 0), limits = c(0.3, 2.2)) + 
+  scale_y_continuous(expand = c(0.05, 0), limits = c(0.25, 1.35)) + 
   scale_x_continuous(expand = c(0, 1)) +
   ylab("mosquito mortality rate") +
   xlab("weekly mean temperature") + 
@@ -130,40 +132,26 @@ dev.off()
 
 # Figure 3: Effect of adult control implemented in different weeks ===================
 
-adult <- readRDS("Results/gamma_control.rds")
+# First day of each year
+firsts <- daply(post, .(year), function(df) min(df$tot.week))
 
-adult_best <- adult %>% 
-  ddply(.(rep, year), summarise, 
-        best = which.min(reduction),
-        prevented =  1 - min(reduction),
-        range = max(reduction) - min(reduction),
-        S = S[best],
-        I = I[best])
-
+# Extracting delta values
 delta <- 97 * rstan::extract(sim, "delta_c", permute = T)[[1]]
-adult_best$delta <- rep(delta, each = 3)
 
-s <- system[, 2:244, 1]
-adult_best$s <- c(t(s[, c(16, 68, 120)]))
+# Adult control simulation results
+adult <- readRDS("Results/gamma_control.rds")
+adult <- mutate(adult, 
+                prevented = 1 - reduction, 
+                relweek = control - firsts[as.character(year)],
+                delta = rep(delta, each = 840))
 
-adult_best %>% 
-  ggplot(aes(delta, prevented)) + 
-  geom_bin2d(binwidth = c(5, 0.01)) +
-  scale_fill_gradient(low = "#E6E6E6", high = "#000000", guide = FALSE) +  facet_grid(.~year) + 
-  theme_classic() + 
-  theme(strip.background = element_blank(), strip.text = element_blank()) +
-  xlab("") +
-  ylab("proportion of cases prevented") -> fig3.a
-
-adult_best %>% 
-  ggplot(aes(delta, best)) + 
-  geom_bin2d(binwidth = c(5, 1)) +
-  scale_fill_gradient(low = "#E6E6E6", high = "#000000", guide = FALSE) +
-  facet_grid(.~year) + 
-  theme_classic() + 
-  theme(strip.background = element_blank(), strip.text = element_blank()) +
-  xlab("period of cross immunity (weeks)") +
-  ylab("week of most effective control") -> fig3.b
+# Summarizing adult control simulations
+adult_sum <- adult %>%
+  ddply(.(year, relweek), summarise,
+        med = median(prevented),
+        high = quantile(prevented, 0.9),
+        low = quantile(prevented, 0.1),
+        absweek = unique(control))
 
 # Plotting
 
@@ -171,51 +159,83 @@ postscript("Manuscript/figures/fig3.eps",
            width = 5.5, height = 5,
            family = "ArialMT")
 
-fig3.a + fig3.b + plot_layout(ncol = 1)
+subset(adult_sum, relweek > -53 & relweek < 53) %>% 
+  ggplot(aes(relweek, med)) +
+  geom_ribbon(aes(ymin = low, ymax = high), fill = "grey70") + 
+  geom_line() + 
+  facet_grid(year~.) + 
+  theme_classic() +
+  theme(strip.background = element_blank(), strip.text = element_blank()) + 
+  scale_x_continuous(expand = c(0, 0.5)) + 
+  xlab("relative week of control") + 
+  ylab("proportion of cases prevented")
 
 dev.off()
 
 # Figure 4: Timing of control ==================================================
 
-adult_bests <- ddply(adult_best, .(year), summarise, best = median(best))
-adult_bests$epiyear <- c(1, 2, 3)
-adult_bests$week <- 0
+# Finding week when control is most effective for each rep
+adult_best <- adult %>%
+  subset(relweek > -53 & relweek < 53) %>% 
+  ddply(.(rep, year), summarise,
+        best = relweek[which.min(reduction)],
+        ratio = max(prevented))
 
-for(i in 1:3){
-  adult_bests$week[i] <- post$tot.week[post$epiyear == adult_bests$epiyear[i] & post$epiweek == adult_bests$best[i]]
-}
+adult_best$delta <- rep(delta, each = 4)
 
-post <- mutate(post, 
-               ymu = system[, ,11] %>% 
-                 apply(1, diff) %>% 
-                 multiply_by(pop) %>% 
+# Finding median most effective week of control for each year
+bests <- ddply(adult_best, .(year), summarise, best = median(best))
+bests$week <- bests$best + firsts[2:5]
+
+# Summarizing state variables
+post <- mutate(post,
+               ymu = system[, ,11] %>%
+                 apply(1, diff) %>%
+                 multiply_by(pop) %>%
                  apply(1, median),
-               qmu = system[, 2:244, 9] %>% 
+               qmu = system[, 2:244, 9] %>%
                  apply(2, median),
-               Smu = system[, 2:244, 1] %>% 
+               Smu = system[, 2:244, 1] %>%
                  apply(2, median))
 
-stacked <- melt(post, id.vars = c("tot.week", "epiweek", "year"), measure.vars = c("ymu", "qmu", "Smu"))
-
-levels(stacked$variable) <- c("cases", "mosquitoes", "susceptibles")
+# Stacking state variables
+stacked <- melt(post, id.vars = c("tot.week", "epiweek", "year"), measure.vars = c("ymu", "Smu", "qmu"))
+levels(stacked$variable) <- c("cases",  "susceptibles", "mosquitoes")
 
 postscript("Manuscript/figures/fig4.eps",
-           width = 4, height = 6,
+           width = 4, height = 4,
            family = "ArialMT")
 
-subset(stacked, year < 2012) %>% 
-  ggplot(aes(tot.week, value)) + 
-  geom_line() + 
-  geom_vline(xintercept = adult_bests$week, color = "grey50") +
-  facet_grid(variable ~ ., scales = "free_y", switch = "y") + 
+subset(stacked, year < 2012) %>%
+  ggplot(aes(tot.week, value)) +
+  geom_line() +
+  geom_vline(xintercept = bests$week, color = "grey50") +
+  facet_grid(variable ~ ., scales = "free_y", switch = "y") +
   theme_classic() +
-  scale_color_brewer(palette = "Dark2", type = "qual", guide = F) + 
+  scale_color_brewer(palette = "Dark2", type = "qual", guide = F) +
   scale_x_continuous(expand = c(0, 1), breaks = c(54, 106, 158), labels = c(2009, 2010, 2011)) +
   theme(strip.placement = "outside", strip.background = element_blank()) +
-  ylab("") + 
+  ylab("") +
   xlab("year")
 
-dev.off()  
+dev.off()
+
+# Figure 5: effect of delta on control =========================================
+
+postscript("Manuscript/figures/fig5.eps",
+           width = 6, height = 4,
+           family = "ArialMT")
+
+adult_best %>%
+  ggplot(aes(delta, ratio)) +
+  geom_bin2d(binwidth = c(5, 0.01)) +
+  scale_fill_gradient(low = "#E6E6E6", high = "#000000", guide = FALSE) +  facet_grid(.~year) +
+  theme_classic() +
+  theme(strip.background = element_blank(), strip.text = element_blank()) +
+  xlab("period of cross-immunity") +
+  ylab("maximum proportion of cases prevented")
+
+dev.off()
 
 #===============================================================================
 # Supplemental figures
@@ -240,7 +260,7 @@ postscript("Manuscript/figures/figS1.eps",
 ggplot(eps_dv, aes(week, med)) + 
   geom_ribbon(aes(ymin = min, ymax = max), fill = "grey70") +
   geom_line() + 
-  geom_hline(yintercept = 0) + 
+  geom_hline(yintercept = 0, linetype = 2) + 
   theme_classic() + 
   scale_x_continuous(expand = c(0, 1)) +
   ylab(expression(epsilon[d])) +
@@ -272,22 +292,25 @@ dev.off()
 
 # Figure S3: epidemiological parameters ===================================================
 
-epiparams <- rstan::extract(sim, c("ro_c", "gamma_c", "delta_c"), permute = T)
+epiparams <- rstan::extract(sim, c("ro_c", "gamma_c", "delta_c", "dvmu_c"), permute = T)
 
 postscript("Manuscript/figures/figS3.eps",
-           width = 6, height = 3,
+           width = 6, height = 6,
            family = "ArialMT")
 
-par(mfrow = c(1, 3))
+par(mfrow = c(2, 2))
 
-hist(epiparams[[1]], main = "", xlab = "scaled latent period", freq = F)
+hist(epiparams[[1]], main = "", xlab = "scaled latent period", freq = F, breaks = 30)
 curve(dgamma(x, 8.3, 8.3), add = T, lwd = 2)
 
-hist(epiparams[[2]], main = "", xlab = "scaled rate of infectious decay", freq = F)
+hist(epiparams[[2]], main = "", xlab = "scaled rate of infectious decay", freq = F, breaks = 30)
 curve(dgamma(x, 100, 100), add = T, lwd = 2)
 
-hist(epiparams[[3]], main = "", xlab = "scaled period of cross-immunity", freq = F)
+hist(epiparams[[3]], main = "", xlab = "scaled period of cross-immunity", freq = F, breaks = 30)
 curve(dgamma(x, 10, 10), add = T, lwd = 2)
+
+hist(epiparams[[4]], main = "", xlab = "scaled mosquito mortality rate", freq = F, breaks = 30)
+curve(dgamma(x, 100, 10), add = T, lwd = 2)
 
 dev.off()
 
