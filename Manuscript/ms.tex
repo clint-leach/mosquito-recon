@@ -482,6 +482,9 @@ The posteriod distribution of the maximum proportion of cases prevented by contr
 
 \subsection*{Summary}
 
+Infectious diseases \cite{Ellner1998,Koelle2004} and ecological systems \cite{Bjornstad2001}, are often driven by the combined efforts of intrinsic non-linearities and feedbacks, seasonality, and stochasticity.
+In this paper, we have highlighted the importance of these processes in driving the dynamics of dengue fever and shaping the relationship between mosquito abundance and human disease risk.
+
 \subsection*{Model validation and interpretation of $d_v$}
 
 Given the central role that mosquito lifespan plays in driving dengue dynamics, we modeled fluctuations in the mosquito mortality rate using a flexible, forced harmonic oscillator.
@@ -505,19 +508,43 @@ Given the substantial increase in model complexity that, say, resolving serotype
 
 \subsection*{Processes driving dynamics and implications for control}
 
-Infectious diseases \cite{Ellner1998,Koelle2004} and ecological systems \cite{Bjornstad2001}, are often driven by the combined efforts of intrinsic non-linearities and feedbacks, seasonality, and stochasticity.
-In this paper, we have highlighted the importance of these processes in driving the dynamics of dengue fever and shaping the relationship between mosquito abundance and human disease risk.
-
-\subsubsection*{Adult control}
+\subsubsection{Timing of control}
 
 The importance of mosquito longevity in driving disease dynamics highlights the potential effectiveness of control efforts that target adult mosquitoes and disrupt transmission by preventing mosquitoes from living long enough to progress through the extrinsic incubation period to the infectious state.
 In fact, this forms the basis for much of the theory of adult control \cite{Burattini2008, Morrison2008, Smith2012}.
-Our results suggest that such control efforts (i.e., those that remove adult mosquitoes from the population) are most effective when applied late in the outbreak (week 24), after the number of cases has peaked.
-If applied at the peak of the epidemic, the this control is likely less effective, as there are still a large number of infectious human hosts available \cite{Newton1992, Burattini2008}.
-Control applied late in the outbreak pushes the system in the direction it is already heading.
-Thus control that interacts with the existing seasonality is more effective.
-In measles, this is also generally when the effect of stochasticity is most limited and the dynamics are pulled most strongly towards the deterministic attractor.
-This is also generally when immunity is highest.
+Despite this, our simulations suggest that control is likelyl to be relatively ineffective when implemented during an outbreak, likely due to the large number of infectious human hosts available to transmit to the remaining (and rapidly rebounding) mosquito population \cite{Newton1992, Burattini2008}.
+Instead, our results suggest that adult mosquito control efforts are most effective at reducing the disease burden within a given year when applied roughly 30 weeks prior to the start of that year, on the downswing of the previous year's epidemic and seasonal mosquito dynamics.
+This stands in contrast to the conclusions of Stoddard \emph{et al.} \cite{Stoddard2014}, who found that the effects of control implemented during the decline phase of an outbreak were difficult to detect in the presence of natually fading transmission intensity.
+While it may be true that it is difficult to detect the immediate effects of control implemented at this time, our results nonetheless indicate long-term benefits to controlling mosquitos during the decline phase.
+
+\subsubsection{Role of human immunity in effect of control}
+
+The mismatch between the timing of the most effective control and the peak in mosquito abundance suggets that mosquito abundance alone is an insufficient predictor of the effect of mosquito control, at least at the city-scale.
+Instead, the effectiveness of mosquito control depends in large part on the intrinsic long-term feedbacks and lags driven by the dynamics of temporary human immunity.
+In fact, control implemented at a 30 week lag is effective largely due to the way it interacts with the dynamics of the susceptible pool. 
+Implementing control just as the susceptible population begins to grow (when the influx of individuals whose previous immunity has waned just outpaces the loss of individuals due to infection) allows for additional immunizing infections as the current outbreak subsides, while also disrupting transmission before the susceptibles that will fuel the next outbreak begin to accumulate.
+The fact that effect of mosquito control is mediated by the dynamics of human immunity highlights that dengue, like many other diseases (e.g. cholera \cite{Koelle2004, Koelle2005}), is driven by a complex interplay between seasonal forcing and intrinsic non-linearities.
+
+\subsubsection{Uncertainty and role of cross-immunity}
+
+The Bayesian framework allows for a full accounting of uncertainty across the data, process, and parameter levels of our model \cite{Berliner1996}.
+This then allows us to carry this uncertainty through to our simulations of control interventions \cite{Elderd2006}.
+We found that there can be substantial uncertainty in the proportion of cases prevented by a control intervention (i.e., the width of the ribbons in Figure \ref{control}).
+Much of this uncertainty could be attributed to uncertainty in the period of cross-immunity (Figure \ref{immunity}), the posterior distribution of which differed little from our prior based on the estimate of Reich \emph{et al.} \cite{Reich2013}.
+Specifically, we found that increasing the period of cross-immunity decreases the proportion of cases prevented by mosquito control.
+When the period of cross-immmunity is long, the susceptible pool replenishes slowly and transmission becomes limited by the availability of susceptible hosts.
+In the face of this limitation, manipulating mosquito abundance has a relatively small effect.
+Conversely, when the period of cross-immunity is short, susceptibles are abundant and mosquito abundance is limiting, in which case reducing mosquito abundance further has a larger effect on transmission.
+This interaction between the efficacy of control and human immunity was also demonstrated by ten Bosch \emph{et al.} \cite{TenBosch2016} in their investigation of serotype interactions.
+In particular, they found that adding cross-immunity to models with antibody dependent enhancement increased the resistance to control (as implemented by reducing the transmission rate).
+
+\subsubsection{Implications for policy}
+
+This notion that mosquito control becomes less effective as the susceptible pool becomes more limiting has potential long-term consequences for the management of dengue fever.
+In particular, as immunity becomes widespread, either due to continued transmission or vaccination, mosquito abundance will no longer be limiting, and broad-scale mosquito control may become less effective.
+At the same time, the replenishment of susceptibles, from both births and waning immunity, means that sustaining effective control over the long-term is likely to be difficult \cite{Scott2010b} and will thus require continued monitoring and management.
+As such, existing mosquito monitoring efforts need to be paired with more detailed clinical surveillance to monitor and estimate immunity \cite{Morrison2008}.
+In the absence of, or as a supplement to, such data, mechanistic models like the one developed here, or so-called TSIR frameworks that reconstruct the dynamics of the susceptible class \cite{Finkenstadt2000, Reich2013}, need to be further developed to better inform mosquito control efforts.
 
 \subsection*{Caveats and extensions}
 
