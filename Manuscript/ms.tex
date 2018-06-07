@@ -240,7 +240,7 @@ Moreover, mosquito control needs to be guided by an understanding of the link be
 Many of the attempts to establish this link have found a weak relationship between mosquito surveillance and incidence of dengue fever \cite{Bowman2014, Pepin2015, Cromwell2017}.
 However, these attempts often do not account for the complex, non-linear interactions that mediate the relationship between mosquito abundance and human disease.
 In particular, host immunity is a key intrinsic driver of infectious disease dynamics, and conditions favorable for transmission can only lead to an outbreak of disease when there is a sufficiently large population of susceptible hosts \cite{Koelle2004, Koelle2005}.
-As such, the ability of mosquitoes to contribute to DENV transmission depends critically on the level of prior immunity in the human population \cite{Scott2010a}.
+As such, the ability of mosquitoes to contribute to DENV transmission depends critically on the level of immunity in the human population \cite{Scott2010a}.
 Further, the cycle of transmission between humans and mosquitoes is influenced not just by mosquito abundance, but also by mosquito survival relative to the virus' incubation period in mosquitoes \cite{Smith2012}.
 In fact, whether or not an exposed mosquito will survive long enough to become infectious represents a critical bottleneck in the transmission process and leads to nonlinear dependence of transmission on mosquito survival \cite{Smith2012}.
 
@@ -250,12 +250,12 @@ Moreover, in the absence of case-control studies, mechanistic models can provide
 
 Differential equation models provide a natural way to encode the relevant biological mechanisms, though it is important to also account for sources of uncertainty in those models \cite{Hotelling1927, Wikle2010}.
 In particular, the values of parameters (e.g. the length of time for which a host is infectious) are often uncertain, which can lead to large uncertainty about the effects of management actions \cite{Elderd2006}.
-In addition, the structure of the processes themselves can be uncertain \cite{Ellner1998}, and need to be informed by available, often noisy, data.
+The structure of the processes themselves can be uncertain \cite{Ellner1998}, and need to be informed by available, often noisy, data.
 Bayesian hierarchical modeling provides a coherent framework to account for and integrate this uncertainty across the three levels of the model (data, process, and parameters \cite{Berliner1996, Cressie2009}).
 
 In this paper, we aim to integrate these elements -- a detailed mechanistic model of dengue transmission with a full Bayesian accounting of uncertainty -- in order to better understand the interplay of forces governing dengue dynamics and their interaction with potential vector control interventions.
-We apply and test this framework on clinical and entomological surveillance data from the city of Vitoria, Brazil.
-These data allow us to estimate a latent time series of mosquito mortality rates that modulate the transmission process and link between mosquito abundance to human disease.  
+We apply this framework to clinical and entomological surveillance data from the city of Vitoria, Brazil.
+These data allow us to estimate a latent time series of mosquito mortality rates that modulate the transmission process and link mosquito abundance to human disease.  
 We then use the fitted model to explore how perturbations to the mosquito population propagate and interact with the complex epidemiology and nonlinearities involved in dengue transmission.
 
 \section*{Methods}
@@ -284,9 +284,9 @@ In this framework, susceptible humans ($S$) become exposed ($E$) through contact
 Following a latent period ($\frac{1}{\rho}$), exposed humans become infectious ($I$) at which point they can infect susceptible mosquitoes ($V_S$).
 Infectious humans recover at rate $\gamma$ and subsequently remain immune for a period ($\frac{1}{\delta}$) after which they re-enter the susceptible class.
 
-Similarly, susceptible mosquitoes ($V_S$) become exposed ($V_S$) by biting infectious humans and pass through a temperature-dependent incubation period ($\frac{1}{\rho_{vt}}$) before becoming infectious ($V_I$).
-Because the assumption of an exponentially distributed incubation period (implicit in the specification of a differential equation model) is a poor fit to laboratory observations \cite{Chan2012}, we instead implement a gamma-distributed incubation period by chaining multiple exposed classes together (taking advantage of the fact that the sum of a collection of exponential random variables with the same rate parameter is gamma-distributed) \cite{Lloyd2001}.
-Total mosquito population size ($V_N$) is controlled by stochastic, seasonally varying growth rate ($r(t)$) and death rate ($d(t)$).
+Similarly, susceptible mosquitoes ($V_S$) become exposed ($V_E$) by biting infectious humans and pass through a temperature-dependent incubation period ($\frac{1}{\rho_{vt}}$) before becoming infectious ($V_I$).
+Because the assumption of an exponentially distributed incubation period (implicit in the specification of a differential equation model) is a poor fit to laboratory observations \cite{Chan2012}, we instead implement a gamma-distributed incubation period by chaining multiple exposed classes together (taking advantage of the fact that a gamma-distributed random variable can be generated through the sum of a collection of exponential random variables with the same rate parameter) \cite{Lloyd2001}.
+Total mosquito population size ($V_N$) is controlled by a forced, seasonally varying growth rate ($r(t)$) and death rate ($d(t)$).
 Captured mosquitoes ($V_C$) accumulate at rate $\phi_q \tau_t$, where $\phi_q$ is the per-trap capture rate, and $\tau_t$ is the number of traps deployed in week $t$.
 
 The differential equations governing the human population are then given as:
@@ -369,11 +369,11 @@ $1/\delta$ & Period of cross-immunity & 97 weeks &  \cite{Reich2013}\\
 $\sigma_r$ & Standard deviation of mosquito growth rate forcing & $0^*$ & \\
 $\sigma_{\nu}$ & Standard deviation of mosquito mortality rate forcing & $0^*$ & \\
 $S_0$ & Proportion initially susceptible & 0.4 & \cite{Cardoso2011a} \\
-$E_0$ & Proportion initially exposed & $8\times 10 ^ {-5}$ & \\
-$I_0$ & Proportion initially infectious & $8\times 10 ^ {-5}$ & \\
+$E_0$ & Number initially exposed & $100$ & \\
+$I_0$ & Number initially infectious & $60$ & \\
 $r_0$ & Initial mosquito population growth rate & 0 & \\
-$V_{N0}$ & Initial mosquito population size & $2N$ & \\
 $\nu_0$ & Initial unconstrained mosquito mortality rate & 0 & \\
+$V_{N0}$ & Initial mosquito population size & $2N$ & \\
 $\phi_q$ & Per-trap mosquito capture rate & $2 \times 10^{-6}$ week$^{-1}$ & \\
 $\eta_y$ & Overdispersion of case reports & $0^*$ & \\
 $\eta_q$ & Overdispersion of mosquito trap counts & $0^*$ & \\
@@ -404,11 +404,12 @@ This reduces multimodality and allows gradient-based methods like Hamiltonain Mo
 Samples from the posterior distribution were thus generated using HMC implemented in the rstan package \cite{Carpenter2016, Rstan2017} for R \cite{R2016}. 
 We ran 3 chains with different starting values for 10,000 iterations each, discarding the first 5,000 as burn-in.
 Within stan, the solution to the differential equation model was approximated with an Euler scheme with a time step of 1 day.  
+Timesteps as small as $1/8$ of a day were explored and did not qualitatively change our results.
 
 \subsection*{Control simulations}
 
-Given samples from the posterior distribution as obtained above, we simulated the effects of a single pulse of control applied in each week of the first three years of the time series.
-Since the city already implements responsive, targeted control with the aim of reducing local mosquito density during an existing outbreak, we focused our simulations on exploring the longer-term feedbacks induced by mosquito control and the ability of an intervention to reduce the disease burden in both the current and future years.
+Given samples from the posterior distribution as obtained above, we simulated the effects of a single pulse of control applied in each week of the first four years of the time series.
+Since the city already implements responsive, targeted control with the aim of reducing local mosquito density during an existing outbreak, we focused our simulations on exploring the longer-term feedbacks induced by mosquito control and the ability of an intervention to reduce the disease burden in future years.
 To obtain the posterior distribution of the proportion of cases prevented in calendar year $j$ by implementing control in week $i$, for each posterior sample $k$, we simulated the dynamics resulting from reducing the mosquito population by $5\%$ at the beginning of week $i$ (affecting susceptible, exposed, and infectious mosquitoes equally, and leaving the estimated mosquito birth and mortality rates unchanged) .
 We then compared the number of cases produced during year $j$ in the control scenario to the same number in the uncontrolled scenario.
 A $5\%$ reduction in mosquito abundance was chosen to keep our simulations conservative relative to field estimates of the mortality induced by spraying \cite{Esu2010}, and to avoid pushing the model into the unrealistic range of dengue eradication.
@@ -418,7 +419,7 @@ A $5\%$ reduction in mosquito abundance was chosen to keep our simulations conse
 The model captured the observed dynamics of both case reports and mosquito trap counts (Figure \ref{timeseries}).
 The estimated posterior median case reports explained 90\% of the variation in the observed time series, while the posterior median mosquito trap counts explained 46\% of the variation in the observed time series. 
 In addition, posterior predictive checks showed that the model reproduced the total number of cases reported and mosquitoes captured as well as the autocorrelation structure of both time series (with the exception of slightly underestimating the autocorrelation for short lags, Supplemental Figures 6 -8).
-The posterior distributions of the rate of infectious decay ($\gamma$) and the period of cross-immunity ($1/\delta$) did not differ substantially from their priors, suggesting that these data contain little additional information about these parameters (Supplemental Figure 3).
+The posterior distributions of the rate of infectious decay ($\gamma$) and the period of cross-immunity ($1/\delta$) did not differ substantially from their priors, suggesting that the Vitoria data contained little additional information about these parameters (Supplemental Figure 3).
 The estimated latent period in a human host ($1/\rho$, the expected time it takes for an exposed human to become infectious to biting mosquitoes) is influenced more strongly by the data, with a posterior mean of 1.53 weeks compared to a prior mean of 0.87 weeks.
 
 The estimated weekly mosquito mortality rate varied seasonally, and was positively correlated with temperature \ref{mortality}.
@@ -432,9 +433,10 @@ Our simulations predicted that control implemented during this time could preven
 
 The effect of a given control intervention seemed to be driven largely by its interaction with, and timing relative to, fluctuations in human immunity.
 In particular, mosquito control seemed to be most effective when applied at or near a local minimum in the number of suceptible humans (Figure \ref{timing}).
-In addition, human immunity, as controlled by the period of cross-immunity ($1/\delta$), was aslo a major driver of uncertainty in the effect of a given control intervention.
+In addition, human immunity, as controlled by the period of cross-immunity ($1/\delta$), was a major driver of uncertainty in the effect of a given control intervention.
 Specifically, we observed a strong negative posterior correlation between the maximum proportion of cases that could be prevented in a given year (i.e., the number of cases prevented by control implemented in the optimal week) and the period of cross-immunity (Figure \ref{immunity}). 
-As the period of cross-immunity increases, the susceptible pool is replenished more slowly, and the proportion of the population that is susceptible decreases.
+In simulations with a short period of cross-immunity, the susceptible pool replenished quickly, leading to a relatively large standing crop of susceptibles at any time.
+In simulations with a long period of cross-immunity, the susceptible pool replenished more slowly, leaving the population with relatively few susceptibles.
 The negative correlation between the effectiveness of control and the period of cross-immunity thus suggests that mosquito control becomes less effective as the availability of susceptibles  becomes more limiting.
 
 \begin{figure}[!h]
@@ -479,39 +481,31 @@ The posteriod distribution of the maximum proportion of cases prevented by contr
 
 \section*{Discussion}
 
-\subsection*{Summary}
+\subsection*{Model validation and interpretation of $d_v$}
 
 Infectious diseases \cite{Ellner1998,Koelle2004} and ecological systems \cite{Bjornstad2001}, are often driven by the combined efforts of intrinsic non-linearities, seasonality, and stochasticity.
 In the case of dengue fever, these processes can obscure the relationship between mosquito abundance and human disease.
-We found that modeling temporary human immunity and seasonal variation in the mosquito mortality rate was able to effectively fit case reports and mosquito surveillance data from Vitoria, Brazil.
-Control simulations using this model indicated that mosquito control was most effective at reducing the disease burden in a given year when implemented approximately 30 weeks prior to the start of that year, when the susceptible pool tends to be at a minimum.
-Moreover, the effectiveness of control was strongly correlated with the period of cross-immunity, and the rate of turnover of the susceptible population.
-Thus, human immunity appears to be a critical driver of the effectiveness of mosquito control.
-
-\subsection*{Model validation and interpretation of $d_v$}
+We found that a mechanistic model with temporary human immunity and seasonal variation in the mosquito mortality rate was able to effectively fit case reports and mosquito surveillance data from Vitoria, Brazil.
 
 Given the central role that mosquito lifespan plays in driving dengue dynamics, we modeled fluctuations in the mosquito mortality rate using a flexible, forced harmonic oscillator.
 This encodes our prior expectation that the mosquito mortality rate should be driven by seasonal environmental forcing (i.e., it should oscillate with a period of one year), while allowing the flexibility to diverge from the simple oscillator and learn from the case reports data.
 The fact that the $\epsilon_{\nu}$ forcing terms are the only source of variability in the transmission process, however, means that the estimated mosquito mortality time series could be soaking up other sources of stochasticity or model misspecification.
 Hooker and Ellner \cite{Hooker2015} provide a framework for diagnosing such model misspecification in differential equation models using forcing functions similar to our implementation of the $\epsilon_{\nu}$.
 In that framework, Hooker and Ellner \cite{Hooker2015} estimate nonparametric forcing functions that modify a fitted differential equation model to provide a good fit to the data.
-These forcing functions serve as residuals on the time derivatives, and can be more readily interpreted as indicators of lack-of-fit than residuals on the state variables.
+These forcing functions serve as residuals on the time derivatives, and can be more readily interpreted as indicators of lack-of-fit than residuals on the state variables \cite{Hotelling1927, Hooker2015}.
 We do not employ the same explicit goodness-of-fit testing framework as \cite{Hooker2015}, but we can inspect our estimated $\epsilon_{\nu}$ forcing terms in the same spirit.
 
-In particular, the periodic structure in the posterior means of the $\epsilon_{\nu t}$ suggests that these residuals are accounting for more than just noise, and there may be some unmodeled process influencing fluctuations in mosquito mortality and/or transmission.
-Following Hooker and Ellner, we can explore whether this process results from misspecification of the rates of change of the existing state variables, or from missing state variables altogether. 
-The lack of any apparent relationship between any of the state variables and the forcing function, combined with the dependence of $\epsilon_{\nu t}$ on previous values (as apparent through the periodic structure), suggest that unmodeled state variables may be the more likely driver of model misspecification.
+The periodic structure in the posterior means of the $\epsilon_{\nu t}$ suggests that these terms are accounting for more than just noise, and there may be some unmodeled process influencing fluctuations in mosquito mortality and/or transmission.
+Following Hooker and Ellner, we can explore whether this process is likely to result from misspecification of the rates of change of the existing state variables, or from missing state variables altogether. 
+The lack of any apparent relationship between the forcing terms and any of the estimated state variables, combined with the dependence of $\epsilon_{\nu t}$ on previous values (as apparent through the periodic structure), suggest that unmodeled state variables may be the more likely driver of model misspecification.
 These unmodeled components could include additional mosquito population dynamic processes (e.g. aquatic stage dynamics, environmental drivers, or control interventions), or epidiemiological processes (e.g. multiple circulationg serotypes of the dengue virus).
 Additional work developing and testing new models would be needed to distinguish among these.
 
 Despite this suggestion of potential model misspecification, our estimated mosquito mortalities nonetheless fell within the reasonable range from the literature \cite{Maciel-de-Freitas2008, Brady2013}.
 Moreover, the fact that our estimated mortality rate increased with temperature also broadly agrees with the empirical literature on mosquito survival \cite{Yang2009, Brady2013}.
 This suggests that whatever structure remains unexplained in the forcing terms, the pattern of case reports is still very well described by realistic fluctuations in the mosquito mortality rate.
-Given the substantial increase in model complexity that, say, resolving serotype dynamics would entail, we suggest that allowing a relatively small amount of phenomenological forcing to persist is a fair price to pay for parsimony.
 
-\subsection*{Processes driving dynamics and implications for control}
-
-\subsubsection{Timing of control}
+\subsection*{Processes driving effect of mosquito control}
 
 The importance of mosquito longevity in driving disease dynamics highlights the potential effectiveness of control efforts that target adult mosquitoes and disrupt transmission by preventing mosquitoes from living long enough to progress through the extrinsic incubation period to the infectious state.
 In fact, this forms the basis for much of the theory of adult control \cite{Burattini2008, Morrison2008, Smith2012}.
@@ -520,31 +514,25 @@ Instead, our results suggest that adult mosquito control efforts are most effect
 This stands in contrast to the conclusions of Stoddard \emph{et al.} \cite{Stoddard2014}, who found that the effects of control implemented during the decline phase of an outbreak were difficult to detect in the presence of natually fading transmission intensity.
 While it may be true that it is difficult to detect the immediate effects of control implemented at this time, our results nonetheless indicate long-term benefits to controlling mosquitos during the decline phase.
 
-\subsubsection{Role of human immunity in effect of control}
-
 The mismatch between the timing of the most effective control and the peak in mosquito abundance suggets that mosquito abundance alone is an insufficient predictor of the effect of mosquito control, at least at the city-scale.
 Instead, the effectiveness of mosquito control depends in large part on the intrinsic long-term feedbacks and lags driven by the dynamics of temporary human immunity.
 In fact, control implemented at a 30 week lag is effective largely due to the way it interacts with the dynamics of the susceptible pool. 
 Implementing control just as the susceptible population begins to grow (when the influx of individuals whose previous immunity has waned just outpaces the loss of individuals due to infection) allows for additional immunizing infections as the current outbreak subsides, while also disrupting transmission before the susceptibles that will fuel the next outbreak begin to accumulate.
 The fact that effect of mosquito control is mediated by the dynamics of human immunity highlights that dengue, like many other diseases (e.g. cholera \cite{Koelle2004, Koelle2005}), is driven by a complex interplay between seasonal forcing and intrinsic non-linearities.
 
-\subsubsection{Uncertainty and role of cross-immunity}
-
 The Bayesian framework allows for a full accounting of uncertainty across the data, process, and parameter levels of our model \cite{Berliner1996}.
 This then allows us to carry this uncertainty through to our simulations of control interventions \cite{Elderd2006}.
 We found that there can be substantial uncertainty in the proportion of cases prevented by a control intervention (i.e., the width of the ribbons in Figure \ref{control}).
 Much of this uncertainty could be attributed to uncertainty in the period of cross-immunity (Figure \ref{immunity}), the posterior distribution of which differed little from our prior based on the estimate of Reich \emph{et al.} \cite{Reich2013}.
-Specifically, we found that increasing the period of cross-immunity decreases the proportion of cases prevented by mosquito control.
-When the period of cross-immmunity is long, the susceptible pool replenishes slowly and transmission becomes limited by the availability of susceptible hosts.
-In the face of this limitation, manipulating mosquito abundance has a relatively small effect.
-Conversely, when the period of cross-immunity is short, susceptibles are abundant and mosquito abundance is limiting, in which case reducing mosquito abundance further has a larger effect on transmission.
+Specifically, we found that increasing the period of cross-immunity decreased the proportion of cases prevented by mosquito control.
+When the period of cross-immmunity was long, the susceptible pool replenished slowly and transmission became limited by the availability of susceptible hosts.
+In the face of this limitation, manipulating mosquito abundance had a relatively small effect.
+Conversely, when the period of cross-immunity was short, susceptibles were abundant and mosquito abundance was instead limiting, in which case reducing mosquito abundance further had a larger effect on transmission.
 This interaction between the efficacy of control and human immunity was also demonstrated by ten Bosch \emph{et al.} \cite{TenBosch2016} in their investigation of serotype interactions.
-In particular, they found that adding cross-immunity to models with antibody dependent enhancement increased the resistance to control (as implemented by reducing the transmission rate).
-
-\subsubsection{Implications for policy}
+Specifically, they found that adding cross-immunity to models with antibody dependent enhancement increased the resistance to control (as implemented by reducing the transmission rate).
 
 This notion that mosquito control becomes less effective as the susceptible pool becomes more limiting has potential long-term consequences for the management of dengue fever.
-In particular, as immunity becomes widespread, either due to continued transmission or vaccination, mosquito abundance will no longer be limiting, and broad-scale mosquito control may become less effective.
+As immunity becomes widespread, either due to continued transmission or eventually vaccination, mosquito abundance will no longer be limiting, and broad-scale mosquito control may become less effective.
 At the same time, the replenishment of susceptibles, from both births and waning immunity, means that sustaining effective control over the long-term is likely to be difficult \cite{Scott2010b} and will thus require continued monitoring and management.
 As such, existing mosquito monitoring efforts need to be paired with more detailed clinical surveillance to monitor and estimate immunity \cite{Morrison2008}.
 In the absence of, or as a supplement to, such data, mechanistic models like the one developed here, or so-called TSIR frameworks that reconstruct the dynamics of the susceptible class \cite{Finkenstadt2000, Reich2013}, need to be further developed to better inform mosquito control efforts.
@@ -557,7 +545,7 @@ In addition, given the high underreporting rate expected for dengue fever \cite{
 
 In addition, it is important to note that that the data to which we fit our model implicitly reflect the control efforts already enacted by the city.
 These control efforts are guided by the MI-Dengue system, which uses the trap-level mosquito surveillance data to target areas of high mosquito infestation for control (including source reduction, larvacide, and adulticide)\cite{Eiras2009}.
-These control efforts may affect our estimates of the mosquito demographic rates, but should not influence our understanding of dengue dynamics, since we are not interested in the factors driving mosquito dynamics, but rather in how the realized mosquito dynamics (whether forced by human intervention of environmental factors) fit into the broader epidemiological picture.
+These control efforts may affect our estimates of the mosquito demographic rates, but should not influence our understanding of dengue dynamics, since we are not interested in the factors driving mosquito dynamics, but rather in how the realized mosquito dynamics (whether forced by human intervention or environmental factors) fit into the broader epidemiological picture.
 That said, our control simulations should be interepreted as exploring the effect of an additional pulse of city-wide control on top of the existing control activities.
 
 We view our simulations of this additional pulse of control primarily as a tool to explore and exploit the long-term feedbacks in the city's epidemiological system, whereas existing control is deployed largely to reduce local (in space and time) disease risk.
@@ -566,18 +554,18 @@ In particular, structured human movement within the city is likely to induce het
 In addition, spatial variability in socioeconomic factors within the city may also modulate the extent to which mosquitoes in different parts of the city contribute to disease spread \cite{Mondini2008, Honorio2009, Hu2012, DeMattosAlmeida2007}.
 Though our model does not account for these heterogeneities, it is nontheless able to capture the city-wide dynamics reasonably well, suggesting that there may be sufficient mixing to appear homogeneous at the city scale.
 Further, though our mechanistic model may be able to suggest when a city-wide intervention is likely to be effective, in order to make the best use of limited resources, spatial prioritization may still be necessary.
-Our results emphasize that this should include not just prioritization based on the distribution of mosquito abundance, but also on the distribution of human immunity.
+Our results emphasize that work to develop the tools necessary for this prioritization should focus not just on prioritization based on the distribution of mosquito abundance, but also on the distribution of human immunity.
 
 \subsection*{Conclusions}
 
-Efforts to connect mosquito abundance to human disease are often hampered by the confounding influences of human immunity, and mosquito survival.
+Efforts to connect mosquito abundance to human disease are often hampered by the confounding influences of human immunity and mosquito survival.
 The challenges presented by these confounding factors highlight the value of mechanistic information in studying the effect of mosquito control on disease spread.
 In the Bayesian context we have deployed here, this mechanistic knowledge, as formalized in the specification of a differential equation model, can be viewed as part of the prior on the relationship between mosquito abundance and human disease \cite{Ellner1998, Wikle2010}.
 As such, we should neither ignore it, nor encode it so rigidly that it swamps the signal in our data.
 
 We have developed a simple yet realistic mechanistic model of dengue fever spread that represents the fundamental elements of our prior understanding of dengue epidemiology, while also allowing for uncertainty and flexibility in the fluctuations of mosquito demographic rates.
-This mechanistic framework allows us to capture the critical role of human immunity in mediating the transmission process and to identify critical intervention points that would not be apparent otherwise.
-The fully hierarchical Bayesian framework in which we embedded the mechanistic model allows for a thorough accounting of uncertainty that is carried through to the evaluation of different control strategies.
+This mechanistic framework allowed us to capture the critical role of human immunity in mediating the transmission process and to identify critical intervention points that would not be apparent otherwise.
+The fully hierarchical Bayesian framework in which we embedded the mechanistic model allowed for a thorough accounting of uncertainty that was carried through to the evaluation of different control strategies.
 This combination of model features helps to meet the need for more effective, biologically grounded, and data-driven dengue control policies and offers a building block on which these tools can be further developed in the future.
 
 \section*{Supporting information}
