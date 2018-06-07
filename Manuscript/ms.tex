@@ -284,7 +284,8 @@ In this framework, susceptible humans ($S$) become exposed ($E$) through contact
 Following a latent period ($\frac{1}{\rho}$), exposed humans become infectious ($I$) at which point they can infect susceptible mosquitoes ($V_S$).
 Infectious humans recover at rate $\gamma$ and subsequently remain immune for a period ($\frac{1}{\delta}$) after which they re-enter the susceptible class.
 
-Similarly, susceptible mosquitoes ($V_S$) become exposed by biting infectious humans and pass through a temperature-dependent incubation period ($\frac{1}{\rho_{vt}}$) before becoming infectious ($V_I$).
+Similarly, susceptible mosquitoes ($V_S$) become exposed ($V_S$) by biting infectious humans and pass through a temperature-dependent incubation period ($\frac{1}{\rho_{vt}}$) before becoming infectious ($V_I$).
+Because the assumption of an exponentially distributed incubation period (implicit in the specification of a differential equation model) is a poor fit to laboratory observations \cite{Chan2012}, we instead implement a gamma-distributed incubation period by chaining multiple exposed classes together (taking advantage of the fact that the sum of a collection of exponential random variables with the same rate parameter is gamma-distributed) \cite{Lloyd2001}.
 Total mosquito population size ($V_N$) is controlled by stochastic, seasonally varying growth rate ($r(t)$) and death rate ($d(t)$).
 Captured mosquitoes ($V_C$) accumulate at rate $\phi_q \tau_t$, where $\phi_q$ is the per-trap capture rate, and $\tau_t$ is the number of traps deployed in week $t$.
 
@@ -357,7 +358,7 @@ $N$ & Human population size & 327801 & \cite{vitpop} \\
 $1/d$ & Human life-span & 76 years & \cite{vitlong} \\
 $\lambda$ & Transmission rate & 4.87 week$^{-1}$ & \cite{Scott2000}\\
 $\phi_y$ & Reporting probability & 0.083 & \cite{Silva2016}\\
-$1/\rho_{vt}$ & Extrinsic incubation period & $7\exp \left( 0.2 T_t - 8 \right)$ & \cite{Chan2012}\\
+$1/\rho_{vt}$ & Extrinsic incubation period & $28\exp \left( 0.2 T_t - 8 \right)$ & \cite{Chan2012}\\
 $V_{E0}$ & Initial exposed mosquitoes &  0 & \\
 $V_{I0}$ & Initial infectious mosquitoes & 0 & \\
 \hline
