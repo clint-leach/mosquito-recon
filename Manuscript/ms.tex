@@ -213,7 +213,8 @@ Jennifer Hoeting\textsuperscript{2}
 \section*{Abstract}
 
 Our ability to effectively prevent the transmission of the dengue virus through targeted control of its vector, \emph{Aedes aegypti}, depends critically on our understanding of the link between mosquito abundance and human disease risk.
-The mosquito and clinical surveillance data necessary to elucidate this link are widely collected, but have yet to be coupled with a modeling framework that accounts for the complex non-linear mechanisms involved in transmission, in particular the critical bottleneck imposed by mosquito mortality.
+The mosquito and clinical surveillance data necessary to elucidate this link are widely collected, but have yet to be coupled with a modeling framework that accounts for the complex non-linear mechanisms involved in transmission.
+Most critical are the bottleneck in transmission imposed by mosquito lifespan relative to the virus' incubation period, and the dynamics of human immunity.
 We developed a differential equation model of dengue transmission and embedded it in a Bayesian hierarchical framework that allowed us to estimate latent time series of mosquito demographic rates from mosquito trap counts and dengue case reports from the city of Vitoria, Brazil.
 We used the fitted model to explore the effect of adult mosquito control on the disease burden in each year, while taking advantage of the Bayesian framework to carry through uncertainty from the posterior distributions of model parameters and mosquito demographic rates.
 We found that control deployed between 30 and 40 weeks prior to the start of the year was most effective at preventing cases in that year. 
@@ -286,7 +287,7 @@ Infectious humans recover at rate $\gamma$ and subsequently remain immune for a 
 
 Similarly, susceptible mosquitoes ($V_S$) become exposed ($V_E$) by biting infectious humans and pass through a temperature-dependent incubation period ($\frac{1}{\rho_{vt}}$) before becoming infectious ($V_I$).
 Because the assumption of an exponentially distributed incubation period (implicit in the specification of a differential equation model) is a poor fit to laboratory observations \cite{Chan2012}, we instead implement a gamma-distributed incubation period by chaining multiple exposed classes together (taking advantage of the fact that a gamma-distributed random variable can be generated through the sum of a collection of exponential random variables with the same rate parameter) \cite{Lloyd2001}.
-Total mosquito population size ($V_N$) is controlled by a forced, seasonally varying growth rate ($r(t)$) and death rate ($d(t)$).
+Total mosquito population size ($V_N$) is controlled by a forced, seasonally varying growth rate ($r(t)$), while the transmission bottleneck is captured with a forced, seasonally varying mortality rate ($d(t)$).
 Captured mosquitoes ($V_C$) accumulate at rate $\phi_q \tau_t$, where $\phi_q$ is the per-trap capture rate, and $\tau_t$ is the number of traps deployed in week $t$.
 
 The differential equations governing the human population are then given as:
@@ -422,7 +423,7 @@ In addition, posterior predictive checks showed that the model reproduced the to
 The posterior distributions of the rate of infectious decay ($\gamma$) and the period of cross-immunity ($1/\delta$) did not differ substantially from their priors, suggesting that the Vitoria data contained little additional information about these parameters (Supplemental Figure 3).
 The estimated latent period in a human host ($1/\rho$, the expected time it takes for an exposed human to become infectious to biting mosquitoes) is influenced more strongly by the data, with a posterior mean of 1.53 weeks compared to a prior mean of 0.87 weeks.
 
-The estimated weekly mosquito mortality rate varied seasonally, and was positively correlated with temperature \ref{mortality}.
+The estimated weekly mosquito mortality rate varied seasonally, and was positively correlated with temperature (Figure \ref{mortality}).
 The estimated oscillations in mosquito mortality were more complex than purely sinusoidal, with variations in shape from year to year.
 The posterior mean of the baseline mortality rate, around which the time series oscillated, was 0.7/week, roughly half the prior mean of 1.47/week.
 The posterior means of the $\epsilon_{\nu t}$ forcing the mosquito mortality process exhibited a higher-frequency periodic oscillation (Supplementary Figure 1), though the full posterior distribution of each $\epsilon_{\nu t}$ overlapped zero.
@@ -474,7 +475,7 @@ The vertical gray lines indicate the median week at which control was most effec
 \begin{figure}[!h]
 \includegraphics[angle = 270, scale = 0.8]{figures/fig5.eps}
 \caption{{\bf The effect of cross-immunity on effect of control.}
-The posteriod distribution of the maximum proportion of cases prevented by control in each year (left to right, 2009 to 2012), as a function of the period of cross-immunity ($1/\delta$). The shading indicates posterior density, with darkers shading indicating a larger density of posterior samples in that bin.
+The posterior distribution of the maximum proportion of cases prevented by control in each year (left to right, 2009 to 2012), as a function of the period of cross-immunity ($1/\delta$). The shading indicates posterior density, with darkers shading indicating a larger density of posterior samples in that bin.
 }
 \label{immunity}
 \end{figure}

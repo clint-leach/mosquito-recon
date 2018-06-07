@@ -30,8 +30,10 @@ q_t & \sim \text{NegBin}((V_{Ct} - V_{Ct-1})N, \eta_q)\\
 \frac{dR}{dt} &= \gamma I - (\delta + b)R\\
 \\
 \frac{dV_N}{dt} & = r V_N - \phi_q \tau_t V_N\\
-\frac{dV_E}{dt} &= \lambda IV_S - (\rho_{vt} + d + \phi_q \tau_t)V_E\\
-\frac{dV_I}{dt} &= \rho_{vt} V_E - (d + \phi_q \tau_t) V_I\\
+\frac{dV_{E1}}{dt} &= \lambda \frac{I}{N} V_S - (\rho_{v}(t) + d(t) + \phi_q \tau(t))V_{E1}\\
+\frac{dV_{E2}}{dt} &= \rho_{v}(t) V_{E1} - (\rho_{v}(t) + d(t) + \phi_q \tau(t))V_{E2}\\
+\frac{dV_{E3}}{dt} &= \rho_{v}(t) V_{E2}  - (\rho_{v}(t) + d(t) + \phi_q \tau(t))V_{E3}\\
+\frac{dV_{E4}}{dt} &= \rho_{v}(t) V_{E3}  - (\rho_{v}(t) + d(t) + \phi_q \tau(t))V_{E4}\\\frac{dV_I}{dt} &= \rho_{vt} V_{E4} - (d(t) + \phi_q \tau_t) V_I\\
 \frac{dV_C}{dt} & = \phi_q \tau_t V_N\\
 V_S &= V_N - V_E - V_I\\
 \\
@@ -59,6 +61,8 @@ T_{\delta} & \sim \text{Gamma}(10, 10)\\
 \delta & = (97 T_{\delta})^{-1}\\
 \gamma' & \sim \text{Gamma}(100, 100)\\
 \gamma & = 3.5\gamma'\\
+d_0' & \sim \text{Gamma(10, 10)}\\
+d_0 & = 1.47 d_0'\\
 \nu_0 & \sim \text{Normal}(0, 0.5)\\
 r_0 & \sim \text{Normal}(0, 0.5)\\
 \log(V_{N0}) & \sim \text{Normal}(0.7, 0.3) \\ 
@@ -99,7 +103,7 @@ Again we specify the prior on the multiplicative scale to have a mean of one and
 \end{equation}
 where $\gamma = 3.5\gamma'$.
 \\
-\item \textbf{Baselin mosquito mortality rate} ($d_0$): Brady \textit{et al.} \cite{Brady2013} estimated \textit{Aedes aegypti} temperature-dependent field survivorship curves from over 190 laboratory and field experiments.
+\item \textbf{Baseline mosquito mortality rate} ($d_0$): Brady \textit{et al.} \cite{Brady2013} estimated \textit{Aedes aegypti} temperature-dependent field survivorship curves from over 190 laboratory and field experiments.
 They found that increased mortality in the field generally washes out the effect of temperature, so we use their estimates for 25 degrees C to construct our prior for $d_0$.  
 We use nonlinear least squares to fit the exponential cdf with rate $d_0$ to the estimated mortality curve provided by Brady \textit{et al.}, which gives $d_0 = 1.47$.
 We specify a gamma prior on the multiplicative scale, with parameters chosen to keep the prior mass with a factor of 2 of the mean:
