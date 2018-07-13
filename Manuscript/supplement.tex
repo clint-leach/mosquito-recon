@@ -13,7 +13,7 @@
 \maketitle
 
 
-\section*{Full model}
+\section*{Bayesian mechanistic model for dengue and mosquito dynamics}
 
 Note that in practice, we rescale the model described in the main text by human population size to keep state variables on a unit scale.
 This also rescales mosquito population size to number of mosquitoes per person.
@@ -79,7 +79,7 @@ R_0 & = 1 - S_0 - E_0 - I_0
 
 \begin{itemize}
 \item \textbf{Period of cross-immunity} ($T_{\delta}$): Reich \emph{et al.} \cite{Reich2013} estimate a mean of 1.88 years (97 weeks) with a 95\% confidence interval of (0.88, 4.31).
-We specify a gamma prior on the multiplicative scale to have a mean of one and 0.01 and 0.99 quantiles at roughly $0.88/1.88 = 0.47$ and $4.31/1.88 = 2.3$,, respectively:
+We specify a gamma prior on the multiplicative scale to have a mean of one and 0.01 and 0.99 quantiles at roughly $0.88/1.88 = 0.47$ and $4.31/1.88 = 2.3$, respectively:
 \begin{equation}
 T_{\delta} \sim \text{Gamma}(10, 10)
 \end{equation}
@@ -95,7 +95,7 @@ where $\rho = (0.87 T_{\rho})^{-1}$.
 \\
 \item \textbf{Decay rate of infectiousness} ($\gamma$): Nguyet \emph{et al.} \cite{Nguyet2013} find that there is very little transmission of dengue from humans to mosquitoes after 5-6 days since the onset of fever (with roughly an extra of infectiousness prior to onset of fever).
 In reality, an individual's infectiousness decays with time, but the ODE model assumes infectiousness is constant for the (exponentially distributed) duration of the infection period.    
-To parameterize the model then, we assume a rough equivalence between the probability of infection from a single individual at a given time and the proportion of individuals still infectious at a given time.
+To parameterize the model, we assume a rough equivalence between the probability of infection from a single individual at a given time and the proportion of individuals still infectious at a given time.
 Thus we choose our prior for $\gamma$ to keep the time at which only 5\% of individuals are still infectious between 5 and 7 days, with a mean 5\% threshold of 6 days.
 Again we specify the prior on the multiplicative scale to have a mean of one and 0.05 and 0.95 quantiles at $2.99/3.5 = 0.85$ and $4.19 / 3.5 = 1.2$, respectively:
 \begin{equation}
@@ -129,7 +129,6 @@ As such, we use flexible, but still conservative prior standard deviations of 0.
 \\
 \item \textbf{Mosquito population size and capture probability} ($\log(V_{N0}), \phi_q$): Wearing and Rohani \cite{Wearing2006} assume 2 mosquitoes per person in their model of dengue transmission, so we use that to inform our prior on $\log(V_{N0})$.
 Since $V_{N}$ has been scaled by the human population size, we center the prior for $\log(V_{N0})$ at $\log(2) = 0.7$ and set the variance to concentrate mass between 0.5 and 5 mosquitoes per person.
-Maybe see Focks (2000) for further justification of range of mosquitoes/person.
 The per-trap mosquito capture probability, $\phi_q$ follows $V_{N0}$ closely and scales the estimated mosquito abundance down to magnitude of the trap counts.
 Since $ E[q_t] = \phi_q \tau V_{Nt} N$, we set the prior on $\log(\phi_q)$ to have a mean of $\log(q_1) - \log(\tau_1) - \log(V_{N0}) - \log(N) = -13$ and a variance to match the prior on $\log(V_{N0})$.
 \\
@@ -163,8 +162,8 @@ There are relatively few reliable estimates of the transmission probability of D
 \item \textbf{Reporting probability} ($\phi_y$): Silva \textit{et al.} \cite{Silva2016} estimate that there are 12 cases of dengue for every case reported to Brazil's Notifiable Diseases Information System (SINAN, the source of our data), so we fix $\phi_y = 1/12$.
 \\
 \item \textbf{Extrinsic incubation period} ($1/\rho_{vt}$): Temperature is thought to play an important role in the seasonality of dengue, in particular through its influence on the extrinsic incubation period of the virus in the mosquito  (the amount of time until a mosquito becomes infectious after taking an infectious blood meal).
-To account for this, we make $1/\rho_v$ a function of temperature, and force it with weekly mean temperature records for Vitoria downloaded from Weather Underground.
-We use the temperature relationship from the recent meta-analysis of \cite{Chan2012}, which incorporates a large number of records and accounts for the interval-censored nature of the data usually available from mosquito transmission studies.
+To account for this, we make $1/\rho_v$ a function of temperature, and force it with weekly mean temperature records for Vitoria downloaded from Weather Underground (Goiabeiras weather station, station ID: IESVITOR2).
+We use the temperature relationship from the recent meta-analysis of \cite{Chan2012}, which incorporates a large number of studies and accounts for the interval-censored nature of the data usually available from mosquito transmission studies.
 To correspond with the assumptions of the differential equation model, we use the relationship obtained under the assumption that the incubation period at any given temperature is exponentially-distributed:
 \begin{equation}
 \rho_v = 7\exp \left(0.2T - 8\right)\\
@@ -208,7 +207,7 @@ Posterior distribution of epidemiological parameters.  The black line indicates 
 
 \begin{figure}[!h]
 \includegraphics[angle = 270, scale = 1]{figures/figS5.eps}
-\caption{Posterior distribution of measurement paramters.  A: log of the mosquito trap capture rate (which is strongly correlated with initial mosquito abundance). The black line shows the prior density. B: mosquito trap count measurement over-dispersion. C: case report measurement over-dispersion.}
+\caption{Posterior distribution of measurement paramters.  A: log of the mosquito trap capture rate (which is strongly correlated with initial mosquito abundance). The black line shows the prior density. B: mosquito trap count measurement over-dispersion (prior density too low to be visible). C: case report measurement over-dispersion (prior density too low to be visible).}
 \end{figure}
 
 \begin{figure}[!h]

@@ -156,16 +156,16 @@ adult_sum <- adult %>%
 # Plotting
 
 postscript("Manuscript/figures/fig3.eps",
-           width = 5.5, height = 5,
+           width = 4, height = 5,
            family = "ArialMT")
 
 subset(adult_sum, relweek > -53 & relweek < 53) %>% 
   ggplot(aes(relweek, med)) +
   geom_ribbon(aes(ymin = low, ymax = high), fill = "grey70") + 
   geom_line() + 
-  facet_grid(year~.) + 
+  facet_grid(year ~.) + 
   theme_classic() +
-  theme(strip.background = element_blank(), strip.text = element_blank()) + 
+  theme(strip.background = element_blank()) + 
   scale_x_continuous(expand = c(0, 0.5)) + 
   xlab("relative week of control") + 
   ylab("proportion of cases prevented")
@@ -184,7 +184,7 @@ adult_best <- adult %>%
 adult_best$delta <- rep(delta, each = 4)
 
 # Finding median most effective week of control for each year
-bests <- ddply(adult_best, .(year), summarise, best = median(best))
+bests <- ddply(adult_best, .(year), summarise, best = median(best), prevented = median(ratio))
 bests$week <- bests$best + firsts[2:5]
 
 # Summarizing state variables
@@ -213,7 +213,7 @@ subset(stacked, year < 2012) %>%
   facet_grid(variable ~ ., scales = "free_y", switch = "y") +
   theme_classic() +
   scale_color_brewer(palette = "Dark2", type = "qual", guide = F) +
-  scale_x_continuous(expand = c(0, 1), breaks = c(54, 106, 158), labels = c(2009, 2010, 2011)) +
+  scale_x_continuous(expand = c(0, 5), breaks = c(1, 54, 106, 158, 210), labels = c(2008, 2009, 2010, 2011, 2012)) +
   theme(strip.placement = "outside", strip.background = element_blank()) +
   ylab("") +
   xlab("year")
@@ -231,8 +231,8 @@ adult_best %>%
   geom_bin2d(binwidth = c(5, 0.01)) +
   scale_fill_gradient(low = "#E6E6E6", high = "#000000", guide = FALSE) +  facet_grid(.~year) +
   theme_classic() +
-  theme(strip.background = element_blank(), strip.text = element_blank()) +
-  xlab("period of cross-immunity") +
+  theme(strip.background = element_blank()) +
+  xlab("period of cross-immunity (weeks)") +
   ylab("maximum proportion of cases prevented")
 
 dev.off()
@@ -300,13 +300,13 @@ postscript("Manuscript/figures/figS3.eps",
 
 par(mfrow = c(2, 2))
 
-hist(epiparams[[1]], main = "", xlab = "scaled latent period", freq = F, breaks = 30)
+hist(epiparams[[1]], main = "", xlab = "scaled latent period", freq = F, breaks = 30, ylim = c(0, 1.2))
 curve(dgamma(x, 8.3, 8.3), add = T, lwd = 2)
 
 hist(epiparams[[2]], main = "", xlab = "scaled rate of infectious decay", freq = F, breaks = 30)
 curve(dgamma(x, 100, 100), add = T, lwd = 2)
 
-hist(epiparams[[3]], main = "", xlab = "scaled period of cross-immunity", freq = F, breaks = 30)
+hist(epiparams[[3]], main = "", xlab = "scaled period of cross-immunity", freq = F, breaks = 30, ylim = c(0, 1.3))
 curve(dgamma(x, 10, 10), add = T, lwd = 2)
 
 hist(epiparams[[4]], main = "", xlab = "scaled mosquito mortality rate", freq = F, breaks = 30)
@@ -327,10 +327,10 @@ par(mfrow = c(2, 3))
 hist(ics$S0, freq = F, main = "", xlab = expression(S[0]))
 curve(dbeta(x, 4, 6), add = T, lwd = 2)
 
-hist(ics$E0, freq = F, main = "", xlab = expression(E[0]))
+hist(ics$E0, freq = F, main = "", xlab = expression(E[0]), ylim = c(0, 0.015))
 curve(dgamma(x, 10, 0.1), add = T, lwd = 2)
 
-hist(ics$I0, freq = F, main = "", xlab = expression(I[0]))
+hist(ics$I0, freq = F, main = "", xlab = expression(I[0]), ylim = c(0, 0.02))
 curve(dgamma(x, 6, 0.1), add = T, lwd = 2)
 
 hist(ics$logNv, freq = F, main = "", xlab = expression(log(V[N0])))
