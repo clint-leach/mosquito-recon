@@ -8,6 +8,7 @@ library(lubridate)
 library(ggplot2)
 library(gridExtra)
 library(patchwork)
+library(truncnorm)
 
 # Loading and processing mosquito and case data
 tseries <- read.csv("Data/Vitoria.data.csv")
@@ -229,7 +230,9 @@ postscript("Manuscript/figures/fig5.eps",
 adult_best %>%
   ggplot(aes(delta, ratio)) +
   geom_bin2d(binwidth = c(5, 0.01)) +
-  scale_fill_gradient(low = "#E6E6E6", high = "#000000", guide = FALSE) +  facet_grid(.~year) +
+  scale_fill_distiller(palette = "Oranges", direction = 1, guide = F) +
+  # scale_fill_gradient(low = "#E6E6E6", high = "#000000", guide = FALSE) +
+  facet_grid(.~year) +
   theme_classic() +
   theme(strip.background = element_blank()) +
   xlab("period of cross-immunity (weeks)") +
@@ -358,8 +361,10 @@ hist(meas$log_phi_q, freq = F, main = "", xlab = expression(log(phi[q])))
 curve(dnorm(x, -13, 0.5), add = T, lwd = 2)
 
 hist(meas$eta_inv_q, freq = F, main = "", xlab = expression(eta[q]))
+curve(dtruncnorm(x, a = 0, b = Inf, mean = 0, sd = 5), add = T)
 
 hist(meas$eta_inv_y, freq = F, main = "", xlab = expression(eta[y]))
+curve(dtruncnorm(x, a = 0, b = Inf, mean = 0, sd = 5), add = T)
 
 dev.off()
 
