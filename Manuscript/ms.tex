@@ -221,11 +221,12 @@ Our ability to effectively prevent the transmission of the dengue virus through 
 Mosquito and clinical surveillance data are widely collected, but linking them requires a modeling framework that accounts for the complex non-linear mechanisms involved in transmission.
 Most critical are the bottleneck in transmission imposed by mosquito lifespan relative to the virus' extrinsic incubation period, and the dynamics of human immunity.
 We developed a differential equation model of dengue transmission and embedded it in a Bayesian hierarchical framework that allowed us to estimate latent time series of mosquito demographic rates from mosquito trap counts and dengue case reports from the city of Vitoria, Brazil.
-We used the fitted model to explore the effect of adult mosquito control on the disease burden in each year.
-We found that mosquito control deployed between 30 and 40 weeks prior to the start of the year was most effective at preventing cases in that year. 
-This timing generally coincided with a local minimum in the size of the susceptible pool.
-Uncertainty in the effectiveness of control interventions was driven largely by uncertainty in the period of cross-immunity, with longer periods of cross-immunity leading to less effective control.
-Understanding the dynamics of temporary human immunity is thus critical for understanding the effect of mosquito control efforts on human disease.
+We used the fitted model to explore how the timing of a pulse of adult mosquito control influences its effect on the human disease burden in the following year.
+We found that control implemented roughly 30 to 40 weeks prior to the start of the year produced the largest reduction in predicted human case reports for that year.
+This highlights the potential long-term utility of broad, off-peak-season mosquito control in addition to existing, locally targeted within-season efforts.
+Human immunity played an important role in mediating the effect of control, with the  30 to 40 week lag generally aligning with the estimated local minimum in the size of the human susceptible pool.
+Further, uncertainty in the effectiveness of control interventions was driven largely by uncertainty in the period of cross-immunity, with longer periods of cross-immunity leading to less effective control.
+Understanding the dynamics of temporary human immunity is thus critical for understanding how the effects of mosquito control propagate through the dengue system.
 
 % Please keep the Author Summary between 150 and 200 words
 % Use first person. PLOS ONE authors please skip this step. 
@@ -444,7 +445,7 @@ The marginal posterior means of the $\epsilon_{\nu t}$ forcing the mosquito mort
 In addition, the standard deviation of the mortality forcing terms was small relative to the weak prior ($E(\sigma_{\nu}|\mathbf{y}) = 0.01$, Supplemental Figure 2).
 
 Mosquito control (i.e. the removal of $5\%$ of the adult population in a given week), had the largest effect on the number of dengue cases in a given year when implemented between 30 and 40 weeks prior to the start of that year (Figure \ref{control}).
-Our simulations predicted that control implemented during this time could prevent between $20$ and $30\%$ of the dengue cases in the following year, while control implemented during the target outbreak was much less effective.
+Our simulations predicted that a pulse of control implemented during this time reduced the disease burden in the following year by $20$ to $30\%$, while perturbing mosquito abundance during the target outbreak was much less effective.
 
 The effect of a given control intervention seemed to be driven largely by its interaction with, and timing relative to, fluctuations in human immunity.
 In particular, mosquito control seemed to be most effective when applied at or near a local minimum in the number of suceptible humans (Figure \ref{timing}).
@@ -504,9 +505,10 @@ These processes are particularly important for establishing the relationship bet
 
 The importance of mosquito longevity in driving disease dynamics highlights the potential effectiveness of control efforts that target adult mosquitoes and disrupt transmission by preventing mosquitoes from living long enough to progress through the extrinsic incubation period to the infectious state.
 In fact, this forms the basis for much of the theory of adult mosquito control \cite{Burattini2008, Morrison2008, Smith2012}.
-Despite this, our simulations suggest that control was relatively less effective when implemented during an outbreak, likely due to the large number of infectious human hosts available to transmit to the remaining (and rapidly rebounding) mosquito population \cite{Newton1992, Burattini2008}.
+Despite this, our simulations suggest that a single pulse of control was relatively less effective when implemented during an outbreak, likely due to the large number of infectious human hosts available to transmit to the remaining (and rapidly rebounding) mosquito population \cite{Newton1992, Burattini2008}.
 Instead, we found that adult mosquito control efforts were most effective at reducing the disease burden within a given year when applied roughly 30 weeks prior to the start of that year, on the downswing of the previous year's epidemic and seasonal mosquito dynamics.
-While the immediate effects of mosquito control implemented during the decline phase of an outbreak may be masked by the natually fading transmission intensity \cite{Stoddard2014}, our results nonetheless indicated long-term benefits that carried through to the following outbreak.
+Barsante \emph{et al.} \cite{Barsante2015}, similarly found that control was most effective when applied during the dry season (roughly matching our 30 week lag) than during the rainy season.
+While the immediate effects of mosquito control implemented during the decline phase of an outbreak may be masked by the natually fading transmission intensity \cite{Stoddard2014}, our results nonetheless indicated that disrupting inter-seasonal transmission can be an effective longer-term strategy \cite{Hladish2018}.
 
 The mismatch between the timing of the most effective control and the peak in mosquito abundance suggets that mosquito abundance alone was an insufficient predictor of the effect of mosquito control, at least at the city-scale.
 Instead, the effectiveness of mosquito control depended, in large part, on the intrinsic long-term feedbacks and lags driven by the dynamics of temporary human immunity.
@@ -591,8 +593,6 @@ This combination of model features helps to meet the need for more effective, bi
 
 \section*{Acknowledgements}
 
-CBL was supported by the NSF Graduate Research Fellowship Program under grant DGE-1321845.
-AEE was supported by the Brazilian National Council for Scientific and Technological Development (CNPq).
 Any use of trade, firm, or product names is for descriptive purposes only and does not imply endorsement by the U.S. Government.
 
 \nolinenumbers
