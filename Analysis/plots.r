@@ -183,6 +183,7 @@ adult_best <- adult %>%
         ratio = max(prevented))
 
 adult_best$delta <- rep(delta, each = 4)
+adult_best$dvmu <- rep(dvmu, each = 4)
 
 # Finding median most effective week of control for each year
 bests <- ddply(adult_best, .(year), summarise, best = median(best), prevented = median(ratio))
@@ -224,19 +225,19 @@ dev.off()
 # Figure 5: effect of delta on control =========================================
 
 postscript("Manuscript/figures/fig5.eps",
-           width = 6, height = 4,
+           width = 5, height = 3,
            family = "ArialMT")
 
-adult_best %>%
-  ggplot(aes(delta, ratio)) +
-  geom_bin2d(binwidth = c(5, 0.01)) +
-  scale_fill_distiller(palette = "Oranges", direction = 1, guide = F) +
-  # scale_fill_gradient(low = "#E6E6E6", high = "#000000", guide = FALSE) +
-  facet_grid(.~year) +
+adult_best %>% 
+  ggplot(aes(dvmu, delta, z = ratio)) + 
+  stat_summary_2d(binwidth = c(0.025, 10)) +
+  scale_fill_distiller(palette = "Oranges", direction = 1) +
+  labs(fill = "average \nproportion \nof cases \nprevented") + 
   theme_classic() +
-  theme(strip.background = element_blank()) +
-  xlab("period of cross-immunity (weeks)") +
-  ylab("maximum proportion of cases prevented")
+  theme(strip.background = element_blank(),
+        text = element_text(size = 10)) +
+  ylab("period of cross-immunity (weeks)") +
+  xlab("mosquito mortality rate")
 
 dev.off()
 

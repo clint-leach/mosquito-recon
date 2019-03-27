@@ -440,7 +440,8 @@ The estimated latent period in a human host ($1/\rho$, the expected time it take
 
 The estimated weekly mosquito mortality rate varied seasonally, and was positively correlated with temperature (Figure \ref{mortality}).
 The oscillations in estimated mosquito mortality were more complex than purely sinusoidal, with variations in shape from year to year.
-The posterior mean of the baseline mortality rate, around which the time series oscillated, was 0.7/week, roughly half the prior mean of 1.47/week.
+The posterior distribution of the baseline mortality rate ($d_0$) had a mean of 0.7/week, roughly half the prior mean, and was negatively correlated with the period of cross immunity ($1/\delta$, Figure \ref{immunity}).
+This negative correltaion indicates that similar dynamics could be achieved with either rapidly waning human immunity and short-lived mosquitoes or with long-lasting human immunity and long-lived mosquitoes.
 The marginal posterior means of the $\epsilon_{\nu t}$ forcing the mosquito mortality process exhibited a higher-frequency periodic oscillation (Supplementary Figure 1), although the marginal posterior distribution of each $\epsilon_{\nu t}$ overlapped zero.
 In addition, the standard deviation of the mortality forcing terms was small relative to the weak prior ($E(\sigma_{\nu}|\mathbf{y}) = 0.01$, Supplemental Figure 2).
 
@@ -449,11 +450,9 @@ Our simulations predicted that a pulse of control implemented during this time r
 
 The effect of a given control intervention seemed to be driven largely by its interaction with, and timing relative to, fluctuations in human immunity.
 In particular, mosquito control seemed to be most effective when applied at or near a local minimum in the number of suceptible humans (Figure \ref{timing}).
-In addition, human immunity, as controlled by the period of cross-immunity ($1/\delta$), was a major driver of uncertainty in the effect of a given control intervention.
-Specifically, we observed a strong negative posterior correlation between the maximum proportion of cases that could be prevented in a given year (i.e., the number of cases prevented by control implemented in the optimal week) and the period of cross-immunity (Figure \ref{immunity}). 
-In simulations with a short period of cross-immunity, the susceptible pool replenished quickly, leading to a relatively large pool of susceptibles at any time.
-In simulations with a long period of cross-immunity, the susceptible pool replenished more slowly, leaving the population with relatively few susceptibles.
-The negative correlation between the effectiveness of control and the period of cross-immunity thus suggests that mosquito control was less effective when the overall availability of susceptibles was more limiting.
+In addition, the average effectiveness of optimally timed mosquito control was driven largely by the period of cross-immunity ($1/\delta$) and the mean mosquito mortality rate ($d_0$, Figure \ref{immunity}).
+Specifically, we observed that mosquito control was able to prevent the largest number of human dengue cases, averaged over all years, in simulations with a low period of cross-immunity and a high mosquito mortality rate (Figure \ref{immunity}). 
+Thus mosquito control was more effective at reducing disease burden in systems where short mosquito lifespan was already limiting the abundance of infectious mosquitoes and susceptible hosts were relatively abundant.
 
 \begin{figure}[!h]
 \includegraphics[angle = 270, scale = 1]{figures/fig1.eps}
@@ -488,9 +487,9 @@ The vertical gray lines indicate the median week at which control was most effec
 \end{figure}
 
 \begin{figure}[!h]
-\includegraphics[angle = 270, scale = 0.8]{figures/fig5.eps}
-\caption{{\bf The effect of cross-immunity on effect of control.}
-The posterior distribution of the maximum proportion of cases prevented by control in each year (left to right, 2009 to 2012), as a function of the period of cross-immunity ($1/\delta$). The shading indicates posterior density, with darker shading indicating a larger density of posterior samples in that bin.
+\includegraphics[angle = 270, scale = 1]{figures/fig5.eps}
+\caption{{\bf The relationship among the period of cross-immunity, mosquito mortality rate, and effectiveness of control.}
+The maximum proportion of cases prevented by control, averaged over all years and all posterior samples within each cell. Cells with darker shading indicate combinations of the period of cross-immunity and mosquito mortality that produce a system more amenable to control by adult mosquito removal.
 }
 \label{immunity}
 \end{figure}
