@@ -1,3 +1,11 @@
+/**
+Implements model of dengue transmission defined by SEIRS structure in the human
+population and SEI structure in the mosquito population, with an exponentially-distributed
+extrinsic incubation period.
+
+Estimates time series of mosquito mortality and population growth rates from time
+series of weekly moquito trap counts and reports of "dengue-like illness".
+*/
 functions {
   vector derivs(int t,
                vector y,
@@ -13,8 +21,29 @@ functions {
                real damp, 
                vector control) {
     
+    
     /**
-    * documentation block
+    Computes the RHS of the SERS-SEI dengue transmission model.
+    Inputs:
+      t: integer giving the week index
+      y: vector of length 12 giving the values of the state variables in week t
+      eps_rv: real giving the week t forcing term for the rv oscillator
+      rov: real giving the inverse of the extrinsic incubation period for week t
+      lambda: real giving the transmission rate
+      ro: real giving the inverse of the human latent period
+      gamma: real giving the rate of loss of infectiousness in humans
+      eps_dv: real giving the week t forcing term for the log(dv) oscillator
+      delta: real giving the inverse of the period of cross-immunity
+      cap: real giving the week t mosquito capture rate
+      omega: real giving the period of the harmonic oscillators
+      damp: real giving the damping coefficient of the harmonic oscillators
+      control: vector of length 3, giving effects of control efforts in week t
+               [1] the multiplicative change in mosquito mortality, 
+               [2] the multiplicative change in mosquito birth rate,
+               [3] the multiplicative change in adult mosquito abundance
+               
+    Outputs:
+      dydt: a vector of length 12 giving the RHS of the ODE at time t
     */
     
     vector[12] dydt;
@@ -57,9 +86,9 @@ functions {
     /*E*/ dydt[2] = foi_vh - infectious - b * y[2];
     /*I*/ dydt[3] = infectious - (gamma + b) * y[3];
     
-    /*VE*/ dydt[4] = foi_hv - infect_mosq - (dv + cap) * y[4];
-    /*VI*/ dydt[5] = infect_mosq - (dv + cap) * y[5];
-    /*VN*/ dydt[6] = control[2] * (y[11] + dv) * y[6] - (dv + cap) * y[6];
+    /*VE*/ dydt[4] = foi_hv - infect_mosq - (control[1] * dv + cap) * y[4];
+    /*VI*/ dydt[5] = infect_mosq - (control[1] * dv + cap) * y[5];
+    /*VN*/ dydt[6] = control[2] * (y[11] + dv) * y[6] - (control[1] * dv + cap) * y[6];
     
     /*VC*/ dydt[7] = cap * y[6];
     /*cases*/ dydt[8] = infectious;
@@ -90,22 +119,22 @@ transformed data {
   real omega = (pi() / 26) / sqrt(1 - damp ^ 2);
 }
 parameters {
-  real<lower=0,upper=1> S0;            // untransformed initial conditions
-  real<lower=0> E0;
-  real<lower=0> I0;
+  real<lower=0,upper=1> S0;            // initial proportion of human population susceptible
+  real<lower=0> E0;                    // initial number of exposed humans
+  real<lower=0> I0;                    // initial number of infectious humans
   real<upper=0> log_phi_q;             // log per-trap capture rate
   real<lower=0> eta_inv_y;             // overdispersion of case reports
   real<lower=0> eta_inv_q;             // overdispersion of mosquito capture
-  real<lower=0> ro_c;                  // human latenet period
-  real<lower=0> gamma_c;               // human infectious period
-  real<lower=0> delta_c;               // cross-immune period
-  real logNv;                         // initial mosquito population size
-  real dv0;
-  real rv0;
-  real<lower=0> sigmadv;
-  real<lower=0> sigmarv;
-  vector[T] eps_dv;
-  vector[T] eps_rv;
+  real<lower=0> ro_c;                  // centered human latenet period
+  real<lower=0> gamma_c;               // centered human infectious period
+  real<lower=0> delta_c;               // centered cross-immune period
+  real logNv;                          // initial log mosquito population size
+  real dv0;                            // initial log mosquito mortality rate
+  real rv0;                            // initial mosquito population growth rate
+  real<lower=0> sigmadv;               // std dev of mortality rate perturbation process
+  real<lower=0> sigmarv;               // std dev of growth rate perturbation process
+  vector[T] eps_dv;                    // perturbations to log(dv) oscillator
+  vector[T] eps_rv;                    // perturbations to rv oscillator
 }
 transformed parameters {
   real<lower=0> ro;
@@ -147,10 +176,12 @@ transformed parameters {
     
     state[t] = state[t - 1];
     
+    // Implementing control actions
     state[t, 4] = state[t, 4] * control[t - 1, 3];
     state[t, 5] = state[t, 5] * control[t - 1, 3];
-    state[t, 6] = state[t, 6] * control[t - 1, 3] * control[t - 1, 1];
+    state[t, 6] = state[t, 6] * control[t - 1, 3];
     
+    // Implementing Euler integration steps
     for(j in 1:steps){
       
       state[t] = state[t] + 1.0 / steps * derivs(t, 
@@ -209,7 +240,6 @@ model {
   sigmadv ~ normal(0, 0.2);
   sigmarv ~ normal(0, 0.2);
 
-  
   // Measurement models
   y ~ neg_binomial_2(phi_y * y_hat * pop, eta_y);
   q ~ neg_binomial_2(q_hat * pop, eta_q);
