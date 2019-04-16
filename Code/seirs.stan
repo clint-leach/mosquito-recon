@@ -103,20 +103,20 @@ functions {
   }
 }
 data {
-  int<lower=1> T;
-  int<lower=1> steps;
-  int y[T];
-  int q[T];
-  vector[T] tau;
-  vector[T] rov;
-  vector[3] control[T];
-  int pop;
+  int<lower=1> T;          // number of time steps
+  int<lower=1> steps;      // number of Euler steps per week
+  int y[T];                // length T vector of case reports data
+  int q[T];                // length T vector of mosquito trap counts
+  vector[T] tau;           // length T vector of number of mosquito traps inspected
+  vector[T] rov;           // length T vector of weekly average extrinsic incubation period
+  vector[3] control[T];    // T by 3 array of mosquito control actions
+  int pop;                 // integer giving the human population size
 }
 transformed data {
-  real lambda = 4.87;
-  real phi_y = 1.0 / 12.0;
-  real damp = 0.0;
-  real omega = (pi() / 26) / sqrt(1 - damp ^ 2);
+  real lambda = 4.87;                              // DENV transmission rate
+  real phi_y = 1.0 / 12.0;                         // proportion of human cases reported
+  real damp = 0.0;                                 // damping coefficient on harmonic oscillators
+  real omega = (pi() / 26) / sqrt(1 - damp ^ 2);   // period of harmonic oscillators
 }
 parameters {
   real<lower=0,upper=1> S0;            // initial proportion of human population susceptible
