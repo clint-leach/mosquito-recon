@@ -107,13 +107,15 @@ inits = list(list(S0 = 0.4,
                   eps_dv = rep(0, 243),
                   eps_rv = rep(0, 243)))
 
-# Running HMC (note non-default options for adapt_delta and max_treedepth, which 
-# help ensure good mixing and avoid divergent transitions)
+# Running HMC
+# Note non-default options for adapt_delta and max_treedepth, which 
+# help ensure good mixing and avoid divergent transitions
+# Also note that this will take on the order of 1 week to run
 
 fit <- stan(file = "Code/gammaeip.stan", 
             data = dat.stan, 
             init = inits, 
-            iter = 2000,
+            iter = 5000,
             chains = 3,
             control = list(adapt_delta = 0.99,
                            max_treedepth = 15))
