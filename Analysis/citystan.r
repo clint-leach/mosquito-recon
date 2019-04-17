@@ -46,7 +46,6 @@ rov <- 7 * exp(0.2 * covars$temp - 8)
 
 # Wrapping up all the data
 dat.stan <- list(T = 243,
-                 T_pred = 0,
                  steps = 7,
                  y =data$obs,
                  q = data$q,

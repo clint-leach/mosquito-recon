@@ -1,3 +1,6 @@
+# Script to explore the numerical consquences of changes the Euler integration
+# step size.
+
 library(rstan)
 library(doParallel)
 library(plyr)
@@ -15,8 +18,7 @@ data <- ddply(tseries, .(tot.week), summarise,
               q = sum(Mosquitoes, na.rm = T),
               tau = sum(Trap, na.rm = T),
               year = unique(Year),
-              week = unique(Week)
-)
+              week = unique(Week))
 
 # Population size
 pop <- 327801
@@ -36,29 +38,31 @@ rov <- 7 * exp(0.2 * covars$temp - 8)
 #===============================================================================
 # Loading mcmc samples
 
-fit <- readRDS("Results/oscillator.rds")
+fit <- readRDS("Results/gamma_eip_dv0.rds")
 
-samples <- rstan::extract(fit)[1:16]
+samples <- rstan::extract(fit)[1:17]
 
 extract_sample <- function(x, k){
   if(length(dim(x)) == 1) return(x[k])
   else return(x[k, ])
 }
 
+# Selecting a sample to run the simulation with
 init <- list(lapply(samples, extract_sample, 1))
 
-model <- stan_model(file = "Code/seirs.stan")
+# Loading Stan code
+model <- stan_model(file = "Code/gammaeip.stan")
 
 #===============================================================================
 # Simulating dynamics with smaller and smaller Euler steps
 
+# Number of Euler steps per week
 steps <- c(7, 14, 28, 56, 112, 224)
 
-# Parallel for-loop over mcmc iterations
+# Loop over each of the step sizes and simulate dynamics
 runs <- foreach(k = 1:6, .packages = c("rstan", "magrittr"), .combine = "rbind") %do% {
   
   dat.stan <- list(T = 243,
-                   T_pred = 0,
                    steps = steps[k],
                    y =data$obs,
                    q = data$q,
@@ -75,13 +79,14 @@ runs <- foreach(k = 1:6, .packages = c("rstan", "magrittr"), .combine = "rbind")
                   warmup = 0,
                   algorithm = "Fixed_param")
   
-  cases <- rstan::extract(sim, "system", permute = T)[[1]][1, , 8]
+  cases <- diff(rstan::extract(sim, "state", permute = T)[[1]][1, , 11])
   
   return(cases)
 }
 
 
 #===============================================================================
+# Compare number of cases per week for the different step sizes
 
 plot(runs[6, ])
 points(runs[5, ], pch = 20, col = "blue")
