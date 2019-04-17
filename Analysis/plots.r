@@ -144,7 +144,8 @@ adult <- readRDS("Results/gamma_control.rds")
 adult <- mutate(adult, 
                 prevented = 1 - reduction, 
                 relweek = control - firsts[as.character(year)],
-                delta = rep(delta, each = 840))
+                delta = rep(delta, each = 840),
+                dv = rep(dvmu, each = 840))
 
 # Summarizing adult control simulations
 adult_sum <- adult %>%
@@ -175,18 +176,11 @@ dev.off()
 
 # Figure 4: Timing of control ==================================================
 
-# Finding week when control is most effective for each rep
-adult_best <- adult %>%
-  subset(relweek > -53 & relweek < 53) %>% 
-  ddply(.(rep, year), summarise,
-        best = relweek[which.min(reduction)],
-        ratio = max(prevented))
+# Finding week when median number of cases prevented is largest
+bests <- ddply(adult_sum, .(year), summarise, 
+               best = relweek[which.max(med)],
+               ratio = max(med))
 
-adult_best$delta <- rep(delta, each = 4)
-adult_best$dvmu <- rep(dvmu, each = 4)
-
-# Finding median most effective week of control for each year
-bests <- ddply(adult_best, .(year), summarise, best = median(best), prevented = median(ratio))
 bests$week <- bests$best + firsts[2:5]
 
 # Summarizing state variables
@@ -228,9 +222,9 @@ postscript("Manuscript/figures/fig5.eps",
            width = 5, height = 3,
            family = "ArialMT")
 
-adult_best %>% 
-  ggplot(aes(dvmu, delta, z = ratio)) + 
-  stat_summary_2d(binwidth = c(0.025, 10)) +
+subset(adult, relweek == -30) %>% 
+  ggplot(aes(dv, delta, z = prevented)) + 
+  stat_summary_2d(binwidth = c(0.025, 5)) +
   scale_fill_distiller(palette = "Oranges", direction = 1) +
   labs(fill = "average \nproportion \nof cases \nprevented") + 
   theme_classic() +
