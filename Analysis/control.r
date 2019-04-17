@@ -1,3 +1,5 @@
+# Script to simulate control interventions in fitted dengue transmission model
+
 library(rstan)
 library(doParallel)
 library(plyr)
@@ -50,7 +52,12 @@ extract_sample <- function(x, k){
 model <- stan_model(file = "Code/gammaeip.stan")
 
 #===============================================================================
-# In which week is adult control most effective?
+# Adult control simulations
+
+# Loops over each HMC iteration and simulates a 5% decresase in total mosquito 
+# population size in each of the first 210 weeks of the time series.
+# Summarizes the difference in number of cases observed in each year between the
+# control and uncontrolled time series.
 
 # Setting up parallel
 cl <- makeCluster(10, type = "SOCK")
@@ -60,11 +67,14 @@ registerDoParallel(cl)
 reduction <- foreach(k = 1:nmcmc, .combine = "rbind", .packages = c("rstan", "magrittr")) %:% 
   foreach(j = 1:210, .combine = "rbind") %dopar% {
 
+    # Extract parameter values in kth iteration
     init <- list(lapply(samples, extract_sample, k))
 
+    # Set-up control structure
     control <- matrix(1, nrow = 243, ncol = 3)
     control[j, 3] <- 0.95
     
+    # Stan data object
     dat.stan <- list(T = 243,
                      steps = 7,
                      y = data$obs,
@@ -74,6 +84,7 @@ reduction <- foreach(k = 1:nmcmc, .combine = "rbind", .packages = c("rstan", "ma
                      control = control,
                      pop = pop)
     
+    # Simulate trajectory with control
     sim <- sampling(model,
                     data = dat.stan, 
                     init = init, 
@@ -82,8 +93,10 @@ reduction <- foreach(k = 1:nmcmc, .combine = "rbind", .packages = c("rstan", "ma
                     warmup = 0,
                     algorithm = "Fixed_param")
     
+    # Extract values of the state variables at the beginning of each year
     state <- rstan::extract(sim, "state", permute = T)[[1]][1, ends + 1, ]
     
+    # Assemble results
     data.frame(rep = k,
                control = j,
                year = c(2009, 2010, 2011, 2012),
@@ -96,138 +109,4 @@ reduction <- foreach(k = 1:nmcmc, .combine = "rbind", .packages = c("rstan", "ma
 
 stopCluster(cl)
 
-saveRDS(reduction, "Results/adult_control.rds")
-
-#===============================================================================
-# In which week is larval control most effective?
-
-# Setting up parallel
-cl <- makeCluster(10, type = "SOCK")
-registerDoParallel(cl)
-
-# Parallel for-loop over mcmc iterations
-reduction <- foreach(k = 1:nmcmc, .combine = "rbind", .packages = c("rstan", "magrittr")) %dopar% {
-  
-  init <- list(lapply(samples, extract_sample, k))
-  
-  cases <- data.frame(rep = k, control = rep(1:52, each = 3), year = rep(control_years, 52), reduction = 0)
-  
-  for(i in 1:52){
-    for(j in 1:3){
-      
-      control <- matrix(1, nrow = 243, ncol = 3)
-      control[(data$epiweek == i & data$epiyear == j), 2] <- 0.95
-      
-      dat.stan <- list(T = 243,
-                       steps = 7,
-                       y = data$obs,
-                       q = data$q,
-                       tau = data$tau,
-                       rov = rov,
-                       control = control,
-                       pop = pop)
-      
-      sim <- sampling(model,
-                      data = dat.stan, 
-                      init = init, 
-                      iter = 1, 
-                      chains = 1,
-                      warmup = 0,
-                      algorithm = "Fixed_param")
-      
-      cases$reduction[(i - 1) * 3 + j] <- rstan::extract(sim, "state", permute = T)[[1]][1, , 8] %>% 
-        diff() %>% 
-        extract(data$year == control_years[j]) %>% 
-        sum() %>% 
-        divide_by(sum(fitcases[k, data$year == control_years[j]]))
-    }
-  }
-  
-  return(cases)
-}
-
-stopCluster(cl)
-
-saveRDS(reduction, "Results/larval_control.rds")
-
-#===============================================================================
-# Dynamics when control deployed at optimum for adult control
-
-# Setting up parallel
-cl <- makeCluster(10, type = "SOCK")
-registerDoParallel(cl)
-
-# Parallel for-loop over mcmc iterations
-aopt <- foreach(k = 1:nmcmc, .packages = c("rstan", "magrittr")) %dopar% {
-  
-  init <- list(lapply(samples, extract_sample, k))
-  
-  control <- matrix(1.0, nrow = 243, ncol = 3)
-  control[(data$week == 23 & data$year > 2008 & data$year < 2012), 3] <- 0.905
-  
-  dat.stan <- list(T = 243,
-                   steps = 7,
-                   y = data$obs,
-                   q = data$q,
-                   tau = data$tau,
-                   rov = rov,
-                   control = control,
-                   pop = pop)
-  
-  sim <- sampling(model,
-                  data = dat.stan, 
-                  init = init, 
-                  iter = 1, 
-                  chains = 1,
-                  warmup = 0,
-                  algorithm = "Fixed_param")
-  
-  system <- rstan::extract(sim, "state", permute = T)[[1]][1, , ]
-  
-  return(system)
-}
-
-stopCluster(cl)
-
-saveRDS(aopt, "Results/adult_optimal.rds")
-
-#===============================================================================
-# Dynamics when control deployed at optimum for larval control
-
-# Setting up parallel
-cl <- makeCluster(10, type = "SOCK")
-registerDoParallel(cl)
-
-# Parallel for-loop over mcmc iterations
-lopt <- foreach(k = 1:nmcmc, .packages = c("rstan", "magrittr")) %dopar% {
-  
-  init <- list(lapply(samples, extract_sample, k))
-  
-  control <- matrix(1.0, nrow = 243, ncol = 3)
-  control[(data$week == 4 & data$year > 2008 & data$year < 2012), 2] <- 0.95
-  
-  dat.stan <- list(T = 243,
-                   steps = 7,
-                   y = data$obs,
-                   q = data$q,
-                   tau = data$tau,
-                   rov = rov,
-                   control = control,
-                   pop = pop)
-  
-  sim <- sampling(model,
-                  data = dat.stan, 
-                  init = init, 
-                  iter = 1, 
-                  chains = 1,
-                  warmup = 0,
-                  algorithm = "Fixed_param")
-  
-  system <- rstan::extract(sim, "state", permute = T)[[1]][1, , ]
-  
-  return(system)
-}
-
-stopCluster(cl)
-
-saveRDS(lopt, "Results/larval_optimal.rds")
+saveRDS(reduction, "Results/gamma_control.rds")

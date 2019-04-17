@@ -1,8 +1,12 @@
+# Script to fit an SEIRS-SEI dengue transmission model to weekly trap counts
+# and reports of "dengue-like illness" using Stan.
+
 library(rstan)
 library(plyr)
 library(magrittr)
 library(lubridate)
 
+# Setting Stan options
 rstan_options(auto_write = TRUE)
 options(mc.cores = parallel::detectCores())
 
@@ -29,14 +33,18 @@ weather <- read.csv("Data/Vitoria.weather.csv") %>%
 weather <- subset(weather, date < date[1] + weeks(243))
 weather$tot.week <- rep(c(1:243), each = 7)
 
+# Weekly mean temperature
 covars <- ddply(weather, .(tot.week), summarise, 
                 temp = mean(Mean.TemperatureC, na.rm = T),
                 humid = mean(Mean.Humidity, na.rm = T))
 
+# Computing inverse of extrinsic incubation period
 rov <- 7 * exp(0.2 * covars$temp - 8)
+
 #===============================================================================
 # Running stan
 
+# Wrapping up all the data
 dat.stan <- list(T = 243,
                  T_pred = 0,
                  steps = 7,
@@ -47,6 +55,7 @@ dat.stan <- list(T = 243,
                  control = matrix(1, nrow = 243, ncol = 3),
                  pop = pop)
 
+# Specifying initial conditions for 3 chains
 inits = list(list(S0 = 0.4,
                   E0 = 80,
                   I0 = 40,
@@ -98,6 +107,9 @@ inits = list(list(S0 = 0.4,
                   sigmarv = 0.01,
                   eps_dv = rep(0, 243),
                   eps_rv = rep(0, 243)))
+
+# Running HMC (note non-default options for adapt_delta and max_treedepth, which 
+# help ensure good mixing and avoid divergent transitions)
 
 fit <- stan(file = "Code/gammaeip.stan", 
             data = dat.stan, 
