@@ -66,9 +66,9 @@ ggplot(post, aes(tot.week, yobs)) +
   geom_line(aes(tot.week, yhat)) + 
   theme_classic() +
   scale_y_continuous(expand = c(0, 0)) + 
-  scale_x_continuous(expand = c(0, 1)) +
+  scale_x_continuous(expand = c(0, 1), breaks = c(1, 54, 106, 158, 210), labels = c(2008, 2009, 2010, 2011, 2012)) +
   ylab("case reports") + 
-  xlab("week") +
+  xlab("year") +
   ggtitle("A") -> fig1.a
 
 ggplot(post, aes(tot.week, qobs)) + 
@@ -77,9 +77,9 @@ ggplot(post, aes(tot.week, qobs)) +
   geom_line(aes(tot.week, qhat)) + 
   theme_classic() +
   scale_y_continuous(expand = c(0.05, 0)) + 
-  scale_x_continuous(expand = c(0, 1)) +
+  scale_x_continuous(expand = c(0, 1), breaks = c(1, 54, 106, 158, 210), labels = c(2008, 2009, 2010, 2011, 2012)) +
   ylab("mosquitoes trapped") +
-  xlab("week") +
+  xlab("year") +
   ggtitle("B") -> fig1.b
 
 postscript("Manuscript/figures/fig1.eps",
@@ -108,16 +108,16 @@ ggplot(post, aes(tot.week, dvmed)) +
   geom_line() + 
   theme_classic() +
   scale_y_continuous(expand = c(0.05, 0), limits = c(0.25, 1.35)) + 
-  scale_x_continuous(expand = c(0, 1)) +
+  scale_x_continuous(expand = c(0, 1), breaks = c(1, 54, 106, 158, 210), labels = c(2008, 2009, 2010, 2011, 2012)) +
   ylab("mosquito mortality rate") +
-  xlab("week") +
+  xlab("year") +
   ggtitle("A") -> fig2.a
 
 ggplot(post, aes(temp, dvmed)) +
   geom_point() + 
   theme_classic() + 
   scale_y_continuous(expand = c(0.05, 0), limits = c(0.25, 1.35)) + 
-  scale_x_continuous(expand = c(0, 1)) +
+  scale_x_continuous(expand = c(0, 1)) + 
   ylab("mosquito mortality rate") +
   xlab("weekly mean temperature") + 
   ggtitle("B") -> fig2.b
