@@ -261,7 +261,7 @@ ggplot(eps_dv, aes(week, med)) +
   geom_hline(yintercept = 0, linetype = 2) + 
   theme_classic() + 
   scale_x_continuous(expand = c(0, 1)) +
-  ylab(expression(epsilon[d])) +
+  ylab(expression(epsilon[nu])) +
   ggtitle("A") -> figs1.a
 
 ggplot(eps_rv, aes(week, med)) + 
