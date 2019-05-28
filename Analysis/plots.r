@@ -83,7 +83,7 @@ ggplot(post, aes(tot.week, qobs)) +
   ggtitle("B") -> fig1.b
 
 postscript("Manuscript/figures/fig1.eps",
-     width = 5.2, height = 3,
+     width = 5.2, height = 3, paper = "special", horizontal = FALSE,
      family = "ArialMT")
 
 grid.arrange(fig1.a, fig1.b, ncol = 2)
@@ -123,7 +123,7 @@ ggplot(post, aes(temp, dvmed)) +
   ggtitle("B") -> fig2.b
 
 postscript("Manuscript/figures/fig2.eps",
-           width = 5.2, height = 3,
+           width = 5.2, height = 3, paper = "special", horizontal = FALSE,
            family = "ArialMT")
 
 grid.arrange(fig2.a, fig2.b, ncol = 2)
@@ -158,7 +158,7 @@ adult_sum <- adult %>%
 # Plotting
 
 postscript("Manuscript/figures/fig3.eps",
-           width = 4, height = 5,
+           width = 4, height = 5, paper = "special", horizontal = FALSE,
            family = "ArialMT")
 
 subset(adult_sum, relweek > -53 & relweek < 53) %>% 
@@ -194,12 +194,17 @@ post <- mutate(post,
                Smu = system[, 2:244, 1] %>%
                  apply(2, median))
 
+labels <- data.frame(variable = c("cases", "susceptibles", "mosquitoes"),
+             label = c("A", "B", "C"),
+             x = rep(Inf, 3),
+             y = rep(Inf, 3))
+
 # Stacking state variables
 stacked <- melt(post, id.vars = c("tot.week", "epiweek", "year"), measure.vars = c("ymu", "Smu", "qmu"))
 levels(stacked$variable) <- c("cases",  "susceptibles", "mosquitoes")
 
 postscript("Manuscript/figures/fig4.eps",
-           width = 4, height = 4,
+           width = 4, height = 4, paper = "special", horizontal = FALSE,
            family = "ArialMT")
 
 subset(stacked, year < 2012) %>%
@@ -211,6 +216,7 @@ subset(stacked, year < 2012) %>%
   scale_color_brewer(palette = "Dark2", type = "qual", guide = F) +
   scale_x_continuous(expand = c(0, 5), breaks = c(1, 54, 106, 158, 210), labels = c(2008, 2009, 2010, 2011, 2012)) +
   theme(strip.placement = "outside", strip.background = element_blank()) +
+  geom_text(data = labels, aes(x = x, y = y, label = label, hjust = "inward", vjust = "inward")) +
   ylab("") +
   xlab("year")
 
@@ -219,7 +225,7 @@ dev.off()
 # Figure 5: effect of delta on control =========================================
 
 postscript("Manuscript/figures/fig5.eps",
-           width = 5, height = 3,
+           width = 5, height = 3, paper = "special", horizontal = FALSE,
            family = "ArialMT")
 
 subset(adult, relweek == -30) %>% 
