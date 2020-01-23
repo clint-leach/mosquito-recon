@@ -47,7 +47,7 @@ functions {
       dydt: a vector of length 15 giving the RHS of the ODE at time t
     */
     
-    vector[15] dydt;
+    vector[17] dydt;
     
     real b;
     real dv;
@@ -99,6 +99,12 @@ functions {
     /*rv*/ dydt[14] = y[15];
     /*drv*/ dydt[15] = -2 * damp * omega * y[15] - omega ^ 2 * y[14] + eps_rv;
     
+    // Dead exposed mosquitoes
+    dydt[16] = control[1] * dv * (y[4] + y[5] + y[6] + y[7]);
+    
+    // Infectious exposed mosquitoes
+    dydt[17] = 4 * rov * y[7];
+    
     return dydt;
   }
 }
@@ -147,7 +153,7 @@ transformed parameters {
   real<lower=0> phi_q;
   vector[T] y_hat;
   vector[T] q_hat;
-  vector[15] state[T + 1];
+  vector[17] state[T + 1];
   
   // initial conditions
   state[1, 1] = S0 * (pop - E0 - I0) / pop;
@@ -165,6 +171,8 @@ transformed parameters {
   state[1, 13] = 0;
   state[1, 14] = rv0;
   state[1, 15] = 0;
+  state[1, 16] = 0;
+  state[1, 17] = 0;
   
   // measurement parameters
   eta_y = 1 / eta_inv_y;
@@ -252,7 +260,6 @@ model {
   sigmadv ~ normal(0, 0.2);
   sigmarv ~ normal(0, 0.2);
 
-  
   // Measurement models
   y ~ neg_binomial_2(phi_y * y_hat * pop, eta_y);
   q ~ neg_binomial_2(q_hat * pop, eta_q);
