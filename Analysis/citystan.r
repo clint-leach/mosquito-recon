@@ -39,7 +39,7 @@ covars <- ddply(weather, .(tot.week), summarise,
                 humid = mean(Mean.Humidity, na.rm = T))
 
 # Computing inverse of extrinsic incubation period
-rov <- 7 * exp(0.2 * covars$temp - 8)
+rov <- 7 * exp(0.21 * covars$temp - 7.9)
 
 #===============================================================================
 # Running stan
