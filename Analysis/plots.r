@@ -40,7 +40,7 @@ temp <- ddply(weather, .(tot.week), summarise, temp = mean(Mean.TemperatureC, na
               humid = mean(Mean.Humidity, na.rm = T))
 
 post$temp <- temp$temp
-post$rov <- 7 * exp(0.2 * temp$temp - 8)
+post$rov <- 7 * exp(0.21 * temp$temp - 7.9)
 
 # Loading MCMC results
 sim <- readRDS("Results/gamma_eip_dv0.rds")

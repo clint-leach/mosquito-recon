@@ -33,12 +33,12 @@ weather$tot.week <- rep(c(1:243), each = 7)
 covars <- ddply(weather, .(tot.week), summarise, 
                 temp = mean(Mean.TemperatureC, na.rm = T))
 
-rov <- 7 * exp(0.2 * covars$temp - 8)
+rov <- 7 * exp(0.21 * covars$temp - 7.9)
 
 #===============================================================================
 # Loading mcmc samples
 
-fit <- readRDS("Results/gamma_eip_dv0.rds")
+fit <- readRDS("Results/chain_phi12.rds")
 samples <- rstan::extract(fit)[1:17]
 fitcases <- rstan::extract(fit, "state", permute = T)[[1]] %>% extract(, ,  11)
 
