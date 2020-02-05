@@ -38,9 +38,12 @@ rov <- 7 * exp(0.21 * covars$temp - 7.9)
 #===============================================================================
 # Loading mcmc samples
 
-fit <- readRDS("Results/chain_phi12.rds")
-samples <- rstan::extract(fit)[1:17]
-fitcases <- rstan::extract(fit, "state", permute = T)[[1]] %>% extract(, ,  11)
+fit <- readRDS("Results/chain.rds")
+samples <- rstan::extract(fit, permute = T)[1:18] 
+
+fitcases <- rstan::extract(fit, "state", permute = T)[[1]] %>% 
+  extract(, ,  11) %>% 
+  apply(1, diff)
 
 nmcmc <- length(samples[[1]])
 
@@ -49,7 +52,7 @@ extract_sample <- function(x, k){
   else return(x[k, ])
 }
 
-model <- stan_model(file = "Code/gammaeip.stan")
+model <- stan_model(file = "Code/gammaeip.stan", verbose = T, save_dso = TRUE, auto_write = TRUE)
 
 #===============================================================================
 # Adult control simulations
@@ -60,12 +63,12 @@ model <- stan_model(file = "Code/gammaeip.stan")
 # control and uncontrolled time series.
 
 # Setting up parallel
-cl <- makeCluster(10, type = "SOCK")
+cl <- makeCluster(3, type = "SOCK")
 registerDoParallel(cl)
 
 # Parallel for-loop over mcmc iterations
 reduction <- foreach(k = 1:nmcmc, .combine = "rbind", .packages = c("rstan", "magrittr")) %:% 
-  foreach(j = 1:210, .combine = "rbind") %dopar% {
+  foreach(j = 1:242, .combine = "rbind") %dopar% {
 
     # Extract parameter values in kth iteration
     init <- list(lapply(samples, extract_sample, k))
@@ -85,7 +88,7 @@ reduction <- foreach(k = 1:nmcmc, .combine = "rbind", .packages = c("rstan", "ma
                      pop = pop)
     
     # Simulate trajectory with control
-    sim <- sampling(model,
+    sim <- sampling(model, 
                     data = dat.stan, 
                     init = init, 
                     iter = 1, 
@@ -94,19 +97,20 @@ reduction <- foreach(k = 1:nmcmc, .combine = "rbind", .packages = c("rstan", "ma
                     algorithm = "Fixed_param")
     
     # Extract values of the state variables at the beginning of each year
-    state <- rstan::extract(sim, "state", permute = T)[[1]][1, ends + 1, ]
+    cases <- rstan::extract(sim, "state", permute = T)[[1]][1, , 11] %>% diff()
     
     # Assemble results
     data.frame(rep = k,
                control = j,
-               year = c(2009, 2010, 2011, 2012),
-               S = state[1:4, 1],
-               I = state[1:4, 3],
-               reduction = state[, 11] %>%
-                 diff() %>%
-                 divide_by(diff(fitcases[k, ends + 1])))
+               dvmu = init[[1]]$dv0,
+               delta = init[[1]]$delta_c,
+               phi = init[[1]]$phi_y,
+               week = j:243,
+               relweek = 0:(243 - j),
+               cases = cases[j:243],
+               cases0 = fitcases[j:243, k])
 }
 
 stopCluster(cl)
 
-saveRDS(reduction, "Results/gamma_control.rds")
+saveRDS(reduction, "Results/control.rds")
