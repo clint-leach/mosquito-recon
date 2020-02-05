@@ -120,7 +120,7 @@ data {
 }
 transformed data {
   real lambda = 4.87;                              // DENV transmission rate
-  real phi_y = 1.0 / 12.0;                         // proportion of human cases reported
+  // real phi_y = 1.0 / 12.0;                         // proportion of human cases reported
   real damp = 0.0;                                 // damping coefficient on harmonic oscillators
   real omega = (pi() / 26) / sqrt(1 - damp ^ 2);   // period of harmonic oscillators
 }
@@ -140,6 +140,7 @@ parameters {
   real rv0;                            // initial mosquito population growth rate
   real<lower=0> sigmadv;               // std dev of mortality rate perturbation process
   real<lower=0> sigmarv;               // std dev of growth rate perturbation process
+  real<lower=0,upper=1> phi_y;         // reporting probability
   vector[T] eps_dv;                    // perturbations to log(dv) oscillator
   vector[T] eps_rv;                    // perturbations to rv oscillator
 }
@@ -234,6 +235,7 @@ model {
 
   // Measurement models
   log_phi_q ~ normal(-13, 0.5);
+  phi_y ~ beta(7, 77);
   eta_inv_y ~ normal(0, 5);
   eta_inv_q ~ normal(0, 5);
   
