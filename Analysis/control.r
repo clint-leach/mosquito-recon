@@ -107,6 +107,7 @@ reduction <- foreach(k = 1:nmcmc, .combine = "rbind", .packages = c("rstan", "ma
                phi = init[[1]]$phi_y,
                week = j:243,
                relweek = 0:(243 - j),
+               year = year(ymd("2008-01-01") + weeks(j:243)),
                cases = cases[j:243],
                cases0 = fitcases[j:243, k])
 }
