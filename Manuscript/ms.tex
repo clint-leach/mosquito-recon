@@ -263,7 +263,7 @@ The importance of intrinsic nonlinearities, potentially alongside seasonality an
 Such mechanistic models can often perform better than complex autoregressive statistical models in describing and forecasting population dynamics \cite{Reilly2005}.
 Moreover, in the absence of case-control studies, mechanistic models can provide scenario-based tools that can be used to predict the effect of management actions \cite{Buckland2007}.
 
-Differential equation models provide a natural way to encode the relevant biological mechanisms, although it is important to also account for sources of uncertainty in those models \cite{Hotelling1927, Wikle2010}.
+Differential equation models provide a natural way to describe mechanistic processes, but that description must also account for sources of uncertainty \cite{Hotelling1927, Wikle2010}.
 In particular, the values of parameters (e.g., the length of time for which a host is infectious) are often uncertain, which can lead to large uncertainty about the effects of management actions \cite{Elderd2006}.
 The structure of the processes themselves can be uncertain \cite{Ellner1998}, and needs to be informed by available, often noisy, data.
 Bayesian hierarchical modeling provides a coherent framework to account for and integrate this uncertainty across the three levels of the model (data, process, and parameters \cite{Berliner1996, Cressie2009}).
@@ -278,7 +278,7 @@ We then use the fitted model to explore how perturbations to the mosquito popula
 \subsection*{Study system and data}
 
 Vit\'oria is a coastal city and the capital of the state of Esp\'irito Santo, Brazil, with a population of 327,801 as of 2010 \cite{vitpop}.
-Since 2008, the company Ecovec has monitored mosquito abundance for the city using approximately 1327 sticky traps (MosquiTRAP, \cite{Eiras2009}) arranged in a grid across the city.
+Since 2008, the company Ecovec has monitored mosquito abundance for the city using approximately 1327 sticky traps (MosquiTRAP, \cite{Eiras2009}) arranged in a roughly 250m grid across the city \cite{Pepin2015, Lana2018}.
 Each trap is checked weekly and the mosquitoes inside counted and identified, with the results sent to a central database that city managers then use to map mosquito infestations and target control.
 These data comprise 243 weeks (week 1 of 2008 through week 34 of 2012) of total city-wide counts of trapped gravid female \emph{Aedes aegypti}.
 It is important to note that this time series reflects both natural fluctuations in mosquito density and fluctuations driven by the city's existing mosquito control program.
@@ -290,15 +290,19 @@ Dengue epidemiology is complicated considerably by the presence of four simultan
 Infection with one serotype confers life-long immunity to that serotype, along with temporary immunity to other serotypes \cite{Wearing2006}.  
 As this cross-immunity wanes, antibodies from the previous infection can result in antibody-dependent enhancement (ADE), wherein human hosts are more susceptible to infection with the other serotypes and more likely to develop severe symptoms (i.e., dengue haemorrhagic fever or dengue shock syndrome)\cite{Wearing2006}.
 The strength and duration of these different inter-serotype interactions are not well understood, although different models suggest that temporary cross-immunity alone (without ADE) is sufficient to reproduce observed multi-annual dynamics in Thailand \cite{Wearing2006,Reich2013}.
-Similarly, Aguiar \emph{et al.} \cite{Aguiar2013} found that capturing primary and secondary infections and the period of cross-immunity is critical, but that explicitly including all four serotypes (at great cost to model complexity) does not perform better than a two serotype model.
 
-Explicitly accounting for interactions between serotypes, even only two of the four, leads to a large and complex mechanistic model.
+Explicitly capturing the cross-immune interactions among all four serotypes, or even only two of the four \cite{Aguiar2013}, leads to a large and complex mechanistic model.
 Moreover, because dengue case reports do not identify serotype, there is not enough information in the data to inform the dynamics of individual serotypes.
-As such, we developed an SEIRS compartment model, similar to \cite{Newton1992, Burattini2008, Pinho2010} which drops serotype-specific dynamics but preserves the period of cross-immunity and the possibility of reinfection.
-In this framework, susceptible humans ($S$) become exposed ($E$) through contact with infectious mosquitoes ($V_I$).
+As such, we captured temporary cross-immunity, and the potential for multiple sequential infections, as simply and tractably as possible in a susceptible-exposed-infectious-recovered-susceptible (SEIRS) compartment model, similar to \cite{Newton1992, Burattini2008, Pinho2010}.
+Though it captures the critical influence of temporary immunity, this framework does not account for the potential relationship between an individual's infection history and the likelihood that a new infection with be symptomatic (and thus reported).
+In particular, secondary infections appear more likely to be symptomatic than primary infections \cite{Imai2016,Clapham2017}, while third and fourth infections appear much less likely to be symptomatic \cite{Olkowski2013} (but see \cite{Montoya2013} who found similar rates of symptomatic cases across infection number).
+Despite these potential differences in reporting rate, modeling work has suggested that the dynamics of primary and secondary infections are closely coupled (and thus not dynamically distinct) under many conditions \cite{Schwartz2005}.
+Moreover, given the short time scale of our data (5 years) relative to the period of cross-immunity (roughly 2 years \cite{Reich2013}), we expect that third and fourth infections will be relatively rare.
+We thus expect the SEIRS framework to be sufficient for capturing the dengue dynamics of Vit\'oria and that reporting differences across infection number are unlikely to have a large impact on the inferred relationship between mosquito abundance and human disease.
+
+In the SEIRS framework, susceptible humans ($S$) become exposed ($E$) through contact with infectious mosquitoes ($V_I$).
 Following a latent period ($\frac{1}{\rho}$), exposed humans become infectious ($I$) at which point they can infect susceptible mosquitoes ($V_S$).
 Infectious humans recover at rate $\gamma$ and subsequently remain immune ($R$) for a period ($\frac{1}{\delta}$) after which they re-enter the susceptible class.
-
 Similarly, susceptible mosquitoes ($V_S$) become exposed ($V_E$) by biting infectious humans and pass through a temperature-dependent incubation period ($\frac{1}{\rho_{vt}}$) before becoming infectious ($V_I$).
 Because the assumption of an exponentially distributed incubation period (implicit in the specification of a differential equation model) is a poor fit to laboratory observations \cite{Chan2012}, we instead implemented a gamma-distributed incubation period by chaining multiple exposed classes together (taking advantage of the fact that a gamma-distributed random variable can be generated through the sum of a collection of exponential random variables with the same rate parameter) \cite{Lloyd2001}.
 Total mosquito population size ($V_N$) is controlled by a forced, seasonally varying growth rate ($r(t)$), while the transmission bottleneck is captured with a forced, seasonally varying mortality rate ($d(t)$).
@@ -314,11 +318,11 @@ We specified the differential equations governing the human population as:
 while the equations governing the mosquito (vector) population are:
 \begin{align}
 \frac{dV_N}{dt} & = r(t) V_N - \phi_q \tau(t) V_N \\
-\frac{dV_{E1}}{dt} &= \lambda \frac{I}{N} V_S - (\rho_{v}(t) + d(t) + \phi_q \tau(t))V_{E1}\\
-\frac{dV_{E2}}{dt} &= \rho_{v}(t) V_{E1} - (\rho_{v}(t) + d(t) + \phi_q \tau(t))V_{E2}\\
-\frac{dV_{E3}}{dt} &= \rho_{v}(t) V_{E2}  - (\rho_{v}(t) + d(t) + \phi_q \tau(t))V_{E3}\\
-\frac{dV_{E4}}{dt} &= \rho_{v}(t) V_{E3}  - (\rho_{v}(t) + d(t) + \phi_q \tau(t))V_{E4}\\
-\frac{dV_I}{dt} &= \rho_{v}(t) V_{E4} - (d(t) + \phi_q \tau(t)) V_I\\
+\frac{dV_{E1}}{dt} &= \lambda \frac{I}{N} V_S - (\nu\rho_{v}(t) + d(t) + \phi_q \tau(t))V_{E1}\\
+\frac{dV_{E2}}{dt} &= \nu\rho_{v}(t) V_{E1} - (\nu\rho_{v}(t) + d(t) + \phi_q \tau(t))V_{E2}\\
+\frac{dV_{E3}}{dt} &= \nu\rho_{v}(t) V_{E2}  - (\nu\rho_{v}(t) + d(t) + \phi_q \tau(t))V_{E3}\\
+\frac{dV_{E4}}{dt} &= \nu\rho_{v}(t) V_{E3}  - (\nu\rho_{v}(t) + d(t) + \phi_q \tau(t))V_{E4}\\
+\frac{dV_I}{dt} &= \nu\rho_{v}(t) V_{E4} - (d(t) + \phi_q \tau(t)) V_I\\
 \frac{dV_C}{dt} & = \phi_q \tau(t) V_N\\
 V_S &= V_N - V_E - V_I.
 \end{align}
@@ -333,7 +337,7 @@ where the angular frequency of the oscillator, $\omega = 2\pi / 52$, the mosquit
 \epsilon_{\nu t} & \sim \text{Normal}(0, \sigma^2_{\nu})\\
 \epsilon_{rt} & \sim \text{Normal}(0, \sigma^2_r),
 \end{align}
-for $t = 1 \dots 243$.
+for each week $t = 1 \dots 243$.
 These stochastically-forced harmonic oscillators provide a flexible framework for generating smooth seasonal oscillations in the latent mosquito processes \cite{Ramsay2017}.
 
 \subsection*{Data model}
@@ -373,7 +377,7 @@ $N$ & Human population size & 327801 & \cite{vitpop} \\
 $1/d$ & Human life-span & 76 years & \cite{vitlong} \\
 $\lambda$ & Transmission rate & 4.87 week$^{-1}$ & \cite{Scott2000}\\
 $\phi_y$ & Reporting probability & 0.083 & \cite{Silva2016}\\
-$1/\rho_{vt}$ & Extrinsic incubation period & $28\exp \left( 0.2 T_t - 8 \right)$ & \cite{Chan2012}\\
+$1/\rho_{v}(t)$ & Extrinsic incubation period & $\exp\left(7.9 - 0.21 T(t) \right)$ days & \cite{Chan2012}\\
 $V_{E0}$ & Initial exposed mosquitoes &  0 & \\
 $V_{I0}$ & Initial infectious mosquitoes & 0 & \\
 \hline
@@ -411,17 +415,18 @@ q_t | \cdot &\sim \text{NegBin}(V_{C}(t) - V_{C}(t-1), \eta_q)\\
 \boldsymbol{\theta} & \sim [\boldsymbol{\theta}]
 \end{align}
 where $\boldsymbol{\theta}$ is a vector of all the model parameters and initial conditions, and $\mathcal{M}(\boldsymbol{\epsilon_r}, \boldsymbol{\epsilon_{\nu}},\boldsymbol{\theta})$ represents the (numeric) solution to the differential equation model (Eq. 1-14) as a function of $\boldsymbol{\theta}$ and the weekly stochastic forcing terms ($\boldsymbol{\epsilon_{r}}, \boldsymbol{\epsilon_{\nu}}$).
-Sampling from the posterior distribution of the parameters and forcing terms in this model is difficult due to multimodality, variable parameter sensitivities (e.g., small changes in one parameter may lead to large changes in output, while similar changes in another parameter may have little effect), and potentially strong posterior correlations induced by the nonlinearity of the differential equation model \cite{Reilly2005, Girolami2008, Calderhead2011}.
-In addition, the computational burden of numerically solving the differential equation model at each iteration means that sampling efficiency is crucial.
-These problems can be mitigated somewhat by introducing stochasticity through the $\epsilon_t$ in the mosquito demographic processes.
-This flexibility allows the latent states to hew closer to the data, even when the parameters are far from optimal values \cite{Leander2014}.
-This reduces multimodality and allows gradient-based methods like Hamiltonain Monte Carlo (HMC) to more easily and efficiently traverse the posterior.
+Sampling from the posterior distribution of the parameters in mechanistic models is difficult due to multimodality, variable parameter sensitivities (e.g., small changes in one parameter may lead to large changes in output, while similar changes in another parameter may have little effect), and potentially strong posterior correlations induced by the nonlinearity of the differential equation model \cite{Reilly2005, Girolami2008, Calderhead2011}.
+However, the variable $\epsilon_t$ introduce flexibility to the mechanistic model that 
+soaks up lack-of-fit when the process parameters are far from optimal \cite{Leander2014}, thereby reducing multimodality and helping to smooth the posterior surface.
+Gradient-based methods like Hamiltonain Monte Carlo (HMC) can then more easily and efficiently traverse the posterior.
 Samples from the posterior distribution were thus generated using HMC implemented in the rstan package \cite{Carpenter2016, Rstan2017} for R \cite{R2016}. 
 We ran 3 chains with different starting values for 5,000 iterations each, discarding the first 2,500 as burn-in.
 Convergence diagnostics and mixing were evaluated using the shinystan package \cite{shinystan}.
 Within stan, the solution to the differential equation model was approximated with an Euler scheme with a time step of 1 day.  
 Timesteps as small as $1/8$ of a day were explored and did not qualitatively change the modeled dynamics.
 Code is available from \href{https://github.com/clint-leach/mosquito-recon}{https://github.com/clint-leach/mosquito-recon}.
+
+In addition, the computational burden of numerically solving the differential equation model at each iteration means that sampling efficiency is crucial.
 
 \subsection*{Mosquito control simulations}
 
@@ -511,11 +516,11 @@ Instead, we found that adult mosquito control efforts were most effective at red
 Barsante \emph{et al.} \cite{Barsante2015} similarly found that control was most effective when applied during the dry season (roughly matching our 30 week lag) than during the rainy season.
 While the immediate effects of mosquito control implemented during the decline phase of an outbreak may be masked by the natually fading transmission intensity \cite{Stoddard2014}, our results nonetheless indicated that disrupting inter-seasonal transmission can be an effective longer-term strategy \cite{Hladish2018}.
 
-The mismatch between the timing of the most effective control and the peak in mosquito abundance suggets that mosquito abundance alone was an insufficient predictor of the effect of mosquito control, at least at the city-scale.
+The mismatch between the timing of the most effective control and the peak in mosquito abundance suggests that mosquito abundance alone was an insufficient predictor of the effect of mosquito control, at least at the city-scale.
 Instead, the effectiveness of mosquito control depended, in large part, on the intrinsic long-term feedbacks and lags driven by the dynamics of temporary human immunity.
 In fact, control implemented at a 30 week lag was effective largely due to the way it interacted with the dynamics of the susceptible pool. 
 Implementing control when human susceptibility is near a local minimum (i.e., when the influx of individuals whose previous immunity has waned just outpaces the loss of individuals due to infection) disrupts transmission before the susceptibles that will fuel the next outbreak begin to accumulate.
-The fact that the effect of mosquito control was mediated by the dynamics of human immunity highlights that dengue, like many other diseases (e.g., cholera \cite{Koelle2004, Koelle2005}), is driven by a complex interplay between seasonal forcing and intrinsic non-linearities.
+The fact that the effect of mosquito control was mediated by the dynamics of human immunity highlights that dengue, like many other diseases (e.g., cholera \cite{Koelle2004, Koelle2005}), is driven by a complex interplay between seasonal forcing and intrinsic non-linearities \cite{Wearing2006, Reich2013}.
 
 The Bayesian framework allowed us to account for uncertainty across the data, process, and parameter levels of our model \cite{Berliner1996}.
 We carried this uncertainty through to our simulations of control interventions \cite{Elderd2006} and found that there was substantial uncertainty in the proportion of cases prevented by a control intervention (i.e., the width of the ribbons in Figure \ref{control}).
@@ -545,7 +550,7 @@ We do not employ the same explicit goodness-of-fit testing framework as \cite{Ho
 The periodic structure in the time series of the posterior means of the $\epsilon_{\nu}$ (Supplemental Figure 1) suggests that these terms were accounting for more than just noise, and there may have been some unmodeled process influencing fluctuations in mosquito mortality and/or transmission.
 Following Hooker and Ellner, we can explore whether this process is likely to result from misspecification of the rates of change of the existing state variables (indicated by a dependence of $\epsilon_{\nu t}$ on other state variables), or from missing state variables altogether (indicated by an additional dependence of $\epsilon_{\nu t}$ on its own lagged values). 
 The lack of any apparent relationship between the forcing terms and any of the estimated state variables, combined with the dependence of $\epsilon_{\nu t}$ on previous values (as apparent through the periodic structure), suggest that unmodeled state variables may be the more likely driver of model misspecification.
-These unmodeled components could include additional mosquito population dynamic processes (e.g., aquatic stage dynamics, environmental drivers, or control interventions), or epidiemiological processes (e.g., multiple circulating serotypes of the dengue virus).
+These unmodeled components could include additional mosquito population dynamic processes (e.g., aquatic stage dynamics, environmental drivers, or control interventions), or epidemiological processes (e.g., multiple circulating serotypes of the dengue virus).
 
 Despite this suggestion of potential model misspecification, our estimated mosquito mortalities nonetheless fell within the reasonable range from the literature \cite{Maciel-de-Freitas2008, Brady2013}.
 Moreover, the fact that our estimated mortality rate increased with temperature also broadly agrees with the empirical literature on mosquito survival \cite{Yang2009, Brady2013}.
