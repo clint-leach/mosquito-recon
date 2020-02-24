@@ -35,13 +35,15 @@ covars <- ddply(weather, .(tot.week), summarise,
 
 rov <- 7 * exp(0.21 * covars$temp - 7.9)
 
+model <- stan_model(file = "Code/gammaeip.stan", verbose = T, save_dso = TRUE, auto_write = TRUE)
+
 #===============================================================================
 # Loading mcmc samples
 
-fit <- readRDS("Results/chain.rds")
-samples <- rstan::extract(fit, permute = T)[1:18] 
+chain <- readRDS("Results/chain.rds")
+samples <- rstan::extract(chain, permute = T)[1:18] 
 
-fitcases <- rstan::extract(fit, "state", permute = T)[[1]] %>% 
+fitcases <- rstan::extract(chain, "state", permute = T)[[1]] %>% 
   extract(, ,  11) %>% 
   apply(1, diff)
 
@@ -52,7 +54,6 @@ extract_sample <- function(x, k){
   else return(x[k, ])
 }
 
-model <- stan_model(file = "Code/gammaeip.stan", verbose = T, save_dso = TRUE, auto_write = TRUE)
 
 #===============================================================================
 # Adult control simulations
@@ -63,19 +64,20 @@ model <- stan_model(file = "Code/gammaeip.stan", verbose = T, save_dso = TRUE, a
 # control and uncontrolled time series.
 
 # Setting up parallel
-cl <- makeCluster(3, type = "SOCK")
+cl <- makeCluster(2, type = "SOCK")
 registerDoParallel(cl)
 
 # Parallel for-loop over mcmc iterations
-reduction <- foreach(k = 1:nmcmc, .combine = "rbind", .packages = c("rstan", "magrittr")) %:% 
+reduction <- foreach(k = 1:nmcmc, .combine = "rbind", .packages = c("rstan", "magrittr", "lubridate")) %:% 
   foreach(j = 1:242, .combine = "rbind") %dopar% {
 
     # Extract parameter values in kth iteration
-    init <- list(lapply(samples, extract_sample, k))
+    inits <- list(lapply(samples, extract_sample, k))
 
     # Set-up control structure
-    control <- matrix(1, nrow = 243, ncol = 3)
+    control <- matrix(1.0, nrow = 243, ncol = 3)
     control[j, 3] <- 0.95
+    control[j + 1, 2] <- 1.05
     
     # Stan data object
     dat.stan <- list(T = 243,
@@ -88,9 +90,9 @@ reduction <- foreach(k = 1:nmcmc, .combine = "rbind", .packages = c("rstan", "ma
                      pop = pop)
     
     # Simulate trajectory with control
-    sim <- sampling(model, 
+    sim <- sampling(model,
                     data = dat.stan, 
-                    init = init, 
+                    init = inits, 
                     iter = 1, 
                     chains = 1,
                     warmup = 0,
@@ -98,13 +100,13 @@ reduction <- foreach(k = 1:nmcmc, .combine = "rbind", .packages = c("rstan", "ma
     
     # Extract values of the state variables at the beginning of each year
     cases <- rstan::extract(sim, "state", permute = T)[[1]][1, , 11] %>% diff()
-    
+
     # Assemble results
     data.frame(rep = k,
                control = j,
-               dvmu = init[[1]]$dv0,
-               delta = init[[1]]$delta_c,
-               phi = init[[1]]$phi_y,
+               dvmu = inits[[1]]$dv0,
+               delta = inits[[1]]$delta_c,
+               phi = inits[[1]]$phi_y,
                week = j:243,
                relweek = 0:(243 - j),
                year = year(ymd("2008-01-01") + weeks(j:243)),
@@ -115,3 +117,4 @@ reduction <- foreach(k = 1:nmcmc, .combine = "rbind", .packages = c("rstan", "ma
 stopCluster(cl)
 
 saveRDS(reduction, "Results/control.rds")
+
