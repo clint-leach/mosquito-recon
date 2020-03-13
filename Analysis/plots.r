@@ -1,14 +1,12 @@
 # Code to generate plots for manuscript
-
 library(rstan)
 library(plyr)
-library(reshape)
 library(magrittr)
 library(lubridate)
 library(ggplot2)
 library(gridExtra)
 library(patchwork)
-library(truncnorm)
+library(reshape2)
 
 # Loading and processing mosquito and case data
 tseries <- read.csv("Data/Vitoria.data.csv")
@@ -43,7 +41,12 @@ post$temp <- temp$temp
 post$rov <- 7 * exp(0.21 * temp$temp - 7.9)
 
 # Loading MCMC results
-sim <- readRDS("Results/gamma_eip_dv0.rds")
+sim <- readRDS("Results/chain.rds")
+
+# Loading control simulations
+control <- readRDS("Results/control_rebound.rds") %>% 
+  mutate(ratio = cases / cases0,
+         diff = cases0 - cases)
 
 # Figure 1: Observed and estimated time series =================================
 
@@ -107,7 +110,7 @@ ggplot(post, aes(tot.week, dvmed)) +
   geom_ribbon(aes(ymin = dvmin, ymax = dvmax), fill = "grey70") +
   geom_line() + 
   theme_classic() +
-  scale_y_continuous(expand = c(0.05, 0), limits = c(0.25, 1.35)) + 
+  scale_y_continuous(expand = c(0.05, 0), limits = c(0.25, 1.8)) + 
   scale_x_continuous(expand = c(0, 1), breaks = c(1, 54, 106, 158, 210), labels = c(2008, 2009, 2010, 2011, 2012)) +
   ylab("mosquito mortality rate") +
   xlab("year") +
@@ -116,7 +119,7 @@ ggplot(post, aes(tot.week, dvmed)) +
 ggplot(post, aes(temp, dvmed)) +
   geom_point() + 
   theme_classic() + 
-  scale_y_continuous(expand = c(0.05, 0), limits = c(0.25, 1.35)) + 
+  scale_y_continuous(expand = c(0.05, 0), limits = c(0.25, 1.8)) + 
   scale_x_continuous(expand = c(0, 1)) + 
   ylab("mosquito mortality rate") +
   xlab("weekly mean temperature") + 
@@ -135,25 +138,19 @@ dev.off()
 
 # First day of each year
 firsts <- daply(post, .(year), function(df) min(df$tot.week))
+peaks <- ddply(post, .(year), summarise, peakweek = tot.week[which.max(yobs)])
 
-# Extracting delta values
-delta <- 97 * rstan::extract(sim, "delta_c", permute = T)[[1]]
+# Effect of timing of control on the number of cases in a given year
+annual <- ddply(control, .(year, rep, control), summarise,
+                tcases = sum(cases), 
+                tcases0 = sum(cases0),
+                ratio = tcases / tcases0,
+                dvmu = mean(dvmu),
+                delta = mean(delta),
+                phi = mean(phi),
+                relweek = (control - firsts[as.character(year)])[1])
 
-# Adult control simulation results
-adult <- readRDS("Results/gamma_control.rds")
-adult <- mutate(adult, 
-                prevented = 1 - reduction, 
-                relweek = control - firsts[as.character(year)],
-                delta = rep(delta, each = 840),
-                dv = rep(dvmu, each = 840))
-
-# Summarizing adult control simulations
-adult_sum <- adult %>%
-  ddply(.(year, relweek), summarise,
-        med = median(prevented),
-        high = quantile(prevented, 0.9),
-        low = quantile(prevented, 0.1),
-        absweek = unique(control))
+saveRDS(annual, "Results/annual_control.rds")
 
 # Plotting
 
@@ -161,64 +158,159 @@ postscript("Manuscript/figures/fig3.eps",
            width = 4, height = 5, paper = "special", horizontal = FALSE,
            family = "ArialMT")
 
-subset(adult_sum, relweek > -53 & relweek < 53) %>% 
-  ggplot(aes(relweek, med)) +
-  geom_ribbon(aes(ymin = low, ymax = high), fill = "grey70") + 
-  geom_line() + 
+# Figure 3
+annual %>% 
+  subset(relweek > -53 & relweek < 53 & year > 2008) %>%
+  ggplot(aes(relweek, ratio)) +
+  stat_summary(fun.ymin = function(x) quantile(x, 0.05),
+               fun.ymax = function(x) quantile(x, 0.95),
+               geom = "ribbon", alpha = 0.5, color = "gray") +
+  stat_summary(fun.y = "median", geom = "line") +
   facet_grid(year ~.) + 
-  theme_classic() +
+  geom_hline(yintercept = 1.0, alpha = 0.5, linetype = 2) + 
+  theme_classic() + 
   theme(strip.background = element_blank()) + 
-  scale_x_continuous(expand = c(0, 0.5)) + 
-  xlab("relative week of control") + 
-  ylab("proportion of cases prevented")
-
+  xlab("relative week of control") +
+  ylab("case ratio (controlled / fit)")
+  
 dev.off()
 
 # Figure 4: Timing of control ==================================================
 
 # Finding week when median number of cases prevented is largest
-bests <- ddply(adult_sum, .(year), summarise, 
-               best = relweek[which.max(med)],
-               ratio = max(med))
+optimal <- annual %>% 
+  subset(relweek < 53 & relweek > -53) %>% 
+  ddply(.(year, rep), summarise,
+        week = relweek[which.min(ratio)],
+        ratio = min(ratio),
+        dvmu = mean(dvmu),
+        delta = mean(delta),
+        phi = mean(phi))
 
-bests$week <- bests$best + firsts[2:5]
+saveRDS(optimal, "Results/optimal_control.rds")
 
-# Summarizing state variables
-post <- mutate(post,
-               ymu = system[, ,11] %>%
-                 apply(1, diff) %>%
-                 multiply_by(pop) %>%
-                 apply(1, median),
-               qmu = system[, 2:244, 9] %>%
-                 apply(2, median),
-               Smu = system[, 2:244, 1] %>%
-                 apply(2, median))
+optimal %>% 
+  ggplot(aes(week)) +
+  geom_histogram(bins = 50) +
+  facet_grid(year ~.)
 
-labels <- data.frame(variable = c("cases", "susceptibles", "mosquitoes"),
-             label = c("A", "B", "C"),
-             x = rep(Inf, 3),
-             y = rep(Inf, 3))
+bests <- optimal %>% 
+  ddply(.(year), summarise,
+        best = median(week))
 
-# Stacking state variables
-stacked <- melt(post, id.vars = c("tot.week", "epiweek", "year"), measure.vars = c("ymu", "Smu", "qmu"))
-levels(stacked$variable) <- c("cases",  "susceptibles", "mosquitoes")
+bests$week <- bests$best + firsts
+
+infmosq <- system[, , 17] %>% 
+  aaply(1, diff) %>% 
+  melt(varnames = c("iter", "week"), value.name = "inf")
+
+deadmosq <- system[, , 16] %>% 
+  aaply(1, diff) %>% 
+  reshape2::melt(varnames = c("iter", "week"), value.name = "dead")
+
+surv <- join(infmosq, deadmosq)
+
+# Cases
+cases <- system[, , 11] %>% 
+  aaply(1, diff) %>% 
+  multiply_by(pop) %>% 
+  reshape2::melt(varnames = c("iter", "week")) %>% 
+  ddply(.(week), summarise,
+        min = quantile(value, 0.1), 
+        med = median(value),
+        max = quantile(value, 0.9))
+
+cases %>% 
+  # subset(week < 210) %>% 
+  ggplot(aes(week, med)) +
+  geom_ribbon(aes(ymin = min, ymax = max), fill = "grey70") +
+  geom_line() +
+  geom_vline(xintercept = firsts + 25, linetype = 2) +
+  theme_classic() + 
+  labs(y = "cases") + 
+  scale_x_continuous(expand = c(0, 5)) +
+  theme(axis.line.x = element_blank(),
+        axis.text.x = element_blank(),
+        axis.ticks.x = element_blank(),
+        axis.title.x = element_blank()) +
+  ggtitle("A")
+
+# Mosquito abundance
+mosq <- system[, 2:244, 9] %>% 
+  reshape2::melt(varnames = c("iter", "week")) %>% 
+  ddply(.(week), summarise,
+        min = quantile(value, 0.1), 
+        med = median(value),
+        max = quantile(value, 0.9))
+
+mosq %>% 
+  # subset(week < 210) %>%
+  ggplot(aes(week, med)) +
+  geom_ribbon(aes(ymin = min, ymax = max), fill = "grey70") +
+  geom_line() +
+  geom_vline(xintercept = firsts, linetype = 2) +
+  theme_classic() + 
+  labs(y = "mosquitoes") + 
+  scale_x_continuous(expand = c(0, 5)) +
+  theme(axis.line.x = element_blank(),
+        axis.text.x = element_blank(),
+        axis.ticks.x = element_blank(),
+        axis.title.x = element_blank()) +
+  ggtitle("B") -> fig4b
+  
+# Susceptibles
+susc <- system[, 2:244, 1] %>% 
+  reshape2::melt(varnames = c("iter", "week")) %>% 
+  ddply(.(week), summarise,
+        min = quantile(value, 0.1), 
+        susc_med = median(value),
+        max = quantile(value, 0.9))
+
+susc %>% 
+  # subset(week < 210) %>% 
+  ggplot(aes(week, susc_med)) +
+  geom_ribbon(aes(ymin = min, ymax = max), fill = "grey70") +
+  geom_line() +
+  # geom_vline(xintercept = bests$week, linetype = 2) +
+  theme_classic() + 
+  labs(y = "susceptibles") + 
+  scale_x_continuous(expand = c(0, 5)) +
+  theme(axis.line.x = element_blank(),
+        axis.text.x = element_blank(),
+        axis.ticks.x = element_blank(),
+        axis.title.x = element_blank()) +
+  ggtitle("C") -> fig4c
+
+# Probability of surviving EIP
+surv <- surv %>% 
+  mutate(total_exits = dead + inf,
+         psurv = inf / total_exits) %>% 
+  ddply(.(week), summarise,
+        min = quantile(psurv, 0.1), 
+        surv_med = median(psurv),
+        max = quantile(psurv, 0.9))
+
+surv %>% 
+  subset(week < 210) %>% 
+  ggplot(aes(week, surv_med)) +
+  geom_ribbon(aes(ymin = min, ymax = max), fill = "grey70") +
+  geom_line() +
+  # geom_vline(xintercept = bests$week, linetype = 2) +
+  theme_classic() + 
+  labs(y = "cases") + 
+  scale_x_continuous(expand = c(0, 5)) +
+  theme(axis.line.x = element_blank(),
+        axis.text.x = element_blank(),
+        axis.ticks.x = element_blank(),
+        axis.title.x = element_blank()) +
+  ggtitle("D") -> fig4d
 
 postscript("Manuscript/figures/fig4.eps",
-           width = 4, height = 4, paper = "special", horizontal = FALSE,
+           width = 5, height = 7, paper = "special", horizontal = FALSE,
            family = "ArialMT")
 
-subset(stacked, year < 2012) %>%
-  ggplot(aes(tot.week, value)) +
-  geom_line() +
-  geom_vline(xintercept = bests$week, color = "grey50") +
-  facet_grid(variable ~ ., scales = "free_y", switch = "y") +
-  theme_classic() +
-  scale_color_brewer(palette = "Dark2", type = "qual", guide = F) +
-  scale_x_continuous(expand = c(0, 5), breaks = c(1, 54, 106, 158, 210), labels = c(2008, 2009, 2010, 2011, 2012)) +
-  theme(strip.placement = "outside", strip.background = element_blank()) +
-  geom_text(data = labels, aes(x = x, y = y, label = label, hjust = "inward", vjust = "inward")) +
-  ylab("") +
-  xlab("year")
+fig4a + fig4b + fig4c + fig4d + plot_layout(ncol = 1)
+
 
 dev.off()
 
@@ -228,18 +320,40 @@ postscript("Manuscript/figures/fig5.eps",
            width = 5, height = 3, paper = "special", horizontal = FALSE,
            family = "ArialMT")
 
-subset(adult, relweek == -30) %>% 
-  ggplot(aes(dv, delta, z = prevented)) + 
-  stat_summary_2d(binwidth = c(0.025, 5)) +
-  scale_fill_distiller(palette = "Oranges", direction = 1) +
-  labs(fill = "average \nproportion \nof cases \nprevented") + 
-  theme_classic() +
-  theme(strip.background = element_blank(),
-        text = element_text(size = 10)) +
-  ylab("period of cross-immunity (weeks)") +
-  xlab("mosquito mortality rate")
 
 dev.off()
+
+# Supplemental "controllability" figures
+
+control %>% 
+  subset(control == 81) %>% 
+  ggplot(aes(week, ratio, color = phi, group = rep)) + 
+  geom_line(alpha = 0.5) + 
+  geom_vline(xintercept = c(106, 158)) + 
+  scale_color_viridis_c()
+
+longterm <- control %>% 
+  ddply(.(control, rep), summarise,
+        damped_at = relweek[which(ratio > 1)[1]],
+        dvmu = mean(dvmu),
+        delta = mean(delta),
+        phi = mean(phi))
+
+longterm %>% 
+  subset(control == 131) %>% 
+  ggplot(aes(phi, delta, z = damped_at)) + 
+  stat_summary_2d(fun = "median", drop = FALSE) +
+  scale_fill_viridis_c(na.value = "grey90") + 
+  theme_classic() +
+  facet_grid(.~control)
+
+longterm %>% 
+  subset(control %in% seq(4, 52, by = 4)) %>% 
+  ggplot(aes(phi, delta, color = damped_at)) + 
+  geom_point() +
+  scale_color_viridis_c(na.value = "grey50") + 
+  theme_classic() + 
+  facet_wrap(~control)
 
 #===============================================================================
 # Supplemental figures
@@ -296,6 +410,8 @@ dev.off()
 
 # Figure S3: epidemiological parameters ===================================================
 
+pairs(sim, c("dvmu_c", "delta_c", "ro_c", "phi_y"), include = TRUE)
+
 epiparams <- rstan::extract(sim, c("ro_c", "gamma_c", "delta_c", "dvmu_c"), permute = T)
 
 postscript("Manuscript/figures/figS3.eps",
@@ -350,16 +466,19 @@ dev.off()
 
 # Figure S5: Measurement parameters ============================================
 
-meas <- rstan::extract(sim, c("log_phi_q", "eta_inv_q", "eta_inv_y"), permute = T)
+meas <- rstan::extract(sim, c("log_phi_q", "phi_y", "eta_inv_q", "eta_inv_y"), permute = T)
 
 postscript("Manuscript/figures/figS5.eps",
            width = 6, height = 3,
            family = "ArialMT")
 
-par(mfrow = c(1, 3))
+par(mfrow = c(2, 2))
 
 hist(meas$log_phi_q, freq = F, main = "", xlab = expression(log(phi[q])))
 curve(dnorm(x, -13, 0.5), add = T, lwd = 2)
+
+hist(meas$phi_y, freq = F, main = "", xlab = expression(phi[y]))
+curve(dbeta(x, 7, 77), add = T, lwd = 2)
 
 hist(meas$eta_inv_q, freq = F, main = "", xlab = expression(eta[q]))
 curve(dtruncnorm(x, a = 0, b = Inf, mean = 0, sd = 5), add = T)
