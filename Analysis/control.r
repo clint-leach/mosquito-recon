@@ -35,12 +35,17 @@ covars <- ddply(weather, .(tot.week), summarise,
 
 rov <- 7 * exp(0.21 * covars$temp - 7.9)
 
+# Setting imports (if any)
+firsts <- daply(data, .(year), function(df) min(df$tot.week))[2:5]
+import <- rep(0, 243)
+import[firsts - 8] <- 10 / pop
+
 model <- stan_model(file = "Code/gammaeip.stan", verbose = T, save_dso = TRUE, auto_write = TRUE)
 
 #===============================================================================
 # Loading mcmc samples
 
-chain <- readRDS("Results/chain.rds")
+chain <- readRDS("Results/import_chain.rds")
 samples <- rstan::extract(chain, permute = T)[1:18] 
 
 fitcases <- rstan::extract(chain, "state", permute = T)[[1]] %>% 
@@ -64,12 +69,12 @@ extract_sample <- function(x, k){
 # control and uncontrolled time series.
 
 # Setting up parallel
-cl <- makeCluster(2, type = "SOCK")
+cl <- makeCluster(8, type = "SOCK")
 registerDoParallel(cl)
 
 # Parallel for-loop over mcmc iterations
 reduction <- foreach(k = 1:nmcmc, .combine = "rbind", .packages = c("rstan", "magrittr", "lubridate")) %:% 
-  foreach(j = 1:242, .combine = "rbind") %dopar% {
+  foreach(j = 1:191, .combine = "rbind") %dopar% {
 
     # Extract parameter values in kth iteration
     inits <- list(lapply(samples, extract_sample, k))
@@ -87,6 +92,7 @@ reduction <- foreach(k = 1:nmcmc, .combine = "rbind", .packages = c("rstan", "ma
                      tau = data$tau,
                      rov = rov,
                      control = control,
+                     import = import,
                      pop = pop)
     
     # Simulate trajectory with control
@@ -116,5 +122,28 @@ reduction <- foreach(k = 1:nmcmc, .combine = "rbind", .packages = c("rstan", "ma
 
 stopCluster(cl)
 
-saveRDS(reduction, "Results/control.rds")
+saveRDS(reduction, "Results/import_control.rds")
 
+# Effect of timing of control on the number of cases in a given year
+annual <- ddply(control, .(year, rep, control), summarise,
+                tcases = sum(cases),
+                tcases0 = sum(cases0),
+                ratio = tcases / tcases0,
+                dvmu = mean(dvmu),
+                delta = mean(delta),
+                phi = mean(phi),
+                relweek = (control - firsts[as.character(year)])[1])
+
+saveRDS(annual, "Results/import_annual.rds")
+
+# Effect of control in the number of cases in the following year
+moving <- ddply(control, .(rep, control), summarise,
+                tcases = sum(cases[relweek < 53]),
+                tcases0 = sum(cases0[relweek < 53]),
+                ratio = tcases / tcases0,
+                diff = tcases0 - tcases,
+                dvmu = mean(dvmu),
+                delta = mean(delta),
+                phi = mean(phi))
+
+saveRDS(moving, "Results/import_moving.rds")

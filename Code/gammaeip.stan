@@ -19,8 +19,9 @@ functions {
                real delta,
                real cap,
                real omega,
-               real damp, 
-               vector control) {
+               real damp,
+               vector control,
+               real import) {
     
     /**
     Computes the RHS of the SERS-SEI dengue transmission model.
@@ -72,7 +73,7 @@ functions {
     foi_vh = lambda * y[8] * y[1];
 
     // Human to mosquito foi
-    foi_hv = lambda * y[3] * Sv;
+    foi_hv = lambda * (y[3] + import) * Sv;
 
     // Infectious humans
     infectious = ro * y[2];
@@ -116,6 +117,7 @@ data {
   vector[T] tau;           // length T vector of number of mosquito traps inspected
   vector[T] rov;           // length T vector of weekly average extrinsic incubation period
   vector[3] control[T];    // T by 3 array of mosquito control actions
+  vector[T] import;        // weekly imported infectious humans
   int pop;                 // integer giving the human population size
 }
 transformed data {
@@ -215,7 +217,8 @@ transformed parameters {
                                                  phi_q * tau[t - 1], 
                                                  omega, 
                                                  damp, 
-                                                 control[t - 1]);
+                                                 control[t - 1],
+                                                 import[t - 1]);
     }
     
     // Computing weekly trap counts and case reports from cumulative state variables        
