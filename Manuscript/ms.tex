@@ -430,75 +430,73 @@ In addition, the computational burden of numerically solving the differential eq
 
 \subsection*{Mosquito control simulations}
 
-Given samples from the posterior distribution as obtained above, we simulated the effects of a single pulse of control applied in each week of the first four years of the time series.
+Given samples from the posterior distribution as obtained above, we simulated the effects of a single pulse of mosquito control applied in each week of the first four years of the time series.
 Because the city already implements responsive, targeted control with the aim of reducing local mosquito density during an existing outbreak, we focused our simulations on exploring the longer-term feedbacks induced by mosquito control and the ability of an intervention to reduce the disease burden in future years.
-For each week and each posterior sample, we simulated the dynamics resulting from a $5\%$ reduction in the mosquito population implemented at the beginning of that week (affecting susceptible, exposed, and infectious mosquitoes equally, and leaving the estimated mosquito birth and mortality rates unchanged).
+For each week and each posterior sample, we simulated the dynamics resulting from a $5\%$ reduction in the mosquito population implemented at the beginning of that week (affecting susceptible, exposed, and infectious mosquitoes equally).
+To capture the likely rapid rebound in mosquito abundance following a single pulse of control \cite{Focks1987, Burattini2008}, we also simulated a $5\%$ increase in mosquito birth rate in the following week to return mosquito abundance to its previous trajectory (without this, the $5\%$ reduction in abundance persists indefinitely).
 We then compared the number of cases produced during each year in the control scenario to the same number in the uncontrolled scenario.
 A $5\%$ reduction in mosquito abundance was chosen to keep our simulations conservative relative to field estimates of the mortality induced by spraying \cite{Esu2010}, and to avoid pushing the model into the unrealistic range of dengue eradication.
 
 \section*{Results}
 
 The model captured the observed dynamics of both case reports and mosquito trap counts (Figure \ref{timeseries}).
-The estimated posterior median case reports explained 90\% of the variation in the observed time series, while the posterior median mosquito trap counts explained 46\% of the variation in the observed time series. 
+The estimated posterior median case reports explained 91\% of the variation in the observed time series, while the posterior median mosquito trap counts explained 46\% of the variation in the observed time series. 
 In addition, posterior predictive checks showed that the model reproduced the total number of cases reported and mosquitoes captured as well as the autocorrelation structure of both time series (with the exception of slightly underestimating the autocorrelation for short lags, Supplemental Figures 6 - 8).
 The posterior distributions of the rate of infectious decay ($\gamma$) and the period of cross-immunity ($1/\delta$) did not differ substantially from their priors, suggesting that the Vitoria data contained little additional information about these parameters (Supplemental Figure 3).
-The estimated latent period in a human host ($1/\rho$, the expected time it takes for an exposed human to become infectious to biting mosquitoes) was influenced more strongly by the data, with a posterior mean of 1.53 weeks compared to a prior mean of 0.87 weeks.
+The estimated latent period in a human host ($1/\rho$, the expected time it takes for an exposed human to become infectious to biting mosquitoes) was influenced more strongly by the data, with a posterior mean of 1.73 weeks compared to a prior mean of 0.87 weeks.
+Further, the posterior mean case reporting rate ($\phi$) was 0.14, larger than the prior mean of 0.08.
 
 \begin{figure}[!h]
-%\includegraphics[angle = 270, scale = 1]{figures/fig1.eps}
+\includegraphics[scale = 1]{figures/fig1.eps}
 \caption{{\bf Vitoria data and model estimates.}
-Weekly observations from 2008 to week 34 of 2012 (points), with corresponding median posterior prediction (line) and 80\% credible interval (gray band). A: reported dengue cases. B: total number of trapped mosquitoes.
+A: weekly observed case reports (points), with corresponding posterior median (black line) and 80\% posterior credible interval (gray band). B: weekly mosquito trap counts (points), with posteriod median (black line) and 80\% posterior credible interval (gray band). C: extrinsic incubation period (weeks), computed from weekly mean temperature data. D: estimated weekly mosquito mortality rate, with the posterior median (black line) and the 80\% posterior credible interval (gray band).
 }
 \label{timeseries}
 \end{figure}
 
-The estimated weekly mosquito mortality rate varied seasonally, and was positively correlated with temperature (Figure \ref{mortality}).
-The oscillations in estimated mosquito mortality were more complex than purely sinusoidal, with variations in shape from year to year.
-The posterior distribution of the baseline mortality rate ($d_0$) had a mean of 0.7/week, roughly half the prior mean, and was negatively correlated with the period of cross immunity ($1/\delta$, Figure \ref{immunity}).
-This negative correlation indicates that similar dynamics could be achieved with either rapidly waning human immunity and short-lived mosquitoes or with long-lasting human immunity and long-lived mosquitoes.
+The estimated weekly mosquito mortality rate varied seasonally, with generally high mortality early in the year and low mortality in August to October (Figure \ref{timeseries}).
+This seasonal trend broadly tracked seasonal variation in temperature (Figure \ref{mortality}) and mosquito abundance (Figure \ref{timeseries}, though the shape of the annual trajectory differed from year to year.
+The posterior distribution of the baseline mortality rate ($d_0$) had a mean of 0.88/week, roughly $60\%$ of the prior mean.
 The marginal posterior means of the $\epsilon_{\nu t}$ forcing the mosquito mortality process exhibited a higher-frequency periodic oscillation (Supplementary Figure 1), although the marginal posterior distribution of each $\epsilon_{\nu t}$ overlapped zero.
 In addition, the standard deviation of the mortality forcing terms was small relative to the weak prior ($E(\sigma_{\nu}|\mathbf{y}) = 0.01$, Supplemental Figure 2).
 
 \begin{figure}[!h]
-%\includegraphics[angle = 270, scale = 1]{figures/fig2.eps}
-\caption{{\bf Estimated mosquito mortality rate.}
-A: Time series of mortality rate, showing median posterior estimate (line) and 80\% credible interval (gray band). B: estimated weekly mosquito mortality rate as a function of weekly mean temperature.
+\includegraphics[scale = 1]{figures/fig2.eps}
+\caption{{\bf Mosquito mortality and temperature.}
+Posterior median mosquito mortality rate as a function of weekly mean temperature (Celsius).
 }
 \label{mortality}
 \end{figure}
 
-Mosquito control (i.e. the removal of $5\%$ of the adult population in a given week), had the largest effect on the number of dengue cases in a given year when implemented between 30 and 40 weeks prior to the start of that year (Figure \ref{control}).
-Our simulations predicted that a pulse of control implemented during this time reduced the disease burden in the following year by $20$ to $30\%$, while perturbing mosquito abundance during the target outbreak was much less effective.
+The effect of a given mosquito control intervention (i.e. the temporary removal of $5\%$ of the adult population in a given week) on the number of cases in the following year (relative to no control) varied both seasonally and interannually (Figure \ref{control}).
+This variation in the effect of control was tightly correlated with the estimated mosquito mortality, with a median posterior correlation between the two time series of 0.96.
+As such, the seasonal variation in the effectiveness of control followed the same trend as mosquito mortality rate (though the annual minima in the case ratio time series generally fell 1 to 2 weeks before the minima in the mosquito mortality time series), with the largest reductions in case load coming from interventions during the dengue off-season (early September for 2008 and 2009, and mid-July for 2010).
+Summing over the interannual variation to compute the overall effect of control implemented in a given week of the year, we found that mosquito control was most effective when implemented in week 34 (late August), reducing the estimated case load by roughly $14\%$ (Figure \ref{control}, bottom panel).
+This broadly corresponds to the time of year when both dengue case reports and mosquito trap counts are low.
 
 \begin{figure}[!h]
-%\includegraphics[angle = 270, scale = 1]{figures/fig3.eps}
+\includegraphics[scale = 1]{figures/fig3.eps}
 \caption{{\bf The effect of mosquito control as a function of the week in which it was applied.}
-Summary of posterior predicted distribution of the proportion of cases that would be prevented in each year (top to bottom, 2009 to 2012) by control enacted in a given week relative to the start of that year. Black lines indicate the posterior median, while gray ribbons indicate the $80\%$ credible interval.
-For example, mosquito control applied 25 weeks prior to January 1, 2009 would have prevented about 20\% of the human cases in 2009, and control applied 25 weeks prior to January 1, 2010 would have prevented about 30\% of the human cases in 2010.
+Summary of the posterior predicted effect of mosquito control implemented in a given week of the year on the number of cases in the following year (relative to the number of cases expected without control).
+Black lines indicate the posterior median, while gray ribbons indicate the $80\%$ credible interval.
+The first three panels show the results for control implemented in the years 2008-2010, and the last panel shows the overall effect of control impelmented in a given week of the year, summing over all three years.
+For example, mosquito control applied in week 37 of 2008 would have prevented about 13\% of the human cases over the following year (i.e., the caseload would have been 87\% of the expectation without control).
 }
 \label{control}
 \end{figure}
 
-The effect of a given control intervention seemed to be driven largely by its interaction with, and timing relative to, fluctuations in human immunity.
-In particular, mosquito control seemed to be most effective when applied at or near a local minimum in the number of suceptible humans (Figure \ref{timing}).
-In addition, the average effectiveness of mosquito control applied in this optimal window (i.e. at 30 weeks prior to the start of the year) was driven largely by the period of cross-immunity ($1/\delta$) and the mean mosquito mortality rate ($d_0$, Figure \ref{immunity}).
-Specifically, we observed that mosquito control was able to prevent the largest number of human dengue cases, averaged over all years, in simulations with a low period of cross-immunity and a high average mosquito mortality rate (Figure \ref{immunity}). 
-Thus mosquito control was more effective at reducing disease burden in systems where short mosquito lifespan was already limiting the abundance of infectious mosquitoes and susceptible hosts were relatively abundant.
+The variation around the predicted effect of control implemented in week 34 of the year (i.e., the width of ribbon in Figure \ref{control}) was correlated with the baseline mosquito mortality rate ($d_0$) and the case reporting probability ($\phi$).
+Simulated mosquito control created the largest reduction in case reports in posterior samples with low baseline mosquito mortality rate and/or high reporting probability, while control was relatively less effective in simulations from samples with high mosquito mortality or low reporting probability (Figure \ref{correlations}).
+Thus mosquito control was more effective at reducing disease burden in simulations with long average mosquito lifespans (i.e., low mosquito mortality rates) or low overall prevalence (i.e., fewer undetected cases). 
+
 
 \begin{figure}[!h]
-%\includegraphics[angle = 270, scale = 1]{figures/fig4.eps}
-\caption{{\bf Timing of optimal control relative to disease and mosquito dynamics.}
-The vertical gray lines indicate the week at which control generated the largest median number of prevented cases in the following calendar year. A: posterior median estimate of new dengue cases per week. B: posterior median estimate of the proportion of susceptible individuals. C: posterior median estimate of number of mosquitoes per person each week.
+\includegraphics[scale = 0.9]{figures/fig4.eps}
+\caption{{\bf Posterior correlation between system parameters and the effectiveness of control.}
+The y-axis represents the effectiveness of optimally timed control, i.e., the effect of control implmented in the 34th week of the year on the relative number of cases in the following year, summed over 2008, 2009, and 2010.
+Each point represets a single sample from the posterior distribution, giving the number of cases in the controlled simulation (relative to the number of cases expected without control) as a function of A: the mean mosquito mortality rate, $d_0$, and B: the case reporting probability, $\phi$, from that posterior sample.
 }
-\label{timing}
-\end{figure}
-
-\begin{figure}[!h]
-%\includegraphics[angle = 270, scale = 1]{figures/fig5.eps}
-\caption{{\bf The relationship among the period of cross-immunity, average mosquito mortality rate, and effectiveness of control.}
-The proportion of cases prevented in a year by control implemented at 30 weeks prior to the start of the year, averaged over all years and all posterior samples within each cell. Cells with darker shading indicate combinations of the period of cross-immunity and average mosquito mortality that produce a system more amenable to control by adult mosquito removal.
-}
-\label{immunity}
+\label{correlations}
 \end{figure}
 
 \section*{Discussion}

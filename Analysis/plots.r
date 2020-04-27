@@ -32,9 +32,9 @@ weather <- read.csv("Data/Vitoria.weather.csv") %>%
   mutate(date = ymd(BRST), year = year(date), week = week(date))
 
 weather <- subset(weather, date < date[1] + weeks(243))
-weather$tot.week <- rep(c(1:243), each = 7)
+weather$control <- rep(c(1:243), each = 7)
 
-temp <- ddply(weather, .(tot.week), summarise, temp = mean(Mean.TemperatureC, na.rm = T),
+temp <- ddply(weather, .(control), summarise, temp = mean(Mean.TemperatureC, na.rm = T),
               humid = mean(Mean.Humidity, na.rm = T))
 
 post$temp <- temp$temp
@@ -44,113 +44,160 @@ post$rov <- 7 * exp(0.21 * temp$temp - 7.9)
 sim <- readRDS("Results/chain.rds")
 
 # Loading control simulations
-control <- readRDS("Results/control_rebound.rds") %>% 
-  mutate(ratio = cases / cases0,
-         diff = cases0 - cases)
+# control <- readRDS("Results/control_rebound.rds") 
+
+# Loading control summaries (fixed and moving window)
+
+# Effect of timing of control on the number of cases in a given year
+# annual <- readRDS("Results/annual_control.rds")
+
+# Effect of control in the number of cases in the following year
+moving <- readRDS("Results/moving_control.rds")
 
 # Figure 1: Observed and estimated time series =================================
 
-# Computing posterior median and 80% credible interval
-yhat <- rstan::extract(sim, c("y_meas"), permute = F) %>% apply(3, quantile, c(0.1, 0.5, 0.9))
-qhat <- rstan::extract(sim, c("q_meas"), permute = F) %>% apply(3, quantile, c(0.1, 0.5, 0.9))
+# Case reports
+yhat <- rstan::extract(sim, c("y_meas"), permute = T)[[1]] %>% 
+  reshape2::melt(varnames = c("rep", "week"), value.name = "yhat") %>% 
+  ddply(.(week), summarise,
+        ymed = median(yhat),
+        ymin = quantile(yhat, 0.1), 
+        ymax = quantile(yhat, 0.9))
+  
+# Trapped mosquitoes
+qhat <- rstan::extract(sim, c("q_meas"), permute = T)[[1]] %>%
+  reshape2::melt(varnames = c("rep", "week"), value.name = "qhat") %>% 
+  ddply(.(week), summarise,
+        qmed = median(qhat),
+        qmin = quantile(qhat, 0.1), 
+        qmax = quantile(qhat, 0.9))
 
-# Assembling data frame for ggplot
-post$yhat <- yhat[2, ]
-post$ymin <- yhat[1, ]
-post$ymax <- yhat[3, ]
-post$qhat <- qhat[2, ]
-post$qmin <- qhat[1, ]
-post$qmax <- qhat[3, ]
+# Mosquito mortality rate
+system <- rstan::extract(sim, "state", permute = T)[[1]]
+
+dvmu <- data.frame(rep = 1:dim(system)[1],
+                   dvmu = 1.47 * rstan::extract(sim, "dvmu_c", permute = T)[[1]])
+
+dv <- system[, 2:244, 12] %>% 
+  reshape2::melt(varnames = c("rep", "control"), value.name = "dv") %>% 
+  mutate(dvnat = exp(dv)) %>% 
+  join(dvmu) %>% 
+  mutate(dvnat = dvnat * dvmu) %>% 
+  join(temp)
+
+moving %>% 
+  ggplot(aes(week, dvnat)) + 
+  stat_summary(fun.y = "median", geom = "line") + 
+  stat_summary(aes(week, mosq), fun.y = "median", geom = "line", color = "dodgerblue") +
+  facet_grid(year ~.)
 
 # Plotting
-ggplot(post, aes(tot.week, yobs)) + 
-  geom_ribbon(aes(ymin = ymin, ymax = ymax), fill = "grey70") +
-  geom_point(size = 0.5) + 
-  geom_line(aes(tot.week, yhat)) + 
+yhat %>% 
+  ggplot(aes(week, ymin = ymin, ymax = ymax)) +
+  geom_ribbon(fill = "grey70") + 
+  geom_line(aes(week, ymed)) + 
+  geom_point(aes(tot.week, yobs), data = post, inherit.aes = FALSE, size = 0.5) +
   theme_classic() +
   scale_y_continuous(expand = c(0, 0)) + 
   scale_x_continuous(expand = c(0, 1), breaks = c(1, 54, 106, 158, 210), labels = c(2008, 2009, 2010, 2011, 2012)) +
   ylab("case reports") + 
   xlab("year") +
-  ggtitle("A") -> fig1.a
+  ggtitle("A") -> fig1a
 
-ggplot(post, aes(tot.week, qobs)) + 
-  geom_ribbon(aes(ymin = qmin, ymax = qmax), fill = "grey70") +
-  geom_point(size = 0.5) + 
-  geom_line(aes(tot.week, qhat)) + 
+qhat %>% 
+  ggplot(aes(week, ymin = qmin, ymax = qmax)) +
+  geom_ribbon(fill = "grey70") + 
+  geom_line(aes(week, qmed)) + 
+  geom_point(aes(tot.week, qobs), data = post, inherit.aes = FALSE, size = 0.5) +
   theme_classic() +
-  scale_y_continuous(expand = c(0.05, 0)) + 
+  scale_y_continuous(expand = c(0, 0)) + 
   scale_x_continuous(expand = c(0, 1), breaks = c(1, 54, 106, 158, 210), labels = c(2008, 2009, 2010, 2011, 2012)) +
-  ylab("mosquitoes trapped") +
+  ylab("mosquitoes trapped") + 
   xlab("year") +
-  ggtitle("B") -> fig1.b
+  ggtitle("B") -> fig1b
+
+post %>% 
+  ggplot(aes(tot.week, 1 / rov)) + 
+  geom_line() + 
+  theme_classic() +
+  scale_y_continuous(expand = c(0.05, 0)) +
+  scale_x_continuous(expand = c(0, 1), breaks = c(1, 54, 106, 158, 210), labels = c(2008, 2009, 2010, 2011, 2012)) +
+  ylab("EIP (weeks)") +
+  xlab("year") +
+  ggtitle("C") -> fig1c
+
+dv %>% 
+  ggplot(aes(control, dvnat)) + 
+  stat_summary(fun.ymin = function(x) quantile(x, 0.05),
+               fun.ymax = function(x) quantile(x, 0.95),
+               geom = "ribbon", fill = "gray70") +
+  stat_summary(fun.y = "median", geom = "line") +
+  theme_classic() +
+  scale_y_continuous(expand = c(0.05, 0)) +
+  scale_x_continuous(expand = c(0, 1), breaks = c(1, 54, 106, 158, 210), labels = c(2008, 2009, 2010, 2011, 2012)) +
+  ylab("mosquito mortality rate") +
+  xlab("year") +
+  ggtitle("D") -> fig1d
 
 postscript("Manuscript/figures/fig1.eps",
-     width = 5.2, height = 3, paper = "special", horizontal = FALSE,
+     width = 5, height = 7, paper = "special", horizontal = FALSE,
      family = "ArialMT")
 
-grid.arrange(fig1.a, fig1.b, ncol = 2)
+fig1a + fig1b + fig1c + fig1d + plot_layout(ncol = 1)
 
 dev.off()
 
 # Figure 2: Estimates of latent mosquito mortality rate ========================
 
-dvmu <- 1.47 * rstan::extract(sim, "dvmu_c", permute = T)[[1]]
-system <- rstan::extract(sim, "state", permute = T)[[1]]
-
-dv <- system[, 2:244, 12] %>% exp() %>% t() %>% multiply_by_matrix(diag(dvmu)) %>% 
-  adply(1, quantile, c(0.1, 0.5, 0.9), .id = NULL)
-names(dv) <- c("dvmin", "dvmed", "dvmax")
-
-post <- cbind(post, dv)
-
-# Plotting
-
-ggplot(post, aes(tot.week, dvmed)) + 
-  geom_ribbon(aes(ymin = dvmin, ymax = dvmax), fill = "grey70") +
-  geom_line() + 
-  theme_classic() +
-  scale_y_continuous(expand = c(0.05, 0), limits = c(0.25, 1.8)) + 
-  scale_x_continuous(expand = c(0, 1), breaks = c(1, 54, 106, 158, 210), labels = c(2008, 2009, 2010, 2011, 2012)) +
-  ylab("mosquito mortality rate") +
-  xlab("year") +
-  ggtitle("A") -> fig2.a
-
-ggplot(post, aes(temp, dvmed)) +
-  geom_point() + 
-  theme_classic() + 
-  scale_y_continuous(expand = c(0.05, 0), limits = c(0.25, 1.8)) + 
-  scale_x_continuous(expand = c(0, 1)) + 
-  ylab("mosquito mortality rate") +
-  xlab("weekly mean temperature") + 
-  ggtitle("B") -> fig2.b
-
 postscript("Manuscript/figures/fig2.eps",
-           width = 5.2, height = 3, paper = "special", horizontal = FALSE,
+           width = 4, height = 3, paper = "special", horizontal = FALSE,
            family = "ArialMT")
 
-grid.arrange(fig2.a, fig2.b, ncol = 2)
+dv %>%
+  ddply(.(control), summarise,
+        dvnat = median(dvnat),
+        temp = median(temp)) %>%
+  ggplot(aes(temp, dvnat)) +
+  geom_point() +
+  theme_classic() +
+  scale_y_continuous(expand = c(0.05, 0)) +
+  scale_x_continuous(expand = c(0, 1)) +
+  ylab("mosquito mortality rate") +
+  xlab("weekly mean temperature")
 
 dev.off()
 
-
 # Figure 3: Effect of adult control implemented in different weeks ===================
 
-# First day of each year
-firsts <- daply(post, .(year), function(df) min(df$tot.week))
-peaks <- ddply(post, .(year), summarise, peakweek = tot.week[which.max(yobs)])
+# Adding week and year to moving window control results
+moving <- moving %>% 
+  dplyr::rename("dv0" = "dvmu") %>%
+  mutate(week = week(ymd("2008-01-01") + weeks(control - 1)),
+         year = year(ymd("2008-01-01") + weeks(control - 1))) %>% 
+  join(dv)
 
-# Effect of timing of control on the number of cases in a given year
-annual <- ddply(control, .(year, rep, control), summarise,
-                tcases = sum(cases), 
-                tcases0 = sum(cases0),
-                ratio = tcases / tcases0,
-                dvmu = mean(dvmu),
-                delta = mean(delta),
-                phi = mean(phi),
-                relweek = (control - firsts[as.character(year)])[1])
+# Computing the overall effect of control over 2008-2010
+overall <- moving %>% 
+  subset(year < 2011) %>% 
+  ddply(.(rep, week), summarise,
+        tcases = sum(tcases),
+        tcases0 = sum(tcases0), 
+        ratio = tcases / tcases0,
+        diff = tcases0 - tcases,
+        dv0 = mean(dv0),
+        dvmu = mean(dvmu),
+        delta = mean(delta),
+        phi = mean(phi))
 
-saveRDS(annual, "Results/annual_control.rds")
+overall <- dplyr::bind_rows(overall, moving) %>% 
+  mutate(year = factor(year, exclude = NULL, labels = c("2008","2009", "2010", "2011", "2012", "overall")))
+
+# Computing the median overall best week for control
+overall %>% 
+  ddply(.(rep, year), summarise,
+        argmin = week[which.min(ratio)]) %>% 
+  ddply(.(year), summarise,
+        argmin = median(argmin))
 
 # Plotting
 
@@ -158,202 +205,89 @@ postscript("Manuscript/figures/fig3.eps",
            width = 4, height = 5, paper = "special", horizontal = FALSE,
            family = "ArialMT")
 
-# Figure 3
-annual %>% 
-  subset(relweek > -53 & relweek < 53 & year > 2008) %>%
-  ggplot(aes(relweek, ratio)) +
+overall %>% 
+  subset(year %in% c("2008", "2009", "2010", "overall") & week < 53) %>%
+  ggplot(aes(week, ratio)) +
   stat_summary(fun.ymin = function(x) quantile(x, 0.05),
                fun.ymax = function(x) quantile(x, 0.95),
-               geom = "ribbon", alpha = 0.5, color = "gray") +
+               geom = "ribbon", fill = "gray70") +
   stat_summary(fun.y = "median", geom = "line") +
-  facet_grid(year ~.) + 
-  geom_hline(yintercept = 1.0, alpha = 0.5, linetype = 2) + 
+  facet_grid(year ~.) +
+  geom_hline(yintercept = 1.0, color = "gray50", linetype = 2) +
   theme_classic() + 
   theme(strip.background = element_blank()) + 
-  xlab("relative week of control") +
-  ylab("case ratio (controlled / fit)")
-  
+  scale_x_continuous(expand = c(0, 0)) + 
+  xlab("week of control") +
+  ylab("case ratio over following year")
+
 dev.off()
 
-# Figure 4: Timing of control ==================================================
+# Figure 4: effect of phi on effectiveness of control ==========================
 
-# Finding week when median number of cases prevented is largest
-optimal <- annual %>% 
-  subset(relweek < 53 & relweek > -53) %>% 
-  ddply(.(year, rep), summarise,
-        week = relweek[which.min(ratio)],
-        ratio = min(ratio),
-        dvmu = mean(dvmu),
-        delta = mean(delta),
-        phi = mean(phi))
+overall%>% 
+  subset(week == 34 & year == "overall") %>% 
+  ggplot(aes(dvmu, ratio)) + 
+  geom_point(size = 0.5) + 
+  theme_classic() + 
+  theme(strip.background = element_blank()) + 
+  labs(x = "mosquito mortality rate", y = "case ratio") -> fig4a
 
-saveRDS(optimal, "Results/optimal_control.rds")
+overall%>% 
+  subset(week == 36 & year == "overall") %>% 
+  ggplot(aes(phi, ratio)) + 
+  geom_point(size = 0.5) + 
+  theme_classic() + 
+  theme(strip.background = element_blank()) + 
+  labs(x = "case reporting probability", y = "case ratio") -> fig4b
 
-optimal %>% 
-  ggplot(aes(week)) +
-  geom_histogram(bins = 50) +
-  facet_grid(year ~.)
+postscript("Manuscript/figures/fig4.eps",
+           width = 6, height = 3, paper = "special", horizontal = FALSE,
+           family = "ArialMT")
 
-bests <- optimal %>% 
-  ddply(.(year), summarise,
-        best = median(week))
+fig4a + fig4b
 
-bests$week <- bests$best + firsts
+dev.off()
 
-infmosq <- system[, , 17] %>% 
-  aaply(1, diff) %>% 
-  melt(varnames = c("iter", "week"), value.name = "inf")
-
-deadmosq <- system[, , 16] %>% 
-  aaply(1, diff) %>% 
-  reshape2::melt(varnames = c("iter", "week"), value.name = "dead")
-
-surv <- join(infmosq, deadmosq)
+# State var and control correlations ===========================================
 
 # Cases
 cases <- system[, , 11] %>% 
   aaply(1, diff) %>% 
   multiply_by(pop) %>% 
-  reshape2::melt(varnames = c("iter", "week")) %>% 
-  ddply(.(week), summarise,
-        min = quantile(value, 0.1), 
-        med = median(value),
-        max = quantile(value, 0.9))
+  reshape2::melt(varnames = c("rep", "control"), value.name = "cases") 
 
-cases %>% 
-  # subset(week < 210) %>% 
-  ggplot(aes(week, med)) +
-  geom_ribbon(aes(ymin = min, ymax = max), fill = "grey70") +
-  geom_line() +
-  geom_vline(xintercept = firsts + 25, linetype = 2) +
-  theme_classic() + 
-  labs(y = "cases") + 
-  scale_x_continuous(expand = c(0, 5)) +
-  theme(axis.line.x = element_blank(),
-        axis.text.x = element_blank(),
-        axis.ticks.x = element_blank(),
-        axis.title.x = element_blank()) +
-  ggtitle("A")
-
-# Mosquito abundance
+# Mosquitoes
 mosq <- system[, 2:244, 9] %>% 
-  reshape2::melt(varnames = c("iter", "week")) %>% 
-  ddply(.(week), summarise,
-        min = quantile(value, 0.1), 
-        med = median(value),
-        max = quantile(value, 0.9))
-
-mosq %>% 
-  # subset(week < 210) %>%
-  ggplot(aes(week, med)) +
-  geom_ribbon(aes(ymin = min, ymax = max), fill = "grey70") +
-  geom_line() +
-  geom_vline(xintercept = firsts, linetype = 2) +
-  theme_classic() + 
-  labs(y = "mosquitoes") + 
-  scale_x_continuous(expand = c(0, 5)) +
-  theme(axis.line.x = element_blank(),
-        axis.text.x = element_blank(),
-        axis.ticks.x = element_blank(),
-        axis.title.x = element_blank()) +
-  ggtitle("B") -> fig4b
-  
-# Susceptibles
-susc <- system[, 2:244, 1] %>% 
-  reshape2::melt(varnames = c("iter", "week")) %>% 
-  ddply(.(week), summarise,
-        min = quantile(value, 0.1), 
-        susc_med = median(value),
-        max = quantile(value, 0.9))
-
-susc %>% 
-  # subset(week < 210) %>% 
-  ggplot(aes(week, susc_med)) +
-  geom_ribbon(aes(ymin = min, ymax = max), fill = "grey70") +
-  geom_line() +
-  # geom_vline(xintercept = bests$week, linetype = 2) +
-  theme_classic() + 
-  labs(y = "susceptibles") + 
-  scale_x_continuous(expand = c(0, 5)) +
-  theme(axis.line.x = element_blank(),
-        axis.text.x = element_blank(),
-        axis.ticks.x = element_blank(),
-        axis.title.x = element_blank()) +
-  ggtitle("C") -> fig4c
+  reshape2::melt(varnames = c("rep", "control"), value.name = "mosq") 
 
 # Probability of surviving EIP
-surv <- surv %>% 
+infmosq <- system[, , 17] %>% 
+  aaply(1, diff) %>% 
+  melt(varnames = c("rep", "control"), value.name = "inf")
+
+deadmosq <- system[, , 16] %>% 
+  aaply(1, diff) %>% 
+  reshape2::melt(varnames = c("rep", "control"), value.name = "dead")
+
+surv <- join(infmosq, deadmosq) %>%
   mutate(total_exits = dead + inf,
-         psurv = inf / total_exits) %>% 
-  ddply(.(week), summarise,
-        min = quantile(psurv, 0.1), 
-        surv_med = median(psurv),
-        max = quantile(psurv, 0.9))
+         psurv = inf / total_exits) 
 
-surv %>% 
-  subset(week < 210) %>% 
-  ggplot(aes(week, surv_med)) +
-  geom_ribbon(aes(ymin = min, ymax = max), fill = "grey70") +
-  geom_line() +
-  # geom_vline(xintercept = bests$week, linetype = 2) +
-  theme_classic() + 
-  labs(y = "cases") + 
-  scale_x_continuous(expand = c(0, 5)) +
-  theme(axis.line.x = element_blank(),
-        axis.text.x = element_blank(),
-        axis.ticks.x = element_blank(),
-        axis.title.x = element_blank()) +
-  ggtitle("D") -> fig4d
+# Joining everything
+moving <- join(moving, cases) %>% 
+  join(mosq) %>% 
+  join(surv)
 
-postscript("Manuscript/figures/fig4.eps",
-           width = 5, height = 7, paper = "special", horizontal = FALSE,
-           family = "ArialMT")
+postcorr <- moving %>% 
+  subset(control < 191) %>% 
+  ddply(.(rep), summarise,
+        dv = cor(ratio, dvnat),
+        mosq = cor(ratio, mosq), 
+        cases = cor(ratio, cases), 
+        psurv = cor(ratio, psurv),
+        temp = cor(ratio, temp))
 
-fig4a + fig4b + fig4c + fig4d + plot_layout(ncol = 1)
-
-
-dev.off()
-
-# Figure 5: effect of delta on control =========================================
-
-postscript("Manuscript/figures/fig5.eps",
-           width = 5, height = 3, paper = "special", horizontal = FALSE,
-           family = "ArialMT")
-
-
-dev.off()
-
-# Supplemental "controllability" figures
-
-control %>% 
-  subset(control == 81) %>% 
-  ggplot(aes(week, ratio, color = phi, group = rep)) + 
-  geom_line(alpha = 0.5) + 
-  geom_vline(xintercept = c(106, 158)) + 
-  scale_color_viridis_c()
-
-longterm <- control %>% 
-  ddply(.(control, rep), summarise,
-        damped_at = relweek[which(ratio > 1)[1]],
-        dvmu = mean(dvmu),
-        delta = mean(delta),
-        phi = mean(phi))
-
-longterm %>% 
-  subset(control == 131) %>% 
-  ggplot(aes(phi, delta, z = damped_at)) + 
-  stat_summary_2d(fun = "median", drop = FALSE) +
-  scale_fill_viridis_c(na.value = "grey90") + 
-  theme_classic() +
-  facet_grid(.~control)
-
-longterm %>% 
-  subset(control %in% seq(4, 52, by = 4)) %>% 
-  ggplot(aes(phi, delta, color = damped_at)) + 
-  geom_point() +
-  scale_color_viridis_c(na.value = "grey50") + 
-  theme_classic() + 
-  facet_wrap(~control)
+colwise(median)(postcorr)
 
 #===============================================================================
 # Supplemental figures
@@ -409,8 +343,6 @@ rstan::extract(sim, "sigmarv", permute = T)[[1]] %>% hist(main = "", xlab = expr
 dev.off()
 
 # Figure S3: epidemiological parameters ===================================================
-
-pairs(sim, c("dvmu_c", "delta_c", "ro_c", "phi_y"), include = TRUE)
 
 epiparams <- rstan::extract(sim, c("ro_c", "gamma_c", "delta_c", "dvmu_c"), permute = T)
 
