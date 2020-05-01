@@ -85,12 +85,6 @@ dv <- system[, 2:244, 12] %>%
   mutate(dvnat = dvnat * dvmu) %>% 
   join(temp)
 
-moving %>% 
-  ggplot(aes(week, dvnat)) + 
-  stat_summary(fun.y = "median", geom = "line") + 
-  stat_summary(aes(week, mosq), fun.y = "median", geom = "line", color = "dodgerblue") +
-  facet_grid(year ~.)
-
 # Plotting
 yhat %>% 
   ggplot(aes(week, ymin = ymin, ymax = ymax)) +
@@ -516,3 +510,25 @@ hist(apply(qrep, 1, min), main = "", xlab = "minimum weekly trap count", freq = 
 abline(v = min(post$qobs), lwd = 2)
 
 dev.off()
+
+# Figure S9: Probability of surviving EIP ======================================
+
+postscript("Manuscript/figures/figS9.eps",
+           width = 5, height = 3,
+           family = "ArialMT")
+
+moving %>% 
+  ggplot(aes(control, psurv)) + 
+  stat_summary(fun.ymin = function(x) quantile(x, 0.05),
+               fun.ymax = function(x) quantile(x, 0.95),
+               geom = "ribbon", fill = "gray70") +
+  stat_summary(fun.y = "median", geom = "line") + 
+  theme_classic() + 
+  scale_x_continuous(expand = c(0, 1), breaks = c(1, 54, 106, 158, 210), labels = c(2008, 2009, 2010, 2011, 2012)) +
+  xlab("year") + 
+  ylab("probability of surviving EIP") -> figS9a
+
+fig1d + ggtitle("") + figS9a + plot_layout(ncol = 1)
+  
+dev.off()
+

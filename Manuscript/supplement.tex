@@ -53,6 +53,7 @@ The following priors complete the model specification:
 \sigma_r & \sim \text{Half-normal}(0, 0.2)\\
 \sigma_d & \sim \text{Half-normal}(0, 0.2)\\
 -\log(\phi_q) & \sim \text{Half-normal}(13, 0.5)\\
+\phi & \sim \text{Beta}(7, 77)\\
 \eta_y &\sim \text{Half-normal}(0, 5)\\
 \eta_q & \sim \text{Half-normal}(0, 5)\\
 T_{\rho} & \sim \text{Gamma}(8.3, 8.3)\\
@@ -131,6 +132,12 @@ As such, we use flexible, but still conservative prior standard deviations of 0.
 Since $V_{N}$ has been scaled by the human population size, we center the prior for $\log(V_{N0})$ at $\log(2) = 0.7$ and set the variance to concentrate mass between 0.5 and 5 mosquitoes per person.
 The per-trap mosquito capture probability, $\phi_q$ follows $V_{N0}$ closely and scales the estimated mosquito abundance down to magnitude of the trap counts.
 Since $ E[q_t] = \phi_q \tau V_{Nt} N$, we set the prior on $\log(\phi_q)$ to have a mean of $\log(q_1) - \log(\tau_1) - \log(V_{N0}) - \log(N) = -13$ and a variance to match the prior on $\log(V_{N0})$.
+\\
+\item \textbf{Case reporting probability} ($\phi$): Silva \emph{et al.} \cite{Silva2016} estimate a reporting rate of 1/12 (0.083) in Brazil.
+Because the reporting rate is bound between 0 and 1, we used a Beta-distribution for our prior, parameterized to have a mean of 1/12, with most of the mass between 1/6 and 1/24:
+\begin{equation}
+\phi \sim \text{Beta}(7, 77)
+\end{equation} 
 \\
 \item \textbf{Mosquito process variances} ($\sigma_r, \sigma_d$): For the purposes of prediction and generalization, we want latent growth and death time series to be smooth and regularly oscillating.
 To achieve this, we put a relatively strong, half-normal prior on the process standard deviations.
@@ -233,6 +240,13 @@ Posterior distribution of the total number of cases reported (A) and the total n
 \includegraphics[angle = 270, scale = 1]{figures/figS8.eps}
 \caption{
 Posterior distributions of the minimum and maximum weekly reported cases and trapped mosquitoes. Thick line indicates the observed minima and maxima.
+}
+\end{figure}
+
+\begin{figure}[!h]
+\includegraphics[angle = 270, scale = 1]{figures/figS9.eps}
+\caption{
+Posterior estimates of the mosquito mortality rate and the probability of a mosquito surving the external incubation period.  The black line indicates the posterior median, while the gray ribbon shows the 90$\%$ credible interval.  The probability of surviving the EIP was computed by taking the ratio of the number of mosquitoes that entered the infectious class in a week over the total number of mosquitoes that exited the exposed class that week.  That is, the probability of surviving the EIP represents the faction of mosquitoes leaving the exposed class that enter the infectious class. 
 }
 \end{figure}
 
