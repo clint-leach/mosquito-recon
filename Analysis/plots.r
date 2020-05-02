@@ -202,8 +202,8 @@ postscript("Manuscript/figures/fig3.eps",
 overall %>% 
   subset(year %in% c("2008", "2009", "2010", "overall") & week < 53) %>%
   ggplot(aes(week, ratio)) +
-  stat_summary(fun.ymin = function(x) quantile(x, 0.05),
-               fun.ymax = function(x) quantile(x, 0.95),
+  stat_summary(fun.ymin = function(x) quantile(x, 0.1),
+               fun.ymax = function(x) quantile(x, 0.9),
                geom = "ribbon", fill = "gray70") +
   stat_summary(fun.y = "median", geom = "line") +
   facet_grid(year ~.) +
@@ -514,13 +514,13 @@ dev.off()
 # Figure S9: Probability of surviving EIP ======================================
 
 postscript("Manuscript/figures/figS9.eps",
-           width = 5, height = 3,
+           width = 6, height = 5,
            family = "ArialMT")
 
 moving %>% 
   ggplot(aes(control, psurv)) + 
-  stat_summary(fun.ymin = function(x) quantile(x, 0.05),
-               fun.ymax = function(x) quantile(x, 0.95),
+  stat_summary(fun.ymin = function(x) quantile(x, 0.1),
+               fun.ymax = function(x) quantile(x, 0.9),
                geom = "ribbon", fill = "gray70") +
   stat_summary(fun.y = "median", geom = "line") + 
   theme_classic() + 

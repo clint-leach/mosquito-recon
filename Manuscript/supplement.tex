@@ -166,8 +166,6 @@ Scott \textit{et al.} \cite{Scott2000} estimate that \textit{Aedes aegypti} fema
 We take the average of these and set the biting rate at 0.69 per day, or 4.87 per week.
 There are relatively few reliable estimates of the transmission probability of DENV, but Lambrechts \textit{et al.} \cite{Lambrechts2011} estimate transmission probabilities close to one  for several related flaviviruses at 25 degrees C (roughly the mean temperature for Vitoria).
 \\
-\item \textbf{Reporting probability} ($\phi_y$): Silva \textit{et al.} \cite{Silva2016} estimate that there are 12 cases of dengue for every case reported to Brazil's Notifiable Diseases Information System (SINAN, the source of our data), so we fix $\phi_y = 1/12$.
-\\
 \item \textbf{Extrinsic incubation period} ($1/\rho_{vt}$): Temperature is thought to play an important role in the seasonality of dengue, in particular through its influence on the extrinsic incubation period of the virus in the mosquito  (the amount of time until a mosquito becomes infectious after taking an infectious blood meal).
 To account for this, we make $1/\rho_v$ a function of temperature, and force it with weekly mean temperature records for Vitoria downloaded from Weather Underground (Goiabeiras weather station, station ID: IESVITOR2).
 We use the temperature relationship from the meta-analysis of Chan annd Johansson \cite{Chan2012}, which incorporates a large number of studies and accounts for the interval-censored nature of the data usually available from mosquito transmission studies.
@@ -246,7 +244,7 @@ Posterior distributions of the minimum and maximum weekly reported cases and tra
 \begin{figure}[!h]
 \includegraphics[angle = 270, scale = 1]{figures/figS9.eps}
 \caption{
-Posterior estimates of the mosquito mortality rate and the probability of a mosquito surving the external incubation period.  The black line indicates the posterior median, while the gray ribbon shows the 90$\%$ credible interval.  The probability of surviving the EIP was computed by taking the ratio of the number of mosquitoes that entered the infectious class in a week over the total number of mosquitoes that exited the exposed class that week.  That is, the probability of surviving the EIP represents the faction of mosquitoes leaving the exposed class that enter the infectious class. 
+Posterior estimates of the mosquito mortality rate and the probability of a mosquito surving the external incubation period.  The black line indicates the posterior median, while the gray ribbon shows the 80$\%$ credible interval.  The probability of surviving the EIP was computed by taking the ratio of the number of mosquitoes that entered the infectious class in a week over the total number of mosquitoes that exited the exposed class that week.  That is, the probability of surviving the EIP represents the faction of mosquitoes leaving the exposed class that enter the infectious class. 
 }
 \end{figure}
 
