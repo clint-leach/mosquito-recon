@@ -297,7 +297,7 @@ Although it captures the critical influence of temporary immunity, this framewor
 In particular, secondary infections appear more likely to be symptomatic than primary infections \cite{Imai2016,Clapham2017}, while third and fourth infections appear much less likely to be symptomatic \cite{Olkowski2013} (but see \cite{Montoya2013} who found similar rates of symptomatic cases across infection number).
 Despite these potential differences in reporting rate, modeling work has suggested that the dynamics of primary and secondary infections are closely coupled (and thus not dynamically distinct) under many conditions \cite{Schwartz2005}.
 Moreover, given the short time scale of our data (5 years) relative to the period of cross-immunity (roughly 2 years \cite{Reich2013}), we expect that third and fourth infections will be relatively rare.
-We thus expect the SEIRS framework to be sufficient for capturing the dengue dynamics of Vit\'oria and that reporting differences across infection number are unlikely to have a large impact on the inferred relationship between mosquito abundance and human disease.
+We thus expect the SEIRS framework, and the assumption of equal symptomatic rates across infection number, to be sufficient for capturing the dengue dynamics of Vit\'oria and the relationship between mosquito abundance and human disease.
 
 In the SEIRS framework, susceptible humans ($S$) become exposed ($E$) through contact with infectious mosquitoes ($V_I$).
 Following a latent period ($\frac{1}{\rho}$), exposed humans become infectious ($I$) at which point they can infect susceptible mosquitoes ($V_S$).
@@ -416,7 +416,7 @@ q_t | \cdot &\sim \text{NegBin}(V_{C}(t) - V_{C}(t-1), \eta_q)\\
 where $\boldsymbol{\theta}$ is a vector of all the model parameters and initial conditions, and $\mathcal{M}(\boldsymbol{\epsilon_r}, \boldsymbol{\epsilon_{\nu}},\boldsymbol{\theta})$ represents the (numeric) solution to the differential equation model (Eq. 1-14) as a function of $\boldsymbol{\theta}$ and the weekly stochastic forcing terms ($\boldsymbol{\epsilon_{r}}, \boldsymbol{\epsilon_{\nu}}$).
 Sampling from the posterior distribution of the parameters in mechanistic models is difficult due to multimodality, variable parameter sensitivities (e.g., small changes in one parameter may lead to large changes in output, while similar changes in another parameter may have little effect), and potentially strong posterior correlations induced by the nonlinearity of the differential equation model \cite{Reilly2005, Girolami2008, Calderhead2011}.
 However, the variable $\epsilon_t$ introduces flexibility to the mechanistic model that remedies lack-of-fit when the process parameters are far from optimal \cite{Leander2014}, thereby reducing multimodality and helping to smooth the posterior surface.
-Gradient-based methods like Hamiltonain Monte Carlo (HMC) can then more easily and efficiently traverse the posterior.
+Gradient-based methods like Hamiltonian Monte Carlo (HMC) can then more easily and efficiently traverse the posterior.
 Samples from the posterior distribution were generated using HMC implemented in the rstan package \cite{Carpenter2016, Rstan2017} for R \cite{R2016}. 
 We ran 3 chains with different starting values for 4,000 iterations each, discarding the first 2,000 as burn-in.
 Convergence diagnostics and mixing were evaluated using the shinystan package \cite{shinystan}.
@@ -445,13 +445,13 @@ Further, the posterior mean case reporting rate ($\phi$) was 0.14, larger than t
 \begin{figure}[!h]
 \includegraphics[scale = 1]{figures/fig1.eps}
 \caption{{\bf Vit\'oria data and model estimates.}
-A: weekly observed case reports (points), with corresponding posterior median (black line) and 80\% posterior credible interval (gray band). B: weekly mosquito trap counts (points), with posteriod median (black line) and 80\% posterior credible interval (gray band). C: extrinsic incubation period (weeks), computed from weekly mean temperature data. D: estimated weekly mosquito mortality rate, with the posterior median (black line) and the 80\% posterior credible interval (gray band).
+A: weekly observed case reports (points), with corresponding posterior median (black line) and 80\% posterior credible interval (gray band). B: weekly mosquito trap counts (points), with posteriod median (black line) and 80\% posterior credible interval (gray band). C: extrinsic incubation period (EIP; weeks), computed from weekly mean temperature data. D: estimated weekly mosquito mortality rate, with the posterior median (black line) and the 80\% posterior credible interval (gray band).
 }
 \label{timeseries}
 \end{figure}
 
 The estimated weekly mosquito mortality rate varied seasonally, with generally high mortality early in the year and low mortality in August to October (Figure \ref{timeseries}).
-This seasonal trend broadly tracked seasonal variation in temperature (Figure \ref{mortality}) and mosquito abundance (Figure \ref{timeseries}, though the shape of the annual trajectory differed from year to year.
+This seasonal trend broadly tracked seasonal variation in temperature (Figure \ref{mortality}) and mosquito trap counts (Figure \ref{timeseries}, though the shape of the annual trajectory differed from year to year.
 The posterior distribution of the baseline mortality rate ($d_0$) had a mean of 0.88/week, roughly $60\%$ of the prior mean.
 The marginal posterior means of the $\epsilon_{\nu t}$ forcing the mosquito mortality process exhibited a higher-frequency periodic oscillation (Supplementary Figure 1), although the marginal posterior distribution of each $\epsilon_{\nu t}$ overlapped zero.
 In addition, the standard deviation of the mortality forcing terms was small relative to the weak prior ($E(\sigma_{\nu}|\mathbf{y}) = 0.01$, Supplemental Figure 2).
@@ -522,7 +522,7 @@ Given the relatively high mosquito mortality rates during this time, exposed and
 Moreover, due to the large number of infectious human hosts available to transmit to the remaining (and rapidly rebounding) mosquito population, the population of exposed mosquitoes likely recovered quickly \cite{Newton1992, Burattini2008}.
 Barsante \emph{et al.} \cite{Barsante2015} and Oki \emph{et al.} \cite{Oki2011} similarly found that control was most effective when applied well before peak prevalence, either during the dry season \cite{Barsante2015} or early in the rainy season \cite{Oki2011} (September is near the end of the dry season in Vit\'oria).
 While the immediate effects of mosquito control implemented during the decline phase of an outbreak may be masked by the natually fading transmission intensity \cite{Stoddard2014}, our results nonetheless indicated that disrupting inter-seasonal transmission can be an effective longer-term strategy \cite{Hladish2018}.
-Further, although large pulses of imported cases could potentially swamp the effects of early control, in additional simulations we found that our results were robust to the import of 10 infectious humans just before the annual outbreak.
+Further, although large pulses of imported cases could potentially swamp the effects of early control, in additional simulations we found that our results were robust to the import of 10 infectious humans (roughly the same order as the number of locally reported cases) just before the annual outbreak.
 
 The Bayesian framework allowed us to account for uncertainty across the data, process, and parameter levels of our model \cite{Berliner1996}.
 We carried this uncertainty through to our simulations of control interventions \cite{Elderd2006} and found that there was substantial uncertainty in the proportion of cases prevented by a control intervention (i.e., the width of the ribbons in Figure \ref{control}).
@@ -533,7 +533,7 @@ Hladish \emph{et al.} \cite{Hladish2018} similarly found that simulated indoor r
 This suggests that control efforts that reduce the ability of mosquitoes to transmit DENV are most effective for situations in which mosquito abundance is already the limiting component to maintaining transmission (relative to other factors like human immunity).
 
 The posterior correlation between the effectiveness of control, the case reporting rate, and the average mosquito mortality rate emphasizes that the impact of mosquito control is jointly regulated by both mosquito population dynamics and human immune processes.
-ten Bosch \emph{et al.} \cite{TenBosch2016} observed similar behavior in their models of dengue dynamics, and found that longer periods of cross-immunity (such that susceptibles replenished more slowly) generated systems in which transmission was more difficult to disrupt with control actions.
+Similar observations were made by ten Bosch \emph{et al.} \cite{TenBosch2016} who found that models with longer periods of cross-immunity (such that susceptibles replenished more slowly) generated systems in which transmission was more difficult to disrupt with control actions.
 As a result of these relationships, efficient deployment of mosquito control, and accurate prediction of its effects, is likely to depend in part on our ability to monitor and predict the dynamics of human immunity.
 To meet these needs, existing mosquito monitoring efforts need to be paired with more detailed clinical surveillance \cite{Morrison2008} and tighter estimates of the period of cross-immunity \cite{TenBosch2016} and the number of unreported cases \cite{Silva2016}.
 In the absence of, or as a supplement to, such data, mechanistic models like the one developed here, or so-called TSIR (Time-series Susceptiple-Infected-Recovered) frameworks that reconstruct the dynamics of the susceptible class \cite{Finkenstadt2000, Reich2013}, need to be further developed to better inform and understand mosquito control efforts.
@@ -567,7 +567,7 @@ In addition, given the high underreporting rate expected for dengue fever \cite{
 
 Mosquito control interventions can prevent cases by acting on any of the components of vectorial capacity.
 We focused on the direct effect of killing adult mosquitoes on transmission, but adult control can also act by reducing egg laying and the number of mosquitoes in the next generation \cite{Brady2016}.
-Given the relative simplicity of our mosquito model, we were unable to eplore the feedbacks that adult control may induce in mosquito population dynamics, and instead assumed that mosquito populations quickly rebound from any perturbations \cite{Focks1987}.
+Given the relative simplicity of our mosquito model, we were unable to explore the feedbacks that adult control may induce in mosquito population dynamics, and instead assumed that mosquito populations quickly rebound from any perturbations \cite{Focks1987}.
 We expect that capturing these feedbacks would likely reinforce our conclusions about the utility of off-season control, as the disruption to mosquito population dynamics would more strongly limit the ability of the mosquito population to maintain transmission through the off-season.
 
 Although our results suggest that a pulse of adult control in the off-season may be an effective tool for preventing human cases, achieving particular control thresholds or policy goals will likely require deploying a combination of control interventions \cite{Brady2016}.

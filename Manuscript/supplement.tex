@@ -94,7 +94,7 @@ T_{\rho} \sim \text{Gamma}(8.3, 8.3)
 \end{equation}
 where $\rho = (0.87 T_{\rho})^{-1}$.
 \\
-\item \textbf{Decay rate of infectiousness} ($\gamma$): Nguyet \emph{et al.} \cite{Nguyet2013} find that there is very little transmission of dengue from humans to mosquitoes after 5-6 days since the onset of fever (with roughly an extra of infectiousness prior to onset of fever).
+\item \textbf{Decay rate of infectiousness} ($\gamma$): Nguyet \emph{et al.} \cite{Nguyet2013} find that there is very little transmission of dengue from humans to mosquitoes after 5-6 days since the onset of fever (with roughly an extra day of infectiousness prior to onset of fever).
 In reality, an individual's infectiousness decays with time, but the ODE model assumes infectiousness is constant for the (exponentially distributed) duration of the infection period.    
 To parameterize the model, we assume a rough equivalence between the probability of infection from a single individual at a given time and the proportion of individuals still infectious at a given time.
 Thus we choose our prior for $\gamma$ to keep the time at which only 5\% of individuals are still infectious between 5 and 7 days, with a mean 5\% threshold of 6 days.
@@ -206,7 +206,7 @@ Posterior distribution of variances on $\epsilon$ forcing terms for mosquito mor
 \begin{figure}[!h]
 \includegraphics[angle = 270, scale = 1]{figures/figS3.eps}
 \caption{
-Posterior distribution of epidemiological parameters.  The black line indicates the prior density. A: latent period in human host ($1/\rho$), in weeks. B: rate of infectious decay in human host ($\gamma$) in weeks $^{-1}$. C: period of cross-immunity ($1/\delta$) in weeks.
+Posterior distribution of epidemiological parameters.  The black line indicates the prior density. A: scaled latent period in human host ($1/\rho$). B: scaled rate of infectious decay in human host ($\gamma$). C: scaled period of cross-immunity ($1/\delta$). D: scaled baseline mosquito mortality rate ($d_0$).
 }
 \end{figure}
 
@@ -218,7 +218,7 @@ Posterior distribution of epidemiological parameters.  The black line indicates 
 
 \begin{figure}[!h]
 \includegraphics[angle = 270, scale = 1]{figures/figS5.eps}
-\caption{Posterior distribution of measurement paramters.  A: log of the mosquito trap capture rate (which is strongly correlated with initial mosquito abundance). The black line shows the prior density. B: mosquito trap count measurement over-dispersion (prior density too low to be visible). C: case report measurement over-dispersion (prior density too low to be visible).}
+\caption{Posterior distribution of measurement paramters. The black line shows the prior density. A: log of the mosquito trap capture rate (which is strongly correlated with initial mosquito abundance). B: human case reporting probability. C: mosquito trap count measurement over-dispersion (prior density too low to be visible). D: case report measurement over-dispersion (prior density too low to be visible).}
 \end{figure}
 
 \begin{figure}[!h]
@@ -230,21 +230,21 @@ Posterior distribution of epidemiological parameters.  The black line indicates 
 \begin{figure}[!h]
 \includegraphics[angle = 270, scale = 1]{figures/figS7.eps}
 \caption{
-Posterior distribution of the total number of cases reported (A) and the total number of mosquitoes captured (B).  Thick line indicates the observed totals.
+Posterior distribution of the total number of cases reported (A) and the total number of mosquitoes captured (B).  The thick line indicates the observed totals.
 }
 \end{figure}
 
 \begin{figure}[!h]
 \includegraphics[angle = 270, scale = 1]{figures/figS8.eps}
 \caption{
-Posterior distributions of the minimum and maximum weekly reported cases and trapped mosquitoes. Thick line indicates the observed minima and maxima.
+Posterior distributions of the minimum and maximum weekly reported cases (A and C) and trapped mosquitoes (B and D). The thick line indicates the observed minima and maxima.
 }
 \end{figure}
 
 \begin{figure}[!h]
 \includegraphics[angle = 270, scale = 1]{figures/figS9.eps}
 \caption{
-Posterior estimates of the mosquito mortality rate and the probability of a mosquito surving the external incubation period.  The black line indicates the posterior median, while the gray ribbon shows the 80$\%$ credible interval.  The probability of surviving the EIP was computed by taking the ratio of the number of mosquitoes that entered the infectious class in a week over the total number of mosquitoes that exited the exposed class that week.  That is, the probability of surviving the EIP represents the faction of mosquitoes leaving the exposed class that enter the infectious class. 
+Posterior estimates of the mosquito mortality rate (top panel) and the probability of a mosquito surving the external incubation period (bottom panel).  The black line indicates the posterior median, while the gray ribbon shows the 80$\%$ credible interval.  The probability of surviving the extrinsic incubation period was computed by taking the ratio of the number of mosquitoes that entered the infectious class in a week over the total number of mosquitoes that exited the exposed class that week.  That is, the probability of surviving the extrinsic incubatio period represents the faction of mosquitoes leaving the exposed class that enter the infectious class. 
 }
 \end{figure}
 

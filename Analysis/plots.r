@@ -331,8 +331,8 @@ postscript("Manuscript/figures/figS2.eps",
            family = "ArialMT")
 
 par(mfrow = c(1, 2))
-rstan::extract(sim, "sigmadv", permute = T)[[1]] %>% hist(main = "", xlab = expression(sigma[d]), freq = F)
-rstan::extract(sim, "sigmarv", permute = T)[[1]] %>% hist(main = "", xlab = expression(sigma[r]), freq = F)
+rstan::extract(sim, "sigmadv", permute = T)[[1]] %>% hist(main = "A", xlab = expression(sigma[d]), freq = F)
+rstan::extract(sim, "sigmarv", permute = T)[[1]] %>% hist(main = "B", xlab = expression(sigma[r]), freq = F)
 
 dev.off()
 
@@ -346,16 +346,16 @@ postscript("Manuscript/figures/figS3.eps",
 
 par(mfrow = c(2, 2))
 
-hist(epiparams[[1]], main = "", xlab = "scaled latent period", freq = F, breaks = 30, ylim = c(0, 1.2))
+hist(epiparams[[1]], main = "A", xlab = "scaled latent period", freq = F, breaks = 30, ylim = c(0, 1.2))
 curve(dgamma(x, 8.3, 8.3), add = T, lwd = 2)
 
-hist(epiparams[[2]], main = "", xlab = "scaled rate of infectious decay", freq = F, breaks = 30)
+hist(epiparams[[2]], main = "B", xlab = "scaled rate of infectious decay", freq = F, breaks = 30)
 curve(dgamma(x, 100, 100), add = T, lwd = 2)
 
-hist(epiparams[[3]], main = "", xlab = "scaled period of cross-immunity", freq = F, breaks = 30, ylim = c(0, 1.3))
+hist(epiparams[[3]], main = "C", xlab = "scaled period of cross-immunity", freq = F, breaks = 30, ylim = c(0, 1.3))
 curve(dgamma(x, 10, 10), add = T, lwd = 2)
 
-hist(epiparams[[4]], main = "", xlab = "scaled mosquito mortality rate", freq = F, breaks = 30)
+hist(epiparams[[4]], main = "D", xlab = "scaled mosquito mortality rate", freq = F, breaks = 30)
 curve(dgamma(x, 100, 10), add = T, lwd = 2)
 
 dev.off()
@@ -370,46 +370,48 @@ postscript("Manuscript/figures/figS4.eps",
 
 par(mfrow = c(2, 3))
 
-hist(ics$S0, freq = F, main = "", xlab = expression(S[0]))
+hist(ics$S0, freq = F, main = "A", xlab = expression(S[0]))
 curve(dbeta(x, 4, 6), add = T, lwd = 2)
 
-hist(ics$E0, freq = F, main = "", xlab = expression(E[0]), ylim = c(0, 0.015))
+hist(ics$E0, freq = F, main = "B", xlab = expression(E[0]), ylim = c(0, 0.015))
 curve(dgamma(x, 10, 0.1), add = T, lwd = 2)
 
-hist(ics$I0, freq = F, main = "", xlab = expression(I[0]), ylim = c(0, 0.02))
+hist(ics$I0, freq = F, main = "C", xlab = expression(I[0]), ylim = c(0, 0.02))
 curve(dgamma(x, 6, 0.1), add = T, lwd = 2)
 
-hist(ics$logNv, freq = F, main = "", xlab = expression(log(V[N0])))
+hist(ics$logNv, freq = F, main = "D", xlab = expression(log(V[N0])))
 curve(dnorm(x, 0.7, 0.3), add = T, lwd = 2)
 
-hist(ics$dv0, freq = F, main = "", xlab = expression(nu[0]))
+hist(ics$dv0, freq = F, main = "E", xlab = expression(nu[0]))
 curve(dnorm(x, 0, 0.5), add = T, lwd = 2)
 
-hist(ics$rv0, freq = F, main = "", xlab = expression(r[0]))
+hist(ics$rv0, freq = F, main = "F", xlab = expression(r[0]))
 curve(dnorm(x, 0, 0.5), add = T, lwd = 2)
 
 dev.off()
 
 # Figure S5: Measurement parameters ============================================
 
+library(truncnorm)
+
 meas <- rstan::extract(sim, c("log_phi_q", "phi_y", "eta_inv_q", "eta_inv_y"), permute = T)
 
 postscript("Manuscript/figures/figS5.eps",
-           width = 6, height = 3,
+           width = 6, height = 6,
            family = "ArialMT")
 
 par(mfrow = c(2, 2))
 
-hist(meas$log_phi_q, freq = F, main = "", xlab = expression(log(phi[q])))
+hist(meas$log_phi_q, freq = F, main = "A", xlab = expression(log(phi[q])))
 curve(dnorm(x, -13, 0.5), add = T, lwd = 2)
 
-hist(meas$phi_y, freq = F, main = "", xlab = expression(phi[y]))
+hist(meas$phi_y, freq = F, main = "B", xlab = expression(phi[y]))
 curve(dbeta(x, 7, 77), add = T, lwd = 2)
 
-hist(meas$eta_inv_q, freq = F, main = "", xlab = expression(eta[q]))
+hist(meas$eta_inv_q, freq = F, main = "C", xlab = expression(eta[q]))
 curve(dtruncnorm(x, a = 0, b = Inf, mean = 0, sd = 5), add = T)
 
-hist(meas$eta_inv_y, freq = F, main = "", xlab = expression(eta[y]))
+hist(meas$eta_inv_y, freq = F, main = "D", xlab = expression(eta[y]))
 curve(dtruncnorm(x, a = 0, b = Inf, mean = 0, sd = 5), add = T)
 
 dev.off()
@@ -481,10 +483,10 @@ postscript("Manuscript/figures/figS7.eps",
 
 par(mfrow = c(1, 2))
 
-hist(rowSums(yrep), main = "", xlab = "total cases", freq = F, breaks = 20)
+hist(rowSums(yrep), main = "A", xlab = "total cases", freq = F, breaks = 20)
 abline(v = sum(post$yobs), lwd = 2)
 
-hist(rowSums(qrep), main = "", xlab = "total captured mosquitoes", freq = F, breaks = 20)
+hist(rowSums(qrep), main = "B", xlab = "total captured mosquitoes", freq = F, breaks = 20)
 abline(v = sum(post$qobs), lwd = 2)
 
 dev.off()
@@ -497,16 +499,16 @@ postscript("Manuscript/figures/figS8.eps",
 
 par(mfrow = c(2, 2))
 
-hist(apply(yrep, 1, max), main = "", xlab = "maximum weekly cases", freq = F)
+hist(apply(yrep, 1, max), main = "A", xlab = "maximum weekly cases", freq = F)
 abline(v = max(post$yobs), lwd = 2)
 
-hist(apply(qrep, 1, max), main = "", xlab = "maximum weekly trap count", freq = F)
+hist(apply(qrep, 1, max), main = "B", xlab = "maximum weekly trap count", freq = F)
 abline(v = max(post$qobs), lwd = 2)
 
-hist(apply(yrep, 1, min), main = "", xlab = "minimum weekly cases", freq = F)
+hist(apply(yrep, 1, min), main = "C", xlab = "minimum weekly cases", freq = F)
 abline(v = min(post$yobs), lwd = 2)
 
-hist(apply(qrep, 1, min), main = "", xlab = "minimum weekly trap count", freq = F)
+hist(apply(qrep, 1, min), main = "D", xlab = "minimum weekly trap count", freq = F)
 abline(v = min(post$qobs), lwd = 2)
 
 dev.off()
