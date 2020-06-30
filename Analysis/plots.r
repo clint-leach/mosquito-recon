@@ -227,7 +227,7 @@ overall%>%
   labs(x = "mosquito mortality rate", y = "case ratio") -> fig4a
 
 overall%>% 
-  subset(week == 36 & year == "overall") %>% 
+  subset(week == 34 & year == "overall") %>% 
   ggplot(aes(phi, ratio)) + 
   geom_point(size = 0.5) + 
   theme_classic() + 
