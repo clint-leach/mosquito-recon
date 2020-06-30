@@ -318,11 +318,11 @@ We specified the differential equations governing the human population as:
 while the equations governing the mosquito (vector) population are:
 \begin{align}
 \frac{dV_N}{dt} & = r(t) V_N - \phi_q \tau(t) V_N \\
-\frac{dV_{E1}}{dt} &= \lambda \frac{I}{N} V_S - (\nu\rho_{v}(t) + d(t) + \phi_q \tau(t))V_{E1}\\
-\frac{dV_{E2}}{dt} &= \nu\rho_{v}(t) V_{E1} - (\nu\rho_{v}(t) + d(t) + \phi_q \tau(t))V_{E2}\\
-\frac{dV_{E3}}{dt} &= \nu\rho_{v}(t) V_{E2}  - (\nu\rho_{v}(t) + d(t) + \phi_q \tau(t))V_{E3}\\
-\frac{dV_{E4}}{dt} &= \nu\rho_{v}(t) V_{E3}  - (\nu\rho_{v}(t) + d(t) + \phi_q \tau(t))V_{E4}\\
-\frac{dV_I}{dt} &= \nu\rho_{v}(t) V_{E4} - (d(t) + \phi_q \tau(t)) V_I\\
+\frac{dV_{E1}}{dt} &= \lambda \frac{I}{N} V_S - (4\rho_{v}(t) + d(t) + \phi_q \tau(t))V_{E1}\\
+\frac{dV_{E2}}{dt} &= 4\rho_{v}(t) V_{E1} - (4\rho_{v}(t) + d(t) + \phi_q \tau(t))V_{E2}\\
+\frac{dV_{E3}}{dt} &= 4\rho_{v}(t) V_{E2}  - (4\rho_{v}(t) + d(t) + \phi_q \tau(t))V_{E3}\\
+\frac{dV_{E4}}{dt} &= 4\rho_{v}(t) V_{E3}  - (4\rho_{v}(t) + d(t) + \phi_q \tau(t))V_{E4}\\
+\frac{dV_I}{dt} &= 4\rho_{v}(t) V_{E4} - (d(t) + \phi_q \tau(t)) V_I\\
 \frac{dV_C}{dt} & = \phi_q \tau(t) V_N\\
 V_S &= V_N - V_E - V_I.
 \end{align}
@@ -376,7 +376,7 @@ Parameter & Description & Prior mean & Posterior mean & Citation\\
 $N$ & Human population size in Vit\'oria, Brazil & 327801 & & \cite{vitpop} \\
 $1/d$ & Human life-span & 76 years & &\cite{vitlong} \\
 $\lambda$ & Transmission rate & 4.87 week$^{-1}$ & & \cite{Scott2000}\\
-$1/\rho_{v}(t)$ & Extrinsic incubation period & $\exp\left(7.9 - 0.21 T(t) \right)$ days & & \cite{Chan2012}\\
+$1/\rho_{v}(t)$ & Extrinsic incubation period & $\frac{1}{7}\exp\left(7.9 - 0.21 T(t) \right)$ weeks & & \cite{Chan2012}\\
 $V_{E0}$ & Initial exposed mosquitoes &  0 & &\\
 $V_{I0}$ & Initial infectious mosquitoes & 0 & &\\
 \hline
@@ -452,7 +452,7 @@ A: weekly observed case reports (points), with corresponding posterior median (b
 \end{figure}
 
 The estimated weekly mosquito mortality rate varied seasonally, with generally high mortality early in the year and low mortality in August to October (Figure \ref{timeseries}).
-This seasonal trend broadly tracked seasonal variation in temperature (Figure \ref{mortality}, posterior mean correlation coefficient of 0.64) and mosquito trap counts (Figure \ref{timeseries}, though the shape of the annual trajectory differed from year to year.
+This seasonal trend broadly tracked seasonal variation in temperature (Figure \ref{mortality}, correlation coefficient of 0.64) and mosquito trap counts (Figure \ref{timeseries}), though the shape of the annual trajectory differed from year to year.
 The posterior distribution of the baseline mortality rate ($d_0$) had a mean of 0.88/week, roughly $60\%$ of the prior mean.
 The marginal posterior means of the $\epsilon_{\nu t}$ forcing the mosquito mortality process exhibited a higher-frequency periodic oscillation (Supplementary Figure 1), although the marginal posterior distribution of each $\epsilon_{\nu t}$ overlapped zero.
 In addition, the standard deviation of the mortality forcing terms was small relative to the weak prior ($E(\sigma_{\nu}|\mathbf{y}) = 0.01$, Supplemental Figure 2).

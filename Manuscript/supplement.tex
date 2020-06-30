@@ -169,7 +169,7 @@ There are relatively few reliable estimates of the transmission probability of D
 \item \textbf{Extrinsic incubation period} ($1/\rho_{vt}$): Temperature is thought to play an important role in the seasonality of dengue, in particular through its influence on the extrinsic incubation period of the virus in the mosquito  (the amount of time until a mosquito becomes infectious after taking an infectious blood meal).
 To account for this, we make $1/\rho_v$ a function of temperature, and force it with weekly mean temperature records for Vitoria downloaded from Weather Underground (Goiabeiras weather station, station ID: IESVITOR2).
 We use the temperature relationship from the meta-analysis of Chan annd Johansson \cite{Chan2012}, which incorporates a large number of studies and accounts for the interval-censored nature of the data usually available from mosquito transmission studies.
-Chan \textit{et al.}find that the log-normal and gamma distributions are nearly indistinguishable in providingthe best fit to the EIP data.
+Chan and Johansson find that the log-normal and gamma distributions are nearly indistinguishable in providingthe best fit to the EIP data.
 To capture a gamma-distributed EIP in the differential equation model, we follow \cite{Lloyd2001} and chain together $\nu$ exposed compartments, each with an out-flow rate of $\nu\rho_v(t)$ to generate
 \begin{equation}
 EIP \sim \text{Gamma}(\nu, \nu \rho_v(t))
