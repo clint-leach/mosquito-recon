@@ -47,7 +47,7 @@ rov <- 7 * exp(0.21 * covars$temp - 7.9)
 # Setting imports (if any)
 firsts <- daply(data, .(year), function(df) min(df$tot.week))[2:5]
 import <- rep(0, 243)
-import[firsts - 8] <- 10 / pop
+# import[firsts - 8] <- 10 / pop
 
 # Wrapping up all the data
 dat.stan <- list(T = 243,
@@ -129,4 +129,4 @@ fit <- stan(file = "Code/gammaeip.stan",
             control = list(adapt_delta = 0.99,
                            max_treedepth = 15))
 
-saveRDS(fit, "Results/import_chain.rds")
+saveRDS(fit, "Results/chain.rds")

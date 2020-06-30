@@ -43,14 +43,6 @@ post$rov <- 7 * exp(0.21 * temp$temp - 7.9)
 # Loading MCMC results
 sim <- readRDS("Results/chain.rds")
 
-# Loading control simulations
-# control <- readRDS("Results/control_rebound.rds") 
-
-# Loading control summaries (fixed and moving window)
-
-# Effect of timing of control on the number of cases in a given year
-# annual <- readRDS("Results/annual_control.rds")
-
 # Effect of control in the number of cases in the following year
 moving <- readRDS("Results/moving_control.rds")
 

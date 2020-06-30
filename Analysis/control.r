@@ -38,14 +38,14 @@ rov <- 7 * exp(0.21 * covars$temp - 7.9)
 # Setting imports (if any)
 firsts <- daply(data, .(year), function(df) min(df$tot.week))[2:5]
 import <- rep(0, 243)
-import[firsts - 8] <- 10 / pop
+# import[firsts - 8] <- 10 / pop
 
 model <- stan_model(file = "Code/gammaeip.stan", verbose = T, save_dso = TRUE, auto_write = TRUE)
 
 #===============================================================================
 # Loading mcmc samples
 
-chain <- readRDS("Results/import_chain.rds")
+chain <- readRDS("Results/chain.rds")
 samples <- rstan::extract(chain, permute = T)[1:18] 
 
 fitcases <- rstan::extract(chain, "state", permute = T)[[1]] %>% 
@@ -122,19 +122,7 @@ reduction <- foreach(k = 1:nmcmc, .combine = "rbind", .packages = c("rstan", "ma
 
 stopCluster(cl)
 
-saveRDS(reduction, "Results/import_control.rds")
-
-# Effect of timing of control on the number of cases in a given year
-annual <- ddply(control, .(year, rep, control), summarise,
-                tcases = sum(cases),
-                tcases0 = sum(cases0),
-                ratio = tcases / tcases0,
-                dvmu = mean(dvmu),
-                delta = mean(delta),
-                phi = mean(phi),
-                relweek = (control - firsts[as.character(year)])[1])
-
-saveRDS(annual, "Results/import_annual.rds")
+saveRDS(reduction, "Results/control.rds")
 
 # Effect of control in the number of cases in the following year
 moving <- ddply(control, .(rep, control), summarise,
@@ -146,4 +134,4 @@ moving <- ddply(control, .(rep, control), summarise,
                 delta = mean(delta),
                 phi = mean(phi))
 
-saveRDS(moving, "Results/import_moving.rds")
+saveRDS(moving, "Results/moving_control.rds")
