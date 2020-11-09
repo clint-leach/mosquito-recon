@@ -88,7 +88,7 @@
 \usepackage{textcomp,marvosym}
 
 % cite package, to clean up citations in the main text. Do not remove.
-\usepackage{cite}
+\usepackage[nospace]{cite}
 
 % Use nameref to cite supporting information files (see Supporting Information section for more info)
 \usepackage{nameref,hyperref}
@@ -192,17 +192,17 @@ Colleen T. Webb\textsuperscript{1}
 
 
 \bigskip
-\textbf{1} Graduate Degree Program in Ecology, Colorado State University, Fort Collins, CO, USA
+\textbf{1} Graduate Degree Program in Ecology, Colorado State University, Fort Collins, Colorado, United States of America
 \\
-\textbf{2} Department of Statistics, Colorado State University, Fort Collins, CO, USA
+\textbf{2} Department of Statistics, Colorado State University, Fort Collins, Colorado, United States of America
 \\
-\textbf{3} National Wildlife Research Center, United States Department of Agriculture, Wildlife Services, Fort Collins, CO, USA
+\textbf{3} National Wildlife Research Center, United States Department of Agriculture, Wildlife Services, Fort Collins, Colorado, United States of America
 \\
-\textbf{4} Departamento de Parasitologia, Universidade Federal de Minas Gerais, Belo Horizonte, MG, Brazil
+\textbf{4} Departamento de Parasitologia, Universidade Federal de Minas Gerais, Belo Horizonte, Minas Gerais, Brazil
 \\
-\textbf{5} U.S. Geological Survey, Colorado Cooperative Fish and Wildlife Research Unit
+\textbf{5} U.S. Geological Survey, Colorado Cooperative Fish and Wildlife Research Unit, Fort Collins, Colorado, United States of America
 \\
-\textbf{6} Department of Fish, Wildlife, and Conservation Biology, Colorado State University
+\textbf{6} Department of Fish, Wildlife, and Conservation Biology, Colorado State University, Fort Collins, Colorado, United States of America
 \bigskip
 
 % Insert additional author notes using the symbols described below. Insert symbol callouts after author names as necessary.
@@ -211,7 +211,7 @@ Colleen T. Webb\textsuperscript{1}
 
 
 % Use the asterisk to denote corresponding authorship and provide email address in note below.
-* clint.leach@colostate.edu
+* clint.leach@gmail.com
 
 \end{flushleft}
 % Please keep the abstract below 300 words
@@ -251,14 +251,14 @@ Though there have been documented successes, there is limited evidence for the l
 As a result, there is a growing recognition that effective control needs to be guided by high quality vector surveillance, together with quantitative tools that synthesize vector surveillance with clinical surveillance, account for local epidemiology, and facilitate local decision making \cite{Morrison2008, Scott2010b}.
 Moreover, mosquito control needs to be guided by an understanding of the link between mosquito abundance and disease risk so that the mosquitoes most responsible for transmission can be targeted \cite{Scott2010a, Scott2010b}.
 
-Many of the attempts to establish this link have found a weak relationship between mosquito abundance indices and incidence of disease in humans \cite{Bowman2014, Pepin2015, Cromwell2017}.
+Many of the attempts to establish this link have found a weak relationship between mosquito abundance indices and incidence of disease in humans \cite{Bowman2014, Pepin2015,Cromwell2017}.
 However, these attempts often do not account for the complex, non-linear interactions that mediate the relationship between mosquito abundance and human disease.
 In particular, host immunity is a key intrinsic driver of infectious disease dynamics, and conditions favorable for transmission can only lead to an outbreak of disease when there is a sufficiently large population of susceptible hosts \cite{Koelle2004, Koelle2005}.
 As such, the ability of mosquitoes to contribute to DENV transmission depends critically on the level of immunity in the human population \cite{Scott2010a}.
 Further, the cycle of transmission between humans and mosquitoes is influenced not just by mosquito abundance, but also by mosquito survival relative to the virus incubation period in mosquitoes \cite{Smith2012}.
 In fact, whether or not an exposed mosquito will survive long enough to become infectious represents a critical bottleneck in the transmission process and leads to nonlinear dependence of transmission on mosquito survival \cite{Smith2012}.
 
-The importance of intrinsic nonlinearities, potentially alongside seasonality and stochastic forcing \cite{Ellner1998, Koelle2004, Grenfell2002}, in governing human disease risk highlights the need to integrate mechanistic modeling into the quantitative tools used to understand the effects of control interventions.
+The importance of intrinsic nonlinearities, potentially alongside seasonality and stochastic forcing \cite{Ellner1998,Koelle2004,Grenfell2002}, in governing human disease risk highlights the need to integrate mechanistic modeling into the quantitative tools used to understand the effects of control interventions.
 Such mechanistic models can often perform better than complex autoregressive statistical models in describing and forecasting population dynamics \cite{Reilly2005}.
 Moreover, in the absence of case-control studies, mechanistic models can provide scenario-based tools that can be used to predict the effect of management actions \cite{Buckland2007}.
 
@@ -274,6 +274,12 @@ We then use the fitted model to explore how perturbations to the mosquito popula
 
 \section*{Methods}
 
+\subsection*{Ethics statement}
+
+We did not obtain Institutional Review Board (IRB) approval for this work as the data we worked with were received by us as aggregated data at the weekly and neighborhood level.  
+Hence, this research does not meet the definition of human subjects research requiring IRB approval.  
+The data were analyzed in the aggregated form, which protects the anonymity of individuals.
+
 \subsection*{Study system and data}
 
 Vit\'oria is a coastal city and the capital of the state of Esp\'irito Santo, Brazil, with a population of 327,801 as of 2010 \cite{vitpop}.
@@ -282,21 +288,18 @@ Each trap is checked weekly and the mosquitoes inside counted and identified, wi
 These data comprise 243 weeks (week 1 of 2008 through week 34 of 2012) of total city-wide counts of trapped gravid female \emph{Aedes aegypti}.
 It is important to note that this time series reflects both natural fluctuations in mosquito density and fluctuations driven by the city's existing mosquito control program.
 In addition, dengue fever is a mandatory notifiable disease, and thus the city's Ministry of Health Secretary maintains a database of weekly notified probable dengue cases (i.e., medical care sought for dengue-like symptoms) for the same time period.
-We did not obtain IRB approval for this work as the data we worked with were received by us as aggregated data at the weekly and neighborhood level.  
-Hence, this research does not meet the definition of human subjects research requiring IRB approval.  
-The data were analyzed in the aggregated form, which protects the anonymity of individuals.
 
-\subsection*{Process Model}
+\subsection*{Process model}
 
 Dengue epidemiology is complicated considerably by the presence of four simultaneously circulating serotypes.
 Infection with one serotype confers life-long immunity to that serotype, along with temporary immunity to other serotypes \cite{Wearing2006}.  
-As this cross-immunity wanes, antibodies from the previous infection can result in antibody-dependent enhancement (ADE), wherein human hosts are more susceptible to infection with the other serotypes and more likely to develop severe symptoms (i.e., dengue haemorrhagic fever or dengue shock syndrome)\cite{Wearing2006}.
+As this cross-immunity wanes, antibodies from the previous infection can result in antibody-dependent enhancement (ADE), wherein human hosts are more susceptible to infection with the other serotypes and more likely to develop severe symptoms (i.e., dengue hemorrhagic fever or dengue shock syndrome)\cite{Wearing2006}.
 The strength and duration of these different inter-serotype interactions are not well understood, although different models suggest that temporary cross-immunity alone (without ADE) is sufficient to reproduce observed multi-annual dynamics in Thailand \cite{Wearing2006,Reich2013}.
 
 Explicitly capturing the cross-immune interactions among all four serotypes, or even only two of the four \cite{Aguiar2013}, leads to a large and complex mechanistic model.
 Moreover, because dengue case reports do not identify serotype, there is not enough information in our data to inform the dynamics of individual serotypes.
-As such, we captured temporary cross-immunity, and the potential for multiple sequential infections, as simply and tractably as possible in a susceptible-exposed-infectious-recovered-susceptible (SEIRS) compartment model, similar to \cite{Newton1992, Burattini2008, Pinho2010, Hooten2010}.
-Although it captures the critical influence of temporary immunity, this framework does not account for the potential relationship between an individual's infection history and the likelihood that a new infection with be symptomatic (and thus reported).
+As such, we captured temporary cross-immunity, and the potential for multiple sequential infections, as simply and tractably as possible in a susceptible--exposed--infectious--recovered--susceptible (SEIRS) compartment model, similar to \cite{Newton1992, Burattini2008, Pinho2010, Hooten2010}.
+Although it captures the critical influence of temporary immunity, this framework does not account for the potential relationship between an individual's infection history and the likelihood that a new infection will be symptomatic (and thus reported).
 In particular, secondary infections appear more likely to be symptomatic than primary infections \cite{Imai2016,Clapham2017}, while third and fourth infections appear much less likely to be symptomatic \cite{Olkowski2013} (but see \cite{Montoya2013} who found similar rates of symptomatic cases across infection number).
 Despite these potential differences in reporting rate, modeling work has suggested that the dynamics of primary and secondary infections are closely coupled (and thus not dynamically distinct) under many conditions \cite{Schwartz2005}.
 Moreover, given the short time scale of our data (5 years) relative to the period of cross-immunity (roughly 2 years \cite{Reich2013}), we expect that third and fourth infections will be relatively rare.
@@ -306,10 +309,10 @@ In the SEIRS framework, the total human population of Vit\'oria ($N$) is divided
 Susceptible humans ($S$) become exposed ($E$) through contact with infectious mosquitoes ($V_I$).
 Following a latent period ($\frac{1}{\rho}$), exposed humans become infectious ($I$) at which point they can infect susceptible mosquitoes ($V_S$).
 Infectious humans recover at rate $\gamma$ and subsequently remain immune ($R$) for a period ($\frac{1}{\delta}$) after which they re-enter the susceptible class.
-Similarly, susceptible mosquitoes ($V_S$) become exposed ($V_E$) by biting infectious humans and pass through a temperature-dependent incubation period ($\frac{1}{\rho_{vt}}$) before becoming infectious ($V_I$).
+Similarly, susceptible mosquitoes ($V_S$) become exposed ($V_E$) by biting infectious humans and pass through a temperature-dependent incubation period ($\frac{1}{\rho_{v}(t)}$) before becoming infectious ($V_I$).
 Because the assumption of an exponentially distributed incubation period (implicit in the specification of a differential equation model) is a poor fit to laboratory observations \cite{Chan2012}, we instead implemented a gamma-distributed incubation period by chaining together multiple exposed classes ($V_{Ej}$, taking advantage of the fact that a gamma-distributed random variable can be generated through the sum of exponential random variables with the same rate parameter) \cite{Lloyd2001}.
 Total mosquito population size ($V_N$) is controlled by a forced, seasonally varying growth rate ($r(t)$), while the transmission bottleneck is captured with a forced, seasonally varying mortality rate ($d(t)$).
-Captured mosquitoes ($V_C$) accumulate at rate $\phi_q \tau_t$, where $\phi_q$ is the per-trap capture rate, and $\tau_t$ is the number of traps deployed in week $t$.
+Captured mosquitoes ($V_C$) accumulate at rate $\phi_q \tau(t)$, where $\phi_q$ is the per-trap capture rate, and $\tau(t)$ is the number of traps deployed in week $t$.
 
 We specified the differential equations governing the human population as:
 \begin{align} 
@@ -366,13 +369,13 @@ To maintain identifiability, the transmission rate ($\lambda$) was also fixed at
 Lastly, the extrinsic incubation period in mosquitoes was modeled as a function of weekly mean temperature and forced with weather station data obtained from WeatherUnderground \cite{weather}.
 
 The remaining parameters include the epidemiological parameters controlling the average latent, infectious, and immune periods ($\rho$, $\gamma$, $\delta$) and average mosquito lifespan ($d_0$), the initial conditions of the model ($S_0$, $E_0$, $I_0$, $R_0$, $V_{N0}, \nu_0, r_0$), the variances of the latent mosquito processes ($\sigma^2_r$, $\sigma^2_{\nu}$), and the remaining measurement parameters ($\phi_y$, $\phi_q$, $\eta_y$, $\eta_q$).  
-Where possible, we specified informative prior distributions for these parameters based on existing laboratory and field studies (see Table 1 for means and Supplemental Material for detailed explanations).
+Where possible, we specified informative prior distributions for these parameters based on existing laboratory and field studies (see Table 1 for means and \nameref{S1} for detailed explanations).
 
 \begin{table}[!ht]
 \label{parameters}
 \begin{adjustwidth}{-2.25in}{0in} 
 \begin{center}
-\caption{Model parameters and their values.  Parameters above the rule are fixed, while parameters below the rule are random.  The values in parentheses after the posterior means give the 80$\%$ credible interval. See Supplemental Material for a full description of all prior distributions.}
+\caption{Model parameters and their values.  Parameters above the rule are fixed, while parameters below the rule are random.  The values in parentheses after the posterior means give the 80$\%$ credible interval. See \nameref{S1} for a full description of all prior distributions.}
 \begin{tabular}{lp{6cm}lll}
 Parameter & Description & Prior mean & Posterior mean & Citation\\
 \hline
@@ -439,26 +442,26 @@ A $5\%$ reduction in mosquito abundance was chosen to keep our simulations conse
 
 \section*{Results}
 
-The model captured the observed dynamics of both case reports and mosquito trap counts (Figure \ref{timeseries}).
+The model captured the observed dynamics of both case reports and mosquito trap counts (Fig \ref{timeseries}).
 The estimated posterior median case reports explained 91\% of the variation in the observed time series, while the posterior median mosquito trap counts explained 46\% of the variation in the observed time series. 
-In addition, posterior predictive checks showed that the model reproduced the total number of cases reported and mosquitoes captured as well as the autocorrelation structure of both time series (with the exception of slightly underestimating the autocorrelation for short lags, Supplemental Figures 6 - 8).
-The posterior distributions of the rate of infectious decay ($\gamma$) and the period of cross-immunity ($1/\delta$) did not differ substantially from their priors, suggesting that the Vit\'oria data contained little additional information about these parameters (Supplemental Figure 3).
+In addition, posterior predictive checks showed that the model reproduced the total number of cases reported and mosquitoes captured as well as the autocorrelation structure of both time series (with the exception of slightly underestimating the autocorrelation for short lags, \nameref{S6_fig}, \nameref{S7_fig}, \nameref{S8_fig}).
+The posterior distributions of the rate of infectious decay ($\gamma$) and the period of cross-immunity ($1/\delta$) did not differ substantially from their priors, suggesting that the Vit\'oria data contained little additional information about these parameters (\nameref{S3_fig}).
 The estimated latent period in a human host ($1/\rho$, the expected time it takes for an exposed human to become infectious to biting mosquitoes) was influenced more strongly by the data, with a posterior mean of 1.73 weeks compared to a prior mean of 0.87 weeks.
 Further, the posterior mean case reporting rate ($\phi$) was 0.14, larger than the prior mean of 0.08.
 
 \begin{figure}[!h]
 %\includegraphics[scale = 1]{figures/fig1.eps}
 \caption{{\bf Vit\'oria data and model estimates.}
-A: weekly observed case reports (points), with corresponding posterior median (black line) and 80\% posterior credible interval (gray band). B: weekly mosquito trap counts (points), with posteriod median (black line) and 80\% posterior credible interval (gray band). C: extrinsic incubation period (EIP; weeks), computed from weekly mean temperature data. D: estimated weekly mosquito mortality rate, with the posterior median (black line) and the 80\% posterior credible interval (gray band).
+A: weekly observed case reports (points), with corresponding posterior median (black line) and 80\% posterior credible interval (gray band). B: weekly mosquito trap counts (points), with posterior median (black line) and 80\% posterior credible interval (gray band). C: extrinsic incubation period (EIP; weeks), computed from weekly mean temperature data. D: estimated weekly mosquito mortality rate, with the posterior median (black line) and the 80\% posterior credible interval (gray band).
 }
 \label{timeseries}
 \end{figure}
 
-The estimated weekly mosquito mortality rate varied seasonally, with generally high mortality early in the year and low mortality in August to October (Figure \ref{timeseries}).
-This seasonal trend broadly tracked seasonal variation in temperature (Figure \ref{mortality}, correlation coefficient of 0.64) and mosquito trap counts (Figure \ref{timeseries}), though the shape of the annual trajectory differed from year to year.
+The estimated weekly mosquito mortality rate varied seasonally, with generally high mortality early in the year and low mortality in August to October (Fig \ref{timeseries}).
+This seasonal trend broadly tracked seasonal variation in temperature (Fig \ref{mortality}, correlation coefficient of 0.64) and mosquito trap counts (Fig \ref{timeseries}), though the shape of the annual trajectory differed from year to year.
 The posterior distribution of the baseline mortality rate ($d_0$) had a mean of 0.88/week, roughly $60\%$ of the prior mean.
-The marginal posterior means of the $\epsilon_{\nu t}$ forcing the mosquito mortality process exhibited a higher-frequency periodic oscillation (Supplementary Figure 1), although the marginal posterior distribution of each $\epsilon_{\nu t}$ overlapped zero.
-In addition, the standard deviation of the mortality forcing terms was small relative to the weak prior ($E(\sigma_{\nu}|\mathbf{y}) = 0.01$, Supplemental Figure 2).
+The marginal posterior means of the $\epsilon_{\nu t}$ forcing the mosquito mortality process exhibited a higher-frequency periodic oscillation (\nameref{S1_fig}), although the marginal posterior distribution of each $\epsilon_{\nu t}$ overlapped zero.
+In addition, the standard deviation of the mortality forcing terms was small relative to the weak prior ($E(\sigma_{\nu}|\mathbf{y}) = 0.01$, \nameref{S2_fig}).
 
 \begin{figure}[!h]
 %\includegraphics[scale = 1]{figures/fig2.eps}
@@ -468,10 +471,10 @@ Posterior median mosquito mortality rate as a function of weekly mean temperatur
 \label{mortality}
 \end{figure}
 
-The effect of a given mosquito control intervention (i.e., the temporary removal of $5\%$ of the adult population in a given week) on the number of cases in the following year (relative to no control) varied both seasonally and interannually (Figure \ref{control}).
+The effect of a given mosquito control intervention (i.e., the temporary removal of $5\%$ of the adult population in a given week) on the number of cases in the following year (relative to no control) varied both seasonally and interannually (Fig \ref{control}).
 This variation in the effect of control was tightly correlated with the estimated mosquito mortality, with a median posterior correlation between the two time series of 0.96.
 As such, the seasonal variation in the effectiveness of control followed the same trend as mosquito mortality rate (although the annual minima in the case ratio time series generally fell 1 to 2 weeks before the minima in the mosquito mortality time series), with the largest reductions in case load resulting from interventions during the dengue off-season (early September for 2008 and 2009, and mid-July for 2010).
-Summing over the interannual variation to compute the overall effect of control implemented in a given week of the year, we found that mosquito control was most effective when implemented around  week 34 (late August/early September), reducing the estimated case load by roughly $14\%$ (Figure \ref{control}, bottom panel).
+Summing over the interannual variation to compute the overall effect of control implemented in a given week of the year, we found that mosquito control was most effective when implemented around  week 34 (late August/early September), reducing the estimated case load by roughly $14\%$ (Fig \ref{control}).
 This broadly corresponds to the end of the dry season in Vit\'oria, when both dengue case reports and mosquito trap counts are low.
 
 \begin{figure}[!h]
@@ -485,8 +488,8 @@ For example, mosquito control applied in week 37 of 2008 would have prevented ab
 \label{control}
 \end{figure}
 
-The variation associated with the posterior predicted effect of control implemented in week 34 of the year (i.e., the width of ribbon in Figure \ref{control}) was correlated with the baseline mosquito mortality rate ($d_0$, posterior correlation coefficient of 0.65) and the case reporting probability ($\phi$, posterior correlation coefficient of -0.19).
-Simulated mosquito control created the largest reduction in case reports in posterior samples with low baseline mosquito mortality rate and/or high reporting probability, while control was relatively less effective in simulations from samples with high mosquito mortality or low reporting probability (Figure \ref{correlations}).
+The variation associated with the posterior predicted effect of control implemented in week 34 of the year (i.e., the width of ribbon in Fig \ref{control}) was correlated with the baseline mosquito mortality rate ($d_0$, posterior correlation coefficient of 0.65) and the case reporting probability ($\phi$, posterior correlation coefficient of -0.19).
+Simulated mosquito control created the largest reduction in case reports in posterior samples with low baseline mosquito mortality rate and/or high reporting probability, while control was relatively less effective in simulations from samples with high mosquito mortality or low reporting probability (Fig \ref{correlations}).
 Thus mosquito control was more effective at reducing disease burden in simulations with long average mosquito lifespans (i.e., low mosquito mortality rates) or low overall prevalence (i.e., fewer undetected cases). 
 
 
@@ -505,7 +508,7 @@ Each point represets a single sample from the posterior distribution, giving the
 
 The dynamics of dengue fever, like those of many infectious diseases \cite{Ellner1998,Koelle2004} and ecological systems \cite{Bjornstad2001}, are driven by the combined efforts of intrinsic non-linearities, seasonality, and stochasticity.
 Seasonality, in particular, is an important factor in capturing the annual cycle of dengue outbreaks \cite{Wearing2006,Aguiar2011,Reich2013}.
-However, the observed seasonality in transmission likely emerges from the combined effects of multiple seasonally-varying components that may be driven by different environmental factors and oscillate in different phases (e.g., mosquito abundance seems to lag slightly behind temperature-driven variation in extrinsic incubation period, Figure \ref{timeseries}).
+However, the observed seasonality in transmission likely emerges from the combined effects of multiple seasonally-varying components that may be driven by different environmental factors that oscillate in different phases (e.g., mosquito abundance seems to lag slightly behind temperature-driven variation in extrinsic incubation period, Fig \ref{timeseries}).
 Integrating these seasonally-varying components into a synthetic measure of transmission potential (e.g., a temperature-dependent effective reproduction number, \cite{Codeco2018}), or more specifically, a measure of the transmission potential of mosquitoes, is difficult.
 
 We positioned the latent mosquito mortality as the link between mosquito abundance, the extrinsic incubation period, and human cases.
@@ -529,9 +532,9 @@ While the immediate effects of mosquito control implemented during the decline p
 Further, although large pulses of imported cases could potentially swamp the effects of early control, in additional simulations we found that our results were robust to the import of 10 infectious humans (roughly the same order as the number of locally reported cases) just before the annual outbreak.
 
 The Bayesian framework allowed us to account for uncertainty across the data, process, and parameter levels of our model \cite{Berliner1996}.
-We carried this uncertainty through to our simulations of control interventions \cite{Elderd2006} and found that there was substantial uncertainty in the proportion of cases prevented by a control intervention (i.e., the width of the ribbons in Figure \ref{control}).
+We carried this uncertainty through to our simulations of control interventions \cite{Elderd2006} and found that there was substantial uncertainty in the proportion of cases prevented by a control intervention (i.e., the width of the ribbons in Fig \ref{control}).
 Much of this uncertainty could be attributed to posterior uncertainty in the case reporting rate ($\phi$) and the average mosquito mortality rate ($d_0$).
-Specifically, we found that control implemented at the overall optimum (week 34) had the largest impact (i.e., the lowest case ratio) in simulations with a low average mosquito mortality and/or a high case reporting rate (Figure \ref{correlations}).
+Specifically, we found that control implemented at the overall optimum (week 34) had the largest impact (i.e., the lowest case ratio) in simulations with a low average mosquito mortality and/or a high case reporting rate (Fig \ref{correlations}).
 Mosquito mortality and the case reporting rate were correlated with the overall level of mosquito abundance and the overall size of the susceptible population, respectively, suggesting that control was most effective in simulations with fewer mosquitoes and more susceptible humans.  
 Hladish \emph{et al.} \cite{Hladish2018} similarly found that simulated indoor residual spraying was more effective when the modeled mosquito abundance was already low.
 This suggests that control efforts that reduce the ability of mosquitoes to transmit DENV are most effective for situations in which mosquito abundance is already the limiting component to maintaining transmission (relative to other factors like human immunity).
@@ -551,10 +554,10 @@ In that framework, Hooker and Ellner \cite{Hooker2015} estimate nonparametric fo
 These forcing functions serve as residuals on the time derivatives, and can be more readily interpreted as indicators of lack-of-fit than residuals on the state variables \cite{Hotelling1927, Hooker2015}.
 We do not employ the same explicit goodness-of-fit testing framework as \cite{Hooker2015}, but we can inspect our estimated $\epsilon_{\nu}$ forcing terms in the same spirit.
 
-The periodic structure in the time series of the posterior means of the $\epsilon_{\nu}$ (Supplemental Figure 1) suggests that these terms were accounting for more than just noise, and there may have been some unmodeled process influencing fluctuations in mosquito mortality and/or transmission.
+The periodic structure in the time series of the posterior means of the $\epsilon_{\nu}$ (\nameref{S1_fig}) suggests that these terms were accounting for more than just noise, and there may have been some unmodeled process influencing fluctuations in mosquito mortality and/or transmission.
 Following Hooker and Ellner, we can explore whether this process is likely to result from misspecification of the rates of change of the existing state variables (indicated by a dependence of $\epsilon_{\nu t}$ on other state variables), or from missing state variables altogether (indicated by an additional dependence of $\epsilon_{\nu t}$ on its own lagged values). 
 The lack of any apparent relationship between the forcing terms and any of the estimated state variables, combined with the dependence of $\epsilon_{\nu t}$ on previous values (as apparent through the periodic structure), suggest that unmodeled state variables may be the more likely driver of model misspecification.
-These unmodeled components could include additional mosquito population dynamic processes (e.g., aquatic stage dynamics, environmental drivers, or control intervention), or epidemiological processes (e.g., multiple circulating serotypes of the dengue virus, subsets of the population with different mixing or risk levels).
+These unmodeled components could include additional mosquito population dynamic processes (e.g., aquatic stage dynamics, environmental drivers, or control interventions), or epidemiological processes (e.g., multiple circulating serotypes of the dengue virus, subsets of the population with different mixing or risk levels).
 
 Despite these potential sources of model misspecification, our estimated mosquito mortalities nonetheless fell within the reasonable range from the literature \cite{Maciel-de-Freitas2008, Brady2013}.
 Moreover, the fact that our estimated mortality rate increased with temperature also broadly agrees with the empirical literature on mosquito survival \cite{Yang2009, Brady2013, Morin2013}.
@@ -584,7 +587,7 @@ Although these targeted, reactive interventions are necessary to help reduce loc
 The frequent use of spatially-targeted mosquito control highlights the potential for spatial heterogeneities in disease risk within a city.
 In particular, structured human movement within the city is likely to induce heterogeneous human-mosquito mixing \cite{Adams2009, Cosner2009a, Stoddard2009}.
 In addition, spatial variability in socioeconomic factors within the city may also modulate the extent to which mosquitoes in different parts of the city contribute to disease spread \cite{Mondini2008, Honorio2009, Hu2012, DeMattosAlmeida2007}.
-Although our model does not account for these heterogeneities, it was nontheless able to capture the city-wide dynamics well, suggesting that there may be sufficient mixing to appear homogeneous at the city scale.
+Although our model does not account for these heterogeneities, it was nonetheless able to capture the city-wide dynamics well, suggesting that there may be sufficient mixing to appear homogeneous at the city scale.
 Further, although our mechanistic model may be able to suggest when a city-wide intervention is likely to be effective, to make the best use of limited resources, spatial prioritization may still be necessary.
 
 \subsection*{Conclusions}
@@ -602,9 +605,46 @@ This combination of model features helps to meet the need for more effective, bi
 \section*{Supporting information}
 
 % Include only the SI item label in the paragraph heading. Use the \nameref{label} command to cite SI items in the text.
+\paragraph*{S1 Fig.}
+\label{S1_fig}
+{\bf Posterior estimates of harmonic oscillator forcing functions.} A: mosquito mortality forcing. B: mosquito growth forcing.  Median posterior estimate (black line) and 80\% credible interval (gray band).
+
+\paragraph*{S2 Fig.}
+\label{S2_fig}
+{\bf Posterior distribution of variances on forcing terms.} A: mosquito mortality forcing. B: mosquito growth forcing.
+
+\paragraph*{S3 Fig.}
+\label{S3_fig}
+{\bf Posterior distribution of epidemiological parameters.}  The black line indicates the prior density. A: scaled latent period in human host ($1/\rho$). B: scaled rate of infectious decay in human host ($\gamma$). C: scaled period of cross-immunity ($1/\delta$). D: scaled baseline mosquito mortality rate ($d_0$).
+
+\paragraph*{S4 Fig.}
+\label{S4_fig}
+{\bf Posterior distribution of initial conditions.} The black line indicates the prior density. A: initial proportion of the human population that is susceptible. B: initial number of exposed individuals. C: initial number of infectious individuals. D: log initial number of mosquitoes-per-person. E: initial value of centered mosquito mortality rate oscillator. F: initial value of mosquito population growth rate oscillator.
+
+\paragraph*{S5 Fig.}
+\label{S5_fig}
+{\bf Posterior distribution of measurement parameters.} The black line shows the prior density. A: log of the mosquito trap capture rate (which is strongly correlated with initial mosquito abundance). B: human case reporting probability. C: mosquito trap count measurement over-dispersion (prior density too low to be visible). D: case report measurement over-dispersion (prior density too low to be visible).
+
+\paragraph*{S6 Fig.}
+\label{S6_fig}
+{\bf Posterior check of autocorrelation structure in data.} A: autocorrelation in case report time series. B: autocorrelation in trapped mosquito time series.  Points indicate the observed autocorrelation at the given lag, and vertical lines give the 80\% posterior credible interval of the autocorrelation in the estimated time series.
+
+\paragraph*{S7 Fig.}
+\label{S7_fig}
+{\bf Posterior distribution of the total number of cases reported (A) and the total number of mosquitoes captured (B).}  The thick line indicates the observed totals.
+
+\paragraph*{S8 Fig.}
+\label{S8_fig}
+{\bf Posterior distributions of the minimum and maximum weekly reported cases (A and C) and trapped mosquitoes (B and D).} The thick line indicates the observed minima and maxima.
+
+\paragraph*{S9 Fig.}
+\label{S9_fig}
+{\bf Posterior estimates of the mosquito mortality rate and the probability of a mosquito surving the external incubation period.}  The black line indicates the posterior median, while the gray ribbon shows the 80$\%$ credible interval.  The probability of surviving the extrinsic incubation period (bottom panel) was computed by taking the ratio of the number of mosquitoes that entered the infectious class in a week over the total number of mosquitoes that exited the exposed class that week.  That is, the probability of surviving the extrinsic incubatio period represents the fraction of mosquitoes leaving the exposed class that enter the infectious class.
+
 \paragraph*{S1 Text.}
 \label{S1}
-{Full description of model and prior distributions, along with all supplemental figures.}
+{\bf Full specification of the model and prior distributions.}
+
 
 \section*{Acknowledgements}
 
@@ -627,9 +667,548 @@ Any use of trade, firm, or product names is for descriptive purposes only and do
 % step-by-step instructions.
 % 
 
-\bibliographystyle{plos2015}
-\bibliography{dengue}
+%\bibliographystyle{plos2015}
+%\bibliography{dengue}
 
+\begin{thebibliography}{10}
+
+\bibitem{Bhatt2013}
+Bhatt S, Gething PW, Brady OJ, Messina JP, Farlow AW, Moyes CL, et~al.
+\newblock {The global distribution and burden of dengue.}
+\newblock Nature. 2013;496:504--507.
+\newblock doi:{10.1038/nature12060}.
+
+\bibitem{Achee2015}
+Achee NL, Gould F, Perkins TA, Reiner RC, Morrison AC, Ritchie Sa, et~al.
+\newblock {A critical assessment of vector control for dengue prevention}.
+\newblock PLoS Negl Trop Dis. 2015;9(5):e0003655.
+\newblock doi:{10.1371/journal.pntd.0003655}.
+
+\bibitem{Morrison2008}
+Morrison AC, Zielinski-Gutierrez E, Scott TW, Rosenberg R.
+\newblock {Defining challenges and proposing solutions for control of the virus
+  vector \emph{Aedes aegypti}}.
+\newblock PLoS Med. 2008;5(3):0362--0366.
+\newblock doi:{10.1371/journal.pmed.0050068}.
+
+\bibitem{Scott2010b}
+Scott TW, Morrison AC.
+\newblock {Longitudinal field studies will guide a paradigm shift in Dengue
+  prevention}.
+\newblock In: Vector Biology, Ecology, and Control; 2010. p. 139--161.
+\newblock Available from:
+  \url{http://link.springer.com/10.1007/978-90-481-2458-9}.
+
+\bibitem{Scott2010a}
+Scott TW, Morrison AC.
+\newblock {Vector dynamics and transmission of dengue virus: implications for
+  dengue surveillance and prevention strategies}.
+\newblock Dengue Virus. 2010;(338):161.
+\newblock doi:{10.1007/978-3-642-02215-9}.
+
+\bibitem{Bowman2014}
+Bowman LR, Runge-Ranzinger S, McCall PJ.
+\newblock {Assessing the relationship between vector indices and dengue
+  transmission: A systematic review of the evidence}.
+\newblock PLoS Negl Trop Dis. 2014;8(5):e2848.
+\newblock doi:{10.1371/journal.pntd.0002848}.
+
+\bibitem{Pepin2015}
+Pepin KM, Leach CB, Marques-Toledo C, Laass KH, Paixao KS, Luis AD, et~al.
+\newblock {Utility of mosquito surveillance data for spatial prioritization of
+  vector control against dengue viruses in three Brazilian cities}.
+\newblock Parasites and Vectors. 2015;8(1):1--15.
+\newblock doi:{10.1186/s13071-015-0659-y}.
+
+\bibitem{Cromwell2017}
+Cromwell EA, Stoddard ST, Barker CM, {Van Rie} A, Messer WB, Meshnick SR,
+  et~al.
+\newblock {The relationship between entomological indicators of \emph{Aedes
+  aegypti} abundance and dengue virus infection}.
+\newblock PLoS Negl Trop Dis. 2017;11(3):e0005429.
+\newblock doi:{10.1371/journal.pntd.0005429}.
+
+\bibitem{Koelle2004}
+Koelle K, Pascual M.
+\newblock {Disentangling extrinsic from intrinsic factors in disease dynamics:
+  A nonlinear time series approach with an application to cholera}.
+\newblock Am Nat. 2004;163(6):901--913.
+
+\bibitem{Koelle2005}
+Koelle K, Rod{\'{o}} X, Pascual M, Yunus M, Mostafa G.
+\newblock {Refractory periods and climate forcing in cholera dynamics.}
+\newblock Nature. 2005;436:696--700.
+\newblock doi:{10.1038/nature03820}.
+
+\bibitem{Smith2012}
+Smith DL, Battle KE, Hay SI, Barker CM, Scott TW, Mckenzie FE.
+\newblock {Ross, Macdonald, and a theory for the dynamics and control of
+  mosquito-transmitted pathogens}.
+\newblock PLoS Pathog. 2012;8(4).
+\newblock doi:{10.1371/journal.ppat.1002588}.
+
+\bibitem{Ellner1998}
+Ellner SP, Bailey Ba, Bobashev GV, Gallant aR, Grenfell BT, Nychka DW.
+\newblock {Noise and nonlinearity in measles epidemics: combining mechanistic
+  and statistical approaches to population modeling.}
+\newblock Am Nat. 1998;151(5):425--440.
+\newblock doi:{10.1086/286130}.
+
+\bibitem{Grenfell2002}
+Grenfell BT, Bj{\o}rnstad ON, Finkenst{\"{a}}dt BF.
+\newblock {Dynamics of measles epidemics: Scaling noise, determinism, and
+  predictability with the TSIR model}.
+\newblock Ecol Monogr. 2002;72(2):185--202.
+\newblock doi:{10.1890/0012-9615(2002)072[0185:DOMESN]2.0.CO;2}.
+
+\bibitem{Reilly2005}
+Reilly C, Zeringue A.
+\newblock {Improved predictions of lynx trappings using a biological model}.
+\newblock In: Gelman A, Meng XL, editors. Applied Bayesian Modeling and Causal
+  Inference from Incomplete-Data Perspectives. John Wiley {\&} Sons Ltd; 2005.
+  p. 297--308.
+
+\bibitem{Buckland2007}
+Buckland ST, Newman KB, Fern{\'{a}}ndez C, Thomas L, Harwood J.
+\newblock {Embedding population dynamics models in inference}.
+\newblock Stat Sci. 2007;22(1):44--58.
+\newblock doi:{10.1214/088342306000000673}.
+
+\bibitem{Hotelling1927}
+Hotelling H.
+\newblock {Differential equations subject to error, and population estimates}.
+\newblock J Am Stat Assoc. 1927;22(159):283--314.
+
+\bibitem{Wikle2010}
+Wikle CK, Hooten MB.
+\newblock {A general science-based framework for dynamical spatio-temporal
+  models}.
+\newblock Test. 2010;19:417--451.
+\newblock doi:{10.1007/s11749-010-0209-z}.
+
+\bibitem{Elderd2006}
+Elderd BD, Dukic VM, Dwyer G.
+\newblock {Uncertainty in predictions of disease spread and public health
+  responses to bioterrorism and emerging diseases}.
+\newblock Proc Natl Acad Sci U S A. 2006;103(42):15693--15697.
+
+\bibitem{Berliner1996}
+Berliner LM.
+\newblock {Hierarchical Bayesian time series models}.
+\newblock In: Hanson KM, Silver RN, editors. Maximum entropy and Bayesian
+  methods. Fundamental Theories of Physics (An international book series on the
+  fundamental theories of physics: Their clarification, development and
+  application). vol.~79. Springer, Dordrecht; 1996.
+
+\bibitem{Cressie2009}
+Cressie N, Calder Ca, Clark JS, {Ver Hoef} JM, Wikle CK.
+\newblock {Accounting for uncertainty in ecological analysis: the strengths and
+  limitations of hierarchical statistical modeling.}
+\newblock Ecol Appl. 2009;19(3):553--70.
+
+\bibitem{vitpop}
+Demographic Census 2000 and 2010 and population estimates 2001 to 2009 and 2011
+  to 2014.
+\newblock IBGE;.
+\newblock Available from:
+  \url{http://legado.vitoria.es.gov.br/regionais/Censo_2010/Tab17_crespopulacional.asp}.
+
+\bibitem{Eiras2009}
+Eiras {\'{A}}, Resende M.
+\newblock {Preliminary evaluation of the ``Dengue-MI" technology for
+  \emph{Aedes aegypti} monitoring and control}.
+\newblock Cadernos de Sa{\'{u}}de P{\'{u}}blica. 2009; p. 45--58.
+
+\bibitem{Lana2018}
+Lana RM, Morais MM, de~Lima TFM, Carneiro TGdS, Stolerman LM, dos Santos JPC,
+  et~al.
+\newblock {Assessment of a trap based \emph{Aedes aegypti} surveillance program
+  using mathematical modeling}.
+\newblock PLoS ONE. 2018;13(1):1--16.
+
+\bibitem{Wearing2006}
+Wearing HJ, Rohani P.
+\newblock {Ecological and immunological determinants of dengue epidemics.}
+\newblock Proc Natl Acad Sci U S A. 2006;103(31):11802--7.
+\newblock doi:{10.1073/pnas.0602960103}.
+
+\bibitem{Reich2013}
+Reich NG, Shrestha S, King Aa, Rohani P, Lessler J, Kalayanarooj S, et~al.
+\newblock {Interactions between serotypes of dengue highlight epidemiological
+  impact of cross-immunity.}
+\newblock J R Soc Interface. 2013;10(86):20130414.
+\newblock doi:{10.1098/rsif.2013.0414}.
+
+\bibitem{Aguiar2013}
+Aguiar M, Kooi BW, Rocha F, Ghaffari P, Stollenwerk N.
+\newblock {How much complexity is needed to describe the fluctuations observed
+  in dengue hemorrhagic fever incidence data?}
+\newblock Ecol Complex. 2013;16:31--40.
+\newblock doi:{10.1016/j.ecocom.2012.09.001}.
+
+\bibitem{Newton1992}
+Newton EAC, Reiter A.
+\newblock {A model of the transmission of dengue fever with an evaluation of
+  the impact of ultra-low volume (ULV) insecticide applications on dengue
+  epidemics}.
+\newblock Am J Trop Med Hyg. 1992;47(6):709--720.
+
+\bibitem{Burattini2008}
+Burattini MN, Chen M, Chow A, Coutinho FAB, Goh KT, Lopez LF, et~al.
+\newblock {Modelling the control strategies against dengue in Singapore}.
+\newblock Epidemiol Infect. 2008;136(03):309--319.
+
+\bibitem{Pinho2010}
+Pinho STR, Ferreira CP, Esteva L, Barreto FR, {Morato e Silva} VC, Teixeira
+  MGL.
+\newblock {Modelling the dynamics of dengue real epidemics}.
+\newblock Philos Trans R Soc A Math Phys Eng Sci. 2010;368(1933):5679--5693.
+\newblock doi:{10.1098/rsta.2010.0278}.
+
+\bibitem{Hooten2010}
+Hooten MB, Anderson J, Waller La.
+\newblock {Assessing North American influenza dynamics with a statistical SIRS
+  model.}
+\newblock Spatial and Spatio-temporal Epidemiology. 2010;1:177--85.
+\newblock doi:{10.1016/j.sste.2010.03.003}.
+
+\bibitem{Imai2016}
+Imai N, Dorigatti I, Cauchemez S, Ferguson NM.
+\newblock {Estimating dengue transmission intensity from case-notification data
+  from multiple countries}.
+\newblock PLoS Neglected Tropical Diseases. 2016;10(7):e0004833.
+\newblock doi:{10.1371/journal.pntd.0004833}.
+
+\bibitem{Clapham2017}
+Clapham HE, Cummings DAT, Johansson MA.
+\newblock {Immune status alters the probability of apparent illness due to
+  dengue virus infection: Evidence from a pooled analysis across multiple
+  cohort and cluster studies}.
+\newblock PLoS Neglected Tropical Diseases. 2017;11(9):e0005926.
+\newblock doi:{10.1371/journal.pntd.0005926}.
+
+\bibitem{Olkowski2013}
+Olkowski S, Forshey BM, Morrison AC, Rocha C, Vilcarromero S, Halsey ES, et~al.
+\newblock {Reduced risk of disease during postsecondary dengue virus
+  infections.}
+\newblock The Journal of Infectious Diseases. 2013;208:1026--33.
+\newblock doi:{10.1093/infdis/jit273}.
+
+\bibitem{Montoya2013}
+Montoya M, Gresh L, Mercado JC, Williams KL, Vargas MJ, Gutierrez G, et~al.
+\newblock {Symptomatic versus inapparent outcome in repeat dengue virus
+  infections is influenced by the time interval between infections and study
+  year}.
+\newblock PLoS Neglected Tropical Diseases. 2013;7(8):e2357.
+\newblock doi:{10.1371/journal.pntd.0002357}.
+
+\bibitem{Schwartz2005}
+Schwartz IB, Shaw LB, Cummings DAT, Billings L, Mccrary M, Burke DS.
+\newblock {Chaotic desynchronization of multistrain diseases}.
+\newblock Physical Review E - Statistical, Nonlinear, and Soft Matter Physics.
+  2005;72(6):066201.
+\newblock doi:{10.1103/PhysRevE.72.066201}.
+
+\bibitem{Chan2012}
+Chan M, Johansson MA.
+\newblock {The incubation periods of dengue viruses}.
+\newblock PLoS One. 2012;7(11):1--7.
+\newblock doi:{10.1371/journal.pone.0050972}.
+
+\bibitem{Lloyd2001}
+Lloyd AL.
+\newblock {Realistic distributions of infectious periods in epidemic models:
+  Changing patterns of persistence and dynamics}.
+\newblock Theor Popul Biol. 2001;60(1):59--71.
+\newblock doi:{10.1006/tpbi.2001.1525}.
+
+\bibitem{Ramsay2017}
+Ramsay J, Hooker G.
+\newblock Dynamic Data Analysis: Modeling Data with Differential Equations.
+\newblock Springer; 2017.
+
+\bibitem{weather}
+Historial weather data for station IESVITOR2, 2008-2012.
+\newblock WeatherUnderground;.
+\newblock Available from:
+  \url{https://www.wunderground.com/dashboard/pws/IESVITOR2}.
+
+\bibitem{vitlong}
+Longevity Subindex.
+\newblock IDHM;.
+\newblock Available from:
+  \url{http://legado.vitoria.es.gov.br/regionais/indicadores/esperancadevidanascer.asp}.
+
+\bibitem{Scott2000}
+Scott TW, Amerasinghe PH, Morrison AC, Lorenz LH, Clark GG, Strickman D, et~al.
+\newblock {Longitudinal studies of \emph{Aedes aegypti} (Diptera: Culicidae) in
+  Thailand and Puerto Rico: blood feeding frequency}.
+\newblock J Med Entomol. 2000;37(1):89--101.
+
+\bibitem{Brady2013}
+Brady OJ, Johansson MA, Guerra CA, Bhatt S, Golding N, Pigott DM, et~al.
+\newblock {Modelling adult \emph{Aedes aegypti} and \emph{Aedes albopictus}
+  survival at different temperatures in laboratory and field settings.}
+\newblock Parasit Vectors. 2013;6:351.
+\newblock doi:{10.1186/1756-3305-6-351}.
+
+\bibitem{Nguyet2013}
+Nguyet MN, Duong THK, Trung VT, Nguyen THQ, Tran CNB, Long VT, et~al.
+\newblock {Host and viral features of human dengue cases shape the population
+  of infected and infectious \emph{Aedes aegypti} mosquitoes.}
+\newblock Proc Natl Acad Sci U S A. 2013;110(22):9072--7.
+\newblock doi:{10.1073/pnas.1303395110}.
+
+\bibitem{Cardoso2011a}
+Cardoso I, Cabidelle A.
+\newblock {Dengue: clinical forms and risk groups in a high incidence city in
+  the southeastern region of Brazil}.
+\newblock Revista da Sociedade Brasileira de Medicina Tropical.
+  2011;44(4):430--435.
+
+\bibitem{Silva2016}
+Silva MMO, Rodrigues MS, Paploski IAD, Kikuti M, Kasper AM, Cruz JS, et~al.
+\newblock {Accuracy of dengue reporting by national surveillance system,
+  Brazil}.
+\newblock Emerg Infect Dis. 2016;22(2):336--339.
+\newblock doi:{10.3201/eid2202.150495}.
+
+\bibitem{Girolami2008}
+Girolami M.
+\newblock {Bayesian inference for differential equations}.
+\newblock Theor Comput Sci. 2008;408(1):4--16.
+\newblock doi:{10.1016/j.tcs.2008.07.005}.
+
+\bibitem{Calderhead2011}
+Calderhead B, Girolami M.
+\newblock {Statistical analysis of nonlinear dynamical systems using
+  differential geometric sampling methods}.
+\newblock Interface Focus. 2011;1(6):821--835.
+\newblock doi:{10.1098/rsfs.2011.0051}.
+
+\bibitem{Leander2014}
+Leander J, Lundh T, Jirstrand M.
+\newblock {Stochastic differential equations as a tool to regularize the
+  parameter estimation problem for continuous time dynamical systems given
+  discrete time measurements}.
+\newblock Math Biosci. 2014;251(1):54--62.
+\newblock doi:{10.1016/j.mbs.2014.03.001}.
+
+\bibitem{Carpenter2016}
+Carpenter B, Gelman A, Hoffman M, Lee D, Goodrich B, Betancourt M, et~al.
+\newblock {Stan: A Probabilistic Programming Language}.
+\newblock J Stat Softw. 2016;VV(Ii).
+\newblock doi:{10.18637/jss.v076.i01}.
+
+\bibitem{Rstan2017}
+{Stan Development Team}. Rstan: the R interface to Stan, R package version
+  2.16.2; 2017.
+
+\bibitem{R2016}
+{R Core Team}. R: A Language and Environment for Statistical Computing; 2016.
+\newblock Available from: \url{https://www.R-project.org/}.
+
+\bibitem{shinystan}
+Gabry J. shinystan: Interactive visual and numerical diagnostics and posterior
+  analysis for Bayesian models; 2018.
+\newblock Available from: \url{https://CRAN.R-project.org/package=shinystan}.
+
+\bibitem{Focks1987}
+Focks DA, Kloter KO, Carmichael GT.
+\newblock {The impact of sequential ultra-low volume ground aerosol
+  applications of malathion on the population dynamics of Aedes aegypti (L.)}.
+\newblock American Journal of Tropical Medicine and Hygiene.
+  1987;36(3):639--647.
+\newblock doi:{10.4269/ajtmh.1987.36.639}.
+
+\bibitem{Esu2010}
+Esu E, Lenhart A, Smith L, Horstick O.
+\newblock {Effectiveness of peridomestic space spraying with insecticide on
+  dengue transmission; Systematic review}.
+\newblock Trop Med Int Heal. 2010;15(5):619--631.
+\newblock doi:{10.1111/j.1365-3156.2010.02489.x}.
+
+\bibitem{Bjornstad2001}
+Bj{\o}rnstad ON, Grenfell BT.
+\newblock {Noisy clockwork: time series analysis of population fluctuations in
+  animals.}
+\newblock Science. 2001;293(5530):638--43.
+\newblock doi:{10.1126/science.1062226}.
+
+\bibitem{Aguiar2011}
+Aguiar M, Ballesteros S, Kooi BW, Stollenwerk N.
+\newblock {The role of seasonality and import in a minimalistic multi-strain
+  dengue model capturing differences between primary and secondary infections:
+  Complex dynamics and its implications for data analysis}.
+\newblock J Theor Biol. 2011;289:181--196.
+\newblock doi:{10.1016/j.jtbi.2011.08.043}.
+
+\bibitem{Codeco2018}
+Code{\c{c}}o CT, Villela DAM, Coelho FC.
+\newblock {Estimating the effective reproduction number of dengue considering
+  temperature-dependent generation intervals}.
+\newblock Epidemics. 2018;25(May):101--111.
+\newblock doi:{10.1016/j.epidem.2018.05.011}.
+
+\bibitem{Barsante2015}
+Barsante LS, Cordeiro FS, Cardoso RTN, Acebal JL, Paix{\~{a}}o KS, Eiras
+  {\'{A}}E.
+\newblock {Controle da dengue na esta{\c{c}}{\~{a}}o seca da cidade de
+  Curvelo-MG atrav{\'{e}}s de um modelo preditivo}.
+\newblock Proceedings of the Brazilian Society of Applied and Computational
+  Mathematics. 2015;3(1):1--7.
+\newblock doi:{10.5540/03.2015.003.01.0082}.
+
+\bibitem{Oki2011}
+Oki M, Sunahara T, Hashizume M, Yamamoto T.
+\newblock {Optimal timing of insecticide fogging to minimize dengue cases:
+  Modeling dengue transmission among various Seasonalities and transmission
+  intensities}.
+\newblock PLoS Neglected Tropical Diseases. 2011;5(10).
+\newblock doi:{10.1371/journal.pntd.0001367}.
+
+\bibitem{Stoddard2014}
+Stoddard ST, Wearing HJ, Jr RCR, Morrison AC, Astete H, Vilcarromero S, et~al.
+\newblock {Long-term and seasonal dynamics of dengue in Iquitos, Peru}.
+\newblock PLoS Neglected Tropical Diseases. 2014;8(7):19--21.
+\newblock doi:{10.1371/journal.pntd.0003003}.
+
+\bibitem{Hladish2018}
+Hladish TJ, Pearson CAB, {Patricia Rojas} D, Gomez-Dantes H, Halloran ME,
+  Vazquez-Prokopec GM, et~al.
+\newblock {Forecasting the effectiveness of indoor residual spraying for
+  reducing dengue burden}.
+\newblock PLoS Neglected Tropical Diseases. 2018;12(6):1--16.
+\newblock doi:{10.1371/journal.pntd.0006570}.
+
+\bibitem{TenBosch2016}
+ten Bosch QA, Singh BK, Hassan MRA, Chadee DD, Michael E.
+\newblock {The role of serotype interactions and seasonality in dengue model
+  selection and control: Insights from a pattern matching approach}.
+\newblock PLoS Neglected Tropical Diseases. 2016;10(5):e0004680.
+\newblock doi:{10.1371/journal.pntd.0004680}.
+
+\bibitem{Finkenstadt2000}
+Finkenstadt BF, Grenfell BT.
+\newblock {Time series modelling of childhood diseases: a dynamical systems
+  approach}.
+\newblock Applied Statistics. 2000;49:187--205.
+\newblock doi:{10.1111/1467-9876.00187}.
+
+\bibitem{Hooker2015}
+Hooker G, Ellner SP.
+\newblock {Goodness of fit in nonlinear dynamics: Misspecified rates or
+  misspecified states?}
+\newblock Ann Appl Stat. 2015;9(2):754--776.
+\newblock doi:{10.1214/15-AOAS828}.
+
+\bibitem{Maciel-de-Freitas2008}
+Maciel{-}de{-}Freitas R.
+\newblock {Calculating the survival rate and estimated population density of
+  gravid \emph{Aedes aegypti} (Diptera, Culicidae) in Rio de Janeiro, Brazil}.
+\newblock Cadernos de Sa{\'{u}}de P{\'{u}}blica. 2008;24(12):2747--2754.
+
+\bibitem{Yang2009}
+Yang HM, Macoris MLG, Galvani KC, Andrighetti MTM, Wanderley DMV.
+\newblock {Assessing the effects of temperature on the population of
+  \emph{Aedes aegypti}, the vector of dengue}.
+\newblock Epidemiol Infect. 2009;137(08):1188.
+\newblock doi:{10.1017/S0950268809002040}.
+
+\bibitem{Morin2013}
+Morin CW, Comrie AC, Ernst K.
+\newblock {Climate and dengue transmission: Evidence and implications}.
+\newblock Environmental Health Perspectives. 2013;121(11-12):1264--1272.
+\newblock doi:{10.1289/ehp.1306556}.
+
+\bibitem{Reiner2015}
+Reiner RC, Guerra C, Donnelly MJ, Bousema T, Drakeley C, Smith DL.
+\newblock {Estimating malaria transmission from humans to mosquitoes in a noisy
+  landscape}.
+\newblock Journal of the Royal Society Interface. 2015;12(20150478).
+\newblock doi:{10.1098/rsif.2015.0478}.
+
+\bibitem{Reich2016}
+Reich NG, Lauer SA, Sakrejda K, Iamsirithaworn S, Hinjoy S, Suangtho P, et~al.
+\newblock {Challenges in Real-Time Prediction of Infectious Disease: A Case
+  Study of Dengue in Thailand}.
+\newblock PLoS Neglected Tropical Diseases. 2016;10(6):1--17.
+\newblock doi:{10.1371/journal.pntd.0004761}.
+
+\bibitem{PAHO2014}
+{Pan American Health Organization}, {World Health Organization}.
+\newblock {Epidemiological alert: Chikungunya and dengue fever in the
+  Americas}; 2014. August.
+
+\bibitem{PAHO2015}
+{Pan American Health Organization}, {World Health Organization}.
+\newblock {Epidemiological update: Zika virus infection}; 2015. October.
+
+\bibitem{Brady2016}
+Brady OJ, Godfray HCJ, Tatem AJ, Gething PW, Cohen JM, McKenzie FE, et~al.
+\newblock {Vectorial capacity and vector control: Reconsidering sensitivity to
+  parameters for malaria elimination}.
+\newblock Transactions of the Royal Society of Tropical Medicine and Hygiene.
+  2016;110(2):107--117.
+\newblock doi:{10.1093/trstmh/trv113}.
+
+\bibitem{Pepin2013}
+Pepin KM, Marques-toledo C, Scherer L, Morais MM, Ellis B, Eiras AE.
+\newblock {Cost-effectiveness of novel system of mosquito surveillance}.
+\newblock Emerg Infect Dis. 2013;19(4).
+
+\bibitem{Adams2009}
+Adams B, Kapan DD.
+\newblock {Man bites mosquito: Understanding the contribution of human movement
+  to vector-borne disease dynamics.}
+\newblock PLoS One. 2009;4(8):e6763.
+\newblock doi:{10.1371/journal.pone.0006763}.
+
+\bibitem{Cosner2009a}
+Cosner C, Beier JC, Cantrell RS, Impoinvil D, Kapitanski L, Potts MD, et~al.
+\newblock {The effects of human movement on the persistence of vector-borne
+  diseases.}
+\newblock J Theor Biol. 2009;258(4):550--60.
+\newblock doi:{10.1016/j.jtbi.2009.02.016}.
+
+\bibitem{Stoddard2009}
+Stoddard ST, Morrison AC, Vazquez-Prokopec GM, {Paz Soldan} V, Kochel TJ,
+  Kitron U, et~al.
+\newblock {The role of human movement in the transmission of vector-borne
+  pathogens.}
+\newblock PLoS Negl Trop Dis. 2009;3(7):e481.
+\newblock doi:{10.1371/journal.pntd.0000481}.
+
+\bibitem{Mondini2008}
+Mondini A, Chiaravalloti-Neto F.
+\newblock {Spatial correlation of incidence of dengue with socioeconomic,
+  demographic and environmental variables in a Brazilian city.}
+\newblock Sci Total Environ. 2008;393(2-3):241--8.
+\newblock doi:{10.1016/j.scitotenv.2008.01.010}.
+
+\bibitem{Honorio2009}
+Hon{\'{o}}rio NA, Nogueira RMR, Code{\c{c}}o CT, Carvalho MS, Cruz OG,
+  Magalh{\~{a}}es MdAFM, et~al.
+\newblock {Spatial evaluation and modeling of Dengue seroprevalence and vector
+  density in Rio de Janeiro, Brazil.}
+\newblock PLoS Negl Trop Dis. 2009;3(11):e545.
+\newblock doi:{10.1371/journal.pntd.0000545}.
+
+\bibitem{Hu2012}
+Hu W, Clements A, Williams G, Tong S, Mengersen K.
+\newblock {Spatial patterns and socioecological drivers of dengue fever
+  transmission in Queensland, Australia.}
+\newblock Environ Health Perspect. 2012;120(2):260--6.
+\newblock doi:{10.1289/ehp.1003270}.
+
+\bibitem{DeMattosAlmeida2007}
+{de Mattos Almeida} MC, Caiaffa WT, Assun{\c{c}}{\~{a}}o RM, Proietti FA.
+\newblock {Spatial vulnerability to dengue in a Brazilian urban area during a
+  7-year surveillance.}
+\newblock J Urban Health. 2007;84(3):334--45.
+\newblock doi:{10.1007/s11524-006-9154-2}.
+
+\end{thebibliography}
 
 \end{document}
 

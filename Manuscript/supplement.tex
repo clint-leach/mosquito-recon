@@ -5,7 +5,7 @@
 \usepackage{amssymb}
 \usepackage{graphicx}
 \usepackage[left=2cm,right=2cm,top=2cm,bottom=2cm]{geometry}
-\title{Supplementary material}
+\title{Supplementary text}
 \author{Clinton Leach}
 
 \begin{document}
@@ -29,12 +29,12 @@ q_t & \sim \text{NegBin}((V_{Ct} - V_{Ct-1})N, \eta_q)\\
 \frac{dI}{dt} &= \rho E - (\gamma + b)I\\
 \frac{dR}{dt} &= \gamma I - (\delta + b)R\\
 \\
-\frac{dV_N}{dt} & = r V_N - \phi_q \tau_t V_N\\
-\frac{dV_{E1}}{dt} &= \lambda \frac{I}{N} V_S - (\rho_{v}(t) + d(t) + \phi_q \tau(t))V_{E1}\\
-\frac{dV_{E2}}{dt} &= \rho_{v}(t) V_{E1} - (\rho_{v}(t) + d(t) + \phi_q \tau(t))V_{E2}\\
-\frac{dV_{E3}}{dt} &= \rho_{v}(t) V_{E2}  - (\rho_{v}(t) + d(t) + \phi_q \tau(t))V_{E3}\\
-\frac{dV_{E4}}{dt} &= \rho_{v}(t) V_{E3}  - (\rho_{v}(t) + d(t) + \phi_q \tau(t))V_{E4}\\\frac{dV_I}{dt} &= \rho_{vt} V_{E4} - (d(t) + \phi_q \tau_t) V_I\\
-\frac{dV_C}{dt} & = \phi_q \tau_t V_N\\
+\frac{dV_N}{dt} & = r V_N - \phi_q \tau(t) V_N\\
+\frac{dV_{E1}}{dt} &= \lambda I V_S - (4\rho_{v}(t) + d(t) + \phi_q \tau(t))V_{E1}\\
+\frac{dV_{E2}}{dt} &= 4\rho_{v}(t) V_{E1} - (4\rho_{v}(t) + d(t) + \phi_q \tau(t))V_{E2}\\
+\frac{dV_{E3}}{dt} &= 4\rho_{v}(t) V_{E2}  - (4\rho_{v}(t) + d(t) + \phi_q \tau(t))V_{E3}\\
+\frac{dV_{E4}}{dt} &= 4\rho_{v}(t) V_{E3}  - (4\rho_{v}(t) + d(t) + \phi_q \tau(t))V_{E4}\\\frac{dV_I}{dt} &= 4\rho_{v}(t) V_{E4} - (d(t) + \phi_q \tau(t)) V_I\\
+\frac{dV_C}{dt} & = \phi_q \tau(t) V_N\\
 V_S &= V_N - V_E - V_I\\
 \\
 d(t) &= d_0 \exp(\nu(t))\\
@@ -107,7 +107,7 @@ where $\gamma = 3.5\gamma'$.
 \item \textbf{Baseline mosquito mortality rate} ($d_0$): Brady \textit{et al.} \cite{Brady2013} estimated \textit{Aedes aegypti} temperature-dependent field survivorship curves from over 190 laboratory and field experiments.
 They found that increased mortality in the field generally washes out the effect of temperature, so we use their estimates for 25 degrees C to construct our prior for $d_0$.  
 We use nonlinear least squares to fit the exponential cdf with rate $d_0$ to the estimated mortality curve provided by Brady \textit{et al.}, which gives $d_0 = 1.47$.
-We specify a gamma prior on the multiplicative scale, with parameters chosen to keep the prior mass with a factor of 2 of the mean:
+We specify a gamma prior on the multiplicative scale, with parameters chosen to keep the prior mass within a factor of 2 of the mean:
 \begin{equation}
 d_0' \sim \text{Gamma}(10, 10)
 \end{equation}
@@ -166,10 +166,10 @@ Scott \textit{et al.} \cite{Scott2000} estimate that \textit{Aedes aegypti} fema
 We take the average of these and set the biting rate at 0.69 per day, or 4.87 per week.
 There are relatively few reliable estimates of the transmission probability of DENV, but Lambrechts \textit{et al.} \cite{Lambrechts2011} estimate transmission probabilities close to one  for several related flaviviruses at 25 degrees C (roughly the mean temperature for Vitoria).
 \\
-\item \textbf{Extrinsic incubation period} ($1/\rho_{vt}$): Temperature is thought to play an important role in the seasonality of dengue, in particular through its influence on the extrinsic incubation period of the virus in the mosquito  (the amount of time until a mosquito becomes infectious after taking an infectious blood meal).
+\item \textbf{Extrinsic incubation period} ($1/\rho_{v}(t)$): Temperature is thought to play an important role in the seasonality of dengue, in particular through its influence on the extrinsic incubation period of the virus in the mosquito  (the amount of time until a mosquito becomes infectious after taking an infectious blood meal).
 To account for this, we make $1/\rho_v$ a function of temperature, and force it with weekly mean temperature records for Vitoria downloaded from Weather Underground (Goiabeiras weather station, station ID: IESVITOR2).
 We use the temperature relationship from the meta-analysis of Chan annd Johansson \cite{Chan2012}, which incorporates a large number of studies and accounts for the interval-censored nature of the data usually available from mosquito transmission studies.
-Chan and Johansson find that the log-normal and gamma distributions are nearly indistinguishable in providingthe best fit to the EIP data.
+Chan and Johansson find that the log-normal and gamma distributions are nearly indistinguishable in providing the best fit to the EIP data.
 To capture a gamma-distributed EIP in the differential equation model, we follow \cite{Lloyd2001} and chain together $\nu$ exposed compartments, each with an out-flow rate of $\nu\rho_v(t)$ to generate
 \begin{equation}
 EIP \sim \text{Gamma}(\nu, \nu \rho_v(t))
@@ -185,67 +185,5 @@ This relationship is similar to those reported in \cite{Focks1995} and \cite{Tja
 \bibliographystyle{plos2015}
 \bibliography{dengue}
 
-\newpage
-
-\section*{Supplemental figures}
-
-\begin{figure}[!h]
-\includegraphics[angle = 270, scale = 1]{figures/figS1.eps}
-\caption{
-Posterior estimates of forcing function on the harmonic oscillators for mosquito mortality (A) and growth (B) rates.  Median posterior estimate (black line) and 80\% credible interval (gray band).
-}
-\end{figure}
-
-\begin{figure}[!h]
-\includegraphics[angle = 270, scale = 1]{figures/figS2.eps}
-\caption{
-Posterior distribution of variances on $\epsilon$ forcing terms for mosquito mortality (A) and growth (B) rates.
-}
-\end{figure}
-
-\begin{figure}[!h]
-\includegraphics[angle = 270, scale = 1]{figures/figS3.eps}
-\caption{
-Posterior distribution of epidemiological parameters.  The black line indicates the prior density. A: scaled latent period in human host ($1/\rho$). B: scaled rate of infectious decay in human host ($\gamma$). C: scaled period of cross-immunity ($1/\delta$). D: scaled baseline mosquito mortality rate ($d_0$).
-}
-\end{figure}
-
-\begin{figure}[!h]
-\includegraphics[angle = 270, scale = 1]{figures/figS4.eps}
-\caption{Posterior distribution of initial conditions. The black line indicates the prior density. A: initial proportion of the human population that is susceptible. B: initial number of exposed individuals. C: initial number of infectious individuals. D: log initial number of mosquitoes-per-person. E: initial value of centered mosquito mortality rate oscillator. F: initial value of mosquito population growth rate oscillator.
-}
-\end{figure}
-
-\begin{figure}[!h]
-\includegraphics[angle = 270, scale = 1]{figures/figS5.eps}
-\caption{Posterior distribution of measurement paramters. The black line shows the prior density. A: log of the mosquito trap capture rate (which is strongly correlated with initial mosquito abundance). B: human case reporting probability. C: mosquito trap count measurement over-dispersion (prior density too low to be visible). D: case report measurement over-dispersion (prior density too low to be visible).}
-\end{figure}
-
-\begin{figure}[!h]
-\includegraphics[angle = 270, scale = 1]{figures/figS6.eps}
-\caption{Posterior check of autocorrelation structure in the case reports (A) and trapped mosquitoes (B) time series.  Points indicate the observed autocorrelation at the given lag, and vertical lines give the 80\% posterior credible interval of the autocorrelation in the estimated time series.
-}
-\end{figure}
-
-\begin{figure}[!h]
-\includegraphics[angle = 270, scale = 1]{figures/figS7.eps}
-\caption{
-Posterior distribution of the total number of cases reported (A) and the total number of mosquitoes captured (B).  The thick line indicates the observed totals.
-}
-\end{figure}
-
-\begin{figure}[!h]
-\includegraphics[angle = 270, scale = 1]{figures/figS8.eps}
-\caption{
-Posterior distributions of the minimum and maximum weekly reported cases (A and C) and trapped mosquitoes (B and D). The thick line indicates the observed minima and maxima.
-}
-\end{figure}
-
-\begin{figure}[!h]
-\includegraphics[angle = 270, scale = 1]{figures/figS9.eps}
-\caption{
-Posterior estimates of the mosquito mortality rate (top panel) and the probability of a mosquito surving the external incubation period (bottom panel).  The black line indicates the posterior median, while the gray ribbon shows the 80$\%$ credible interval.  The probability of surviving the extrinsic incubation period was computed by taking the ratio of the number of mosquitoes that entered the infectious class in a week over the total number of mosquitoes that exited the exposed class that week.  That is, the probability of surviving the extrinsic incubatio period represents the faction of mosquitoes leaving the exposed class that enter the infectious class. 
-}
-\end{figure}
 
 \end{document}
