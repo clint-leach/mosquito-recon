@@ -1,6 +1,6 @@
 # Linking mosquito surveillance to dengue fever through Bayesian mechanistic modeling
 
-This work was done in collaboration with Jennifer Hoeting, Kim Pepin, Alvaro Eiras, Mevin Hooten, and Colleen Webb.
+Leach CB, Hoeting JA, Pepin KM, Eiras AE, Hooten MB, Webb CT (2020) Linking mosquito surveillance to dengue fever through Bayesian mechanistic modeling. PLoS Negl Trop Dis 14(11): e0008868. https://doi.org/10.1371/journal.pntd.0008868
 
 ## Abstract
 
